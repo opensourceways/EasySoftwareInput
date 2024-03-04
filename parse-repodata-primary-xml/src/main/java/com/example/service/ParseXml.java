@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,6 +29,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.example.entity.po.RPMPackage;
+import com.example.util.Base64Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,8 +46,14 @@ public class ParseXml {
     @Autowired
     ExecuteService executeService;
 
+    @Autowired
+    ParseSrcPkg parseSrcPkg;
+
     @Value("${baseXmlPath}")
     private String baseXmlPath;
+
+    @Value("${srcFileName}")
+    private String srcFileName;
 
     private Map<String, Integer> countMap = new HashMap<>();
 
@@ -95,26 +104,69 @@ public class ParseXml {
 
 
     @Async
-    public RPMPackage assembleInputObject(Map<String ,String> underLineMap) {
+    public RPMPackage assembleInputObject(Map<String ,String> underLineMap, List<String> srcFiles) {
         Map<String, String> camelMap = new HashMap<>();
         for (String underLineKey: underLineMap.keySet()) {
             String camelKey = StringUtil.underlineToCamel(underLineKey);
             camelMap.put(camelKey, underLineMap.get(underLineKey));
         }
 
-        RPMPackage pAll = null;
+        RPMPackage pkg = null;
         try {
             String json = objectMapper.writeValueAsString(camelMap);
             
-            pAll = objectMapper.readValue(json, RPMPackage.class);
+            pkg = objectMapper.readValue(json, RPMPackage.class);
         } catch (Exception e) {
         }
         
+        pkg.setBinDownloadUrl(camelMap.get("baseUrl") + camelMap.get("locationHref"));
+        pkg.setChangeLog("");
 
-        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        String id = UUID.randomUUID().toString().replace("-", "");
+        pkg.setMaintanierId("");
+        pkg.setMaintianerEmail("");
+        pkg.setMaintainerGiteeId("");
+        pkg.setMaintainerUpdateAt("");
+        pkg.setMaintainerStatus("");
 
-        return pAll;
+        pkg.setOs(camelMap.get("osName") + "-" + camelMap.get("osVer"));
+        pkg.setOsSupport("");
+        pkg.setRepo("openEuler官方仓库");
+        pkg.setRepoType(camelMap.get("osType"));
+        pkg.setRpmCategory("Unspecified");
+
+        Long cTime = Long.parseLong(camelMap.get("timeFile"));
+        String fTime = new SimpleDateFormat("yyyy-MM-dd").format(new Date(cTime * 1000));
+        pkg.setRpmUpdateAt(fTime);
+        
+        double sSize = (double) Integer.parseInt(camelMap.get("sizePackage")) / 1024 / 1024;
+        String fSize = String.format("%.2fMB", sSize);
+        pkg.setRpmSize(fSize);
+
+        pkg.setSecurity("");
+        pkg.setSimilarPkgs("");
+     
+        String desired = "";
+        for (String srcUrl : srcFiles) {
+            String[] splits = srcUrl.split("/");
+            String name = splits[splits.length - 1];
+            if (name.equals(camelMap.get("rpmSourcerpm"))) {
+                desired = srcUrl;
+                break;
+            }
+        }
+        pkg.setSrcDownloadUrl(desired);
+
+        pkg.setSrcRepo(camelMap.get("url"));
+
+        String formatS = String.format("1. 添加源\n`dnf config-manager --add-repo %s `\n2. 更新源索引\n" +
+                "`dnf clean all && dnf makecache`\n3. 安装 %s 软件包\n`dnf install %s`", camelMap.get("baseUrl"),
+                pkg.getName(), pkg.getName());
+        
+        pkg.setInstallation(formatS);
+        pkg.setUpStream("");
+        pkg.setVersion(camelMap.get("versionVer") + "-" + camelMap.get("versionRel"));
+
+        return pkg;
     }
 
     public List<Map<String, String>> parseFiles(Element format) {
@@ -182,13 +234,26 @@ public class ParseXml {
         String osVer = nameSplits[0].replace("openEuler-", "");
         String osType = nameSplits[1];
   
-        String baseUrl = "https://repo.openeuler.org/" + nameSplits[0] + "/" + nameSplits[1] + "/" + nameSplits[2];
+        StringBuilder baseUrl = new StringBuilder();
+        if ("openEuler-20.09".equals(nameSplits[0]) || "openEuler-21.03".equals(nameSplits[0]) || 
+                "openEuler-21.09".equals(nameSplits[0]) || "openEuler-22.09".equals(nameSplits[0])) {
+            baseUrl.append("https://archives.openeuler.openatom.cn");
+        } else {
+            baseUrl.append("https://repo.openeuler.org");
+        }
+        for (int i = 0; i < nameSplits.length - 1; i++) {
+            baseUrl.append("/");
+            baseUrl.append(nameSplits[i]);
+        }
+        String baseUrlS = baseUrl.toString();
+
         Map<String, String> res = Map.ofEntries(
             Map.entry("osName", "openEuler"),
             Map.entry("osVer", osVer),
             Map.entry("osType", osType),
-            Map.entry("baseUrl", baseUrl)
+            Map.entry("baseUrl", baseUrlS)
         );
+
         return res;
     }
 
@@ -222,7 +287,11 @@ public class ParseXml {
                     // }
 
                     Map<String, String> mes = parsePkg(pkgElement, osMes);
-                    RPMPackage pkg = assembleInputObject(mes);
+                    List<String> srcFiles = parseSrcPkg.getSrcFile();
+                    RPMPackage pkg = assembleInputObject(mes, srcFiles);
+                    
+                    pkg = Base64Util.encode(pkg);
+
                     executeService.insertRPMPackage(pkg);
 
                 }
