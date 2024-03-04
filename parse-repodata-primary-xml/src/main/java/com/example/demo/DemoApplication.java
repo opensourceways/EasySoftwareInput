@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 
 import com.baomidou.mybatisplus.autoconfigure.DdlApplicationRunner;
+import com.example.service.ParseSrcPkg;
 import com.example.service.ParseXml;
 import com.gitee.sunchenbin.mybatis.actable.manager.handler.StartUpHandler;
 
@@ -25,12 +26,16 @@ public class DemoApplication {
         ConfigurableApplicationContext context = SpringApplication.run(DemoApplication.class, args);
 
         //启动mybatisplus actable
-        StartUpHandler bean = (StartUpHandler) context.getBean(StartUpHandler.class, args);
-        bean.startHandler();
+        // StartUpHandler bean = (StartUpHandler) context.getBean(StartUpHandler.class, args);
+        // bean.startHandler();
 
         // 解析 /repodata/primary.xml
         ParseXml parseXml = (ParseXml) context.getBean("parseXml");
         parseXml.run();
+
+        // 解析 /repodata中的源码包(即问价名后缀为.src.rpm的包)
+        // ParseSrcPkg parseSrcPkg = (ParseSrcPkg) context.getBean("parseSrcPkg");
+        // parseSrcPkg.run();
 
 	}
 

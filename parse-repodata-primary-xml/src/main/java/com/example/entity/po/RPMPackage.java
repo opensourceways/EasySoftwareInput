@@ -20,110 +20,61 @@ import lombok.NoArgsConstructor;
 // @Table(isSimple = true)
 // @TableName("rpm_pkg_base")
 public class RPMPackage {
-    // @IsKey
-    // @Column(length = 50)
-    // private String id;
-
-    // private Timestamp createAt;
-
-    // private Timestamp updateAt; 
-    
-    @Column(length = 10)
-    private String headerEnd;
-
-    @Column(length = 20)
-    private String sizeInstalled;
-    
-    @Column(length = 20)
-    private String timeFile;
-    
-    @Column(length = 20)
-    private String sizePackage;
-
-    @Column(length = 6000)
-    private String description;
-    
-    @Column(length = 5)
-    private String checksumPkgid;
-    
-    @Column(length = 100)
-    private String locationHref;
-    
-    @Column(length = 100)
-    private String rpmBuildhost;
-    
-    @Column(length = 10)
-    private String checksumType;
-    
-    @Column(length = 20)
-    private String sizeArchive;
-    
-    @Column(length = 40)
-    private String rpmVendor;
-    
-    @Column(length = 70)
-    private String checksum;
-    
-    @Column(length = 50)
-    private String rpmGroup;
-
-    @Column(length = 5)
-    private String headerStart;
-    
-    @Column(length = 200)
-    private String summary;
-    
-    @Column(length = 100)
-    private String versionRel;
-    
-    @Column(length = 30)
-    private String versionVer;
-    
-    @Column(length = 30)
-    private String packager;
-    
-    @Column(length = 150)
-    private String url;
-    
-    @Column(length = 5)
-    private String versionEpoch;
-    
-    @Column(length = 100)
-    private String rpmSourcerpm;
-
-    @Column(length = 1000)
-    private String rpmLicense;
-
-    @Column(length = 50)
     private String name;
     
-    @Column(length = 20)
-    private String timeBuild;
+    private String id;
     
-    @Column(length = 10)
+    private String version;
+
+    private String os;
+
     private String arch;
 
-    @Column(length = 20)
-    private String osName;
-    
-    @Column(length = 20)
-    private String osVer;
-    
-    @Column(length = 20)
-    private String osType;
+    private String rpmCategory;
 
-    @Column(type = MySqlTypeConstant.LONGTEXT)
+    private String rpmUpdateAt;
+
+    private String srcRepo;
+
+    private String rpmSize;
+
+    private String binDownloadUrl;
+
+    private String srcDownloadUrl;
+
+    private String summary;
+
+    private String osSupport;
+
+    private String repo;
+
+    private String repoType;
+
+    private String installation;
+
+    private String description;
+
     private String requires;
     
-    @Column(type = MySqlTypeConstant.LONGTEXT)
     private String provides;
 
-    @Column(type = MySqlTypeConstant.LONGTEXT)
-    private String files;
+    private String conflicts;
 
-    @Column(length = 100)
-    private String baseUrl;
+    private String changeLog;
 
-    @Column(length = 50)
-    private String rpmCategory;
+    private String maintanierId;
+
+    private String maintianerEmail;
+
+    private String maintainerGiteeId;
+
+    private String maintainerUpdateAt;
+
+    private String maintainerStatus;
+
+    private String upStream;
+
+    private String security;
+
+    private String similarPkgs;
 }
