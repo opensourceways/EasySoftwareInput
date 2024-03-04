@@ -8,7 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.example.entity.po.RPMPackage;
+import com.example.entity.po.EPKGPackage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -20,11 +20,7 @@ public class ExecuteService {
     @Autowired
     ObjectMapper objectMapper;
 
-    @Value("${post.url}")
-    private String postUrl;
-
-    
-    public void insertRPMPackage(RPMPackage pkg) {
+    public void insertEPKGPackage(EPKGPackage pkg, String postUrl) {
         String jsonPkg = "";
         try {
             jsonPkg= objectMapper.writeValueAsString(pkg);
@@ -40,8 +36,7 @@ public class ExecuteService {
         try {
             restTemplate.postForObject(postUrl, request, String.class);
         } catch (Exception e) {
-            
-            log.error(pkg.getName());
+            log.error(pkg.getName(), e);
         }
     }
 }
