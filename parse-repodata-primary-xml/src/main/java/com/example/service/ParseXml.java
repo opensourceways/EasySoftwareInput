@@ -208,16 +208,18 @@ public class ParseXml {
 
         List<Map<String, String>> provides = parseArray(format, "provides");
         List<Map<String, String>> requires = parseArray(format, "requires");
-
+        List<Map<String, String>> conflicts = parseArray(format, "conflicts");
         List<Map<String, String>> files = parseFiles(format);
 
         try {
             String provideString = objectMapper.writeValueAsString(provides);
             String requireString = objectMapper.writeValueAsString(requires);
+            String conflictString = objectMapper.writeValueAsString(conflicts);
             String fileString = objectMapper.writeValueAsString(files);
 
             res.put("requires", requireString);
             res.put("provides", provideString);
+            res.put("conflicts", conflictString);
             res.put("files", fileString);
         } catch (JsonProcessingException e) {
         } catch (IOException e) {
@@ -278,13 +280,8 @@ public class ParseXml {
                 for (Element pkgElement : document.getRootElement().elements()) {
                     String pkgName = pkgElement.element(new QName("name", new Namespace("", "http://linux.duke.edu/metadata/common"))).getTextTrim();
 
-                    log.info("count: {}fileName: {}, pkgName: {}", count, filePath, pkgName);
+                    log.info("current file: count: {},fileName: {}, pkgName: {}", count, filePath, pkgName);
                     count ++;
-
-                    // 只存10万条数据，仅供演示
-                    // if (count > 10_0000) {
-                    //     System.exit(0);
-                    // }
 
                     Map<String, String> mes = parsePkg(pkgElement, osMes);
                     List<String> srcFiles = parseSrcPkg.getSrcFile();
