@@ -7,6 +7,7 @@ import com.obs.services.model.PutObjectRequest;
 import jakarta.annotation.PostConstruct;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.InputStream;
 import java.nio.file.Paths;
 
@@ -76,11 +77,32 @@ public class ObsService {
     private void processSubFolder(File subFolder) {
         if (subFolder.isDirectory()) {
             String subFolderPath = subFolder.getAbsolutePath();
-            String logoPath = Paths.get(subFolderPath, "doc", "picture", "logo.png").toString();
-            File logoFile = new File(logoPath);
-            if (logoFile.exists()) {
-                putData(subFolder.getName() + ".png", logoPath);
+            File directory = new File(Paths.get(subFolderPath, "doc", "picture").toString());
+            if (directory.isDirectory()) {
+                File[] imageFiles = directory.listFiles(new ImageFilenameFilter());
+    
+                if (imageFiles != null) {
+                    for (File file : imageFiles) {
+                        System.out.println(file.getName());
+                        String key = subFolder.getName() + "." + file.getName().split("\\.")[1];
+                        putData(key, file.getAbsolutePath());
+                        logger.info("{} post to obs successfully.", key);
+                    }
+                }
+            } else {
+                logger.info("{} does not have logo.", subFolder.getName());
             }
+        }
+    }
+
+    static class ImageFilenameFilter implements FilenameFilter {
+        @Override
+        public boolean accept(File dir, String name) {
+            return name.toLowerCase().endsWith(".jpg") ||
+                   name.toLowerCase().endsWith(".jpeg") ||
+                   name.toLowerCase().endsWith(".png") ||
+                   name.toLowerCase().endsWith(".gif") ||
+                   name.toLowerCase().endsWith(".bmp");
         }
     }
 
