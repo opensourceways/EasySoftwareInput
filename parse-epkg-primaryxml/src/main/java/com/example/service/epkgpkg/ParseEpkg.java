@@ -3,6 +3,7 @@ package com.example.service.epkgpkg;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.sql.Timestamp;
@@ -27,6 +28,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.example.entity.po.EPKGPackage;
+import com.example.mapper.EPKGPackageMapper;
 import com.example.service.Assemble;
 import com.example.service.ExecuteService;
 import com.example.util.Base64Util;
@@ -63,6 +65,9 @@ public class ParseEpkg {
 
     @Autowired
     ExecuteService executeService;
+
+    @Autowired
+    EPKGPackageMapper epkgPackageMapper;
 
     @Async
     public EPKGPackage assembleInputObject(Map<String ,String> underLineMap) {
@@ -108,7 +113,7 @@ public class ParseEpkg {
     }
 
 
-    public void run() {
+    public void run() throws UnsupportedEncodingException {
 
         SAXReader reader = new SAXReader();
         Document document = null;
@@ -140,14 +145,16 @@ public class ParseEpkg {
 
             EPKGPackage pkg = assemble.assembleEpkgpkg(mes, srcFiles);
             
-            EPKGPackage pkgBase64 = null;
-            try {
-                pkgBase64 = Base64Util.encode(pkg);
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+            // EPKGPackage pkgBase64 = null;
+            // try {
+            //     pkgBase64 = Base64Util.encode(pkg);
+            // } catch (Exception e) {
+            //     // TODO Auto-generated catch block
+            //     e.printStackTrace();
+            // }
             
+            // epkgPackageMapper.insert(pkgBase64);
+
             // 调用easysoftwareservice服务的接口
             executeService.insertEPKGPackage(pkg, postUrl);
         }

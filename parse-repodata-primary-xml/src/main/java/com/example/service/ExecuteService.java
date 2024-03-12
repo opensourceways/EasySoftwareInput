@@ -31,6 +31,8 @@ public class ExecuteService {
         } catch (JsonProcessingException e) {
         }
 
+        log.info(jsonPkg);
+
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
