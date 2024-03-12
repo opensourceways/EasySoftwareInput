@@ -1,24 +1,16 @@
-package com.example.service;
+package com.example.converter;
 
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.example.entity.po.EPKGPackage;
-import com.example.mapper.EPKGPackageMapper;
-import com.example.service.epkgpkg.ParseRepoType;
+import com.example.entity.po.RPMPackage;
+import com.example.service.ParseRepoType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.power.common.util.StringUtil;
@@ -27,45 +19,31 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class Assemble {
+public class PkgConverter {
     @Autowired
     ObjectMapper objectMapper;
 
     @Autowired
-    EPKGPackageMapper epkgPackageMapper;
-
-    @Autowired
-    ExecuteService executeService;
-
-    @Autowired
     ParseRepoType parseRepoType;
 
-    public EPKGPackage assembleEpkgpkg(Map<String, String> underLineMap, List<String> srcFiles) throws UnsupportedEncodingException {
-
+    public RPMPackage assembleInputObject(Map<String ,String> underLineMap, List<String> srcFiles) {
         Map<String, String> camelMap = new HashMap<>();
         for (String underLineKey: underLineMap.keySet()) {
             String camelKey = StringUtil.underlineToCamel(underLineKey);
             camelMap.put(camelKey, underLineMap.get(underLineKey));
         }
 
-        EPKGPackage pkg = null;
+        RPMPackage pkg = null;
         try {
             String json = objectMapper.writeValueAsString(camelMap);
-            pkg = objectMapper.readValue(json, EPKGPackage.class);
+            
+            pkg = objectMapper.readValue(json, RPMPackage.class);
         } catch (Exception e) {
         }
-
+        
         pkg.setBinDownloadUrl(camelMap.get("baseUrl") + camelMap.get("locationHref"));
         pkg.setChangeLog("");
 
-        
-        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        String id = UUID.randomUUID().toString().replace("-", "");
-        pkg.setUpdateAt(currentTime);
-        pkg.setCreateAt(currentTime);
-        // 直接往数据库存，需要设置id，但是调用easysoftware接口，不能设置id
-        // pkg.setId(id);
-        
         pkg.setMaintanierId("");
         pkg.setMaintianerEmail("");
         pkg.setMaintainerGiteeId("");
@@ -73,11 +51,11 @@ public class Assemble {
         pkg.setMaintainerStatus("");
 
         pkg.setOs(camelMap.get("osName") + "-" + camelMap.get("osVer"));
+
         // 版本支持情况
         pkg.setOsSupport(camelMap.get("osName") + "-" + camelMap.get("osVer"));
 
-
-        // pkg.setRepo("openeuler official repo");
+        // pkg.setRepo("openEuler官方仓库");
         pkg.setRepo("");
         try {
             pkg.setRepo(objectMapper.writeValueAsString(Map.ofEntries(
@@ -107,21 +85,21 @@ public class Assemble {
         } catch (JsonProcessingException e) {
             log.error("", e);
         }
-
-
-        pkg.setEpkgCategory("Unspecified");
         
+
+        pkg.setRpmCategory("Unspecified");
+
         Long cTime = Long.parseLong(camelMap.get("timeFile"));
         String fTime = new SimpleDateFormat("yyyy-MM-dd").format(new Date(cTime * 1000));
-        pkg.setEpkgUpdateAt(fTime);
+        pkg.setRpmUpdateAt(fTime);
         
         double sSize = (double) Integer.parseInt(camelMap.get("sizePackage")) / 1024 / 1024;
         String fSize = String.format("%.2fMB", sSize);
-        pkg.setEpkgSize(fSize);
+        pkg.setRpmSize(fSize);
 
         pkg.setSecurity("");
         pkg.setSimilarPkgs("");
-
+     
         String desired = "";
         for (String srcUrl : srcFiles) {
             String[] splits = srcUrl.split("/");
@@ -135,17 +113,14 @@ public class Assemble {
 
         pkg.setSrcRepo(camelMap.get("url"));
 
-        String formatS = String.format(Locale.ROOT, "1. 添加源 \n `dnf config-manager --add-repo %s ` \n 2. 更新源索引 \n " +
+        String formatS = String.format("1. 添加源\n`dnf config-manager --add-repo %s `\n2. 更新源索引\n" +
                 "`dnf clean all && dnf makecache`\n3. 安装 %s 软件包\n`dnf install %s`", camelMap.get("baseUrl"),
                 pkg.getName(), pkg.getName());
         
-        // formatS = new String(formatS.getBytes("UTF-8"));
-        
         pkg.setInstallation(formatS);
-
         pkg.setUpStream("");
         pkg.setVersion(camelMap.get("versionVer") + "-" + camelMap.get("versionRel"));
-    
+
         return pkg;
     }
 }
