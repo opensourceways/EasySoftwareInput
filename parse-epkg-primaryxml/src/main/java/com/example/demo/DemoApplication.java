@@ -26,14 +26,13 @@ public class DemoApplication {
     public static void main(String[] args) throws UnsupportedEncodingException {
         ConfigurableApplicationContext context = SpringApplication.run(DemoApplication.class, args);
 
-        // epkg软件包
-        // 解析 epkg的软件包
+        // 1. 解析 epkg的软件包
         ParseEpkg parseEpkg = (ParseEpkg) context.getBean("parseEpkg");
         
         parseEpkg.run();
         
 
-        // 解析epkg软件包中哪些属于源码包，即文件后缀为.src.rpm
+        // 2. 解析epkg软件包中哪些属于源码包，即文件后缀为.src.rpm
         // ParseEpkgSrcPkg parseSrcPkg = (ParseEpkgSrcPkg) context.getBean("parseSrcPkg");
         // parseSrcPkg.run();
 

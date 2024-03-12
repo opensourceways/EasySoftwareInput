@@ -3,10 +3,7 @@ package com.example.entity.po;
 import java.io.Serial;
 import java.sql.Timestamp;
 
-import com.baomidou.mybatisplus.annotation.EnumValue;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.gitee.sunchenbin.mybatis.actable.annotation.Column;
-import com.gitee.sunchenbin.mybatis.actable.constants.MySqlTypeConstant;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

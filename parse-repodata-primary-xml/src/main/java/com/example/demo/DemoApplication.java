@@ -26,10 +26,6 @@ public class DemoApplication {
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(DemoApplication.class, args);
 
-        //启动mybatisplus actable
-        // StartUpHandler bean = (StartUpHandler) context.getBean(StartUpHandler.class, args);
-        // bean.startHandler();
-
         // 1. 解析 /repodata/primary.xml
         ParseXml parseXml = (ParseXml) context.getBean("parseXml");
         parseXml.run();
@@ -41,7 +37,6 @@ public class DemoApplication {
         // 3. 解析src-openeuler仓库的所有包
         // ParseRepoType parseRepoType = (ParseRepoType) context.getBean("parseRepoType");
         // parseRepoType.run();
-
 	}
 
 	@Bean

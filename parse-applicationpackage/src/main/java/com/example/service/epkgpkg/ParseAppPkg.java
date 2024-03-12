@@ -50,16 +50,11 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class ParseAppPkg {
-    // @Value("${imageinfo.filepath}")
-    // private String originPath;
-
     @Autowired
     ObjectMapper objectMapper;
 
     @Autowired
     ExecuteService executeService;
-
-    
 
     private static Map<String, String> categoryChEn = Map.ofEntries(
         Map.entry("database", "数据库"),
@@ -85,7 +80,6 @@ public class ParseAppPkg {
         Map<String, Object> map = yaml.load(inputStream);
         String envi = (String) map.get("environment");
 
-        
         AppPkg pkg = null;
         try {
             String json = objectMapper.writeValueAsString(map);
@@ -116,7 +110,7 @@ public class ParseAppPkg {
             log.error("", e);
 		}
 
-        
+        pkg.setType("IMAGE");
         
 
         executeService.insertRPMPackage(pkg);

@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class GitRepo {
+    // 变量repoPath：`https://gitee.com/openeuler/openeuler-docker-images`仓库的本地目录
     @Value("${repo.path}")
     String repoPath;
 
