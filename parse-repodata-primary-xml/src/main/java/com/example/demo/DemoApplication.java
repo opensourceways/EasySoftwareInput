@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 
 import com.baomidou.mybatisplus.autoconfigure.DdlApplicationRunner;
+import com.example.service.ParseRepoType;
 import com.example.service.ParseSrcPkg;
 import com.example.service.ParseXml;
 import com.gitee.sunchenbin.mybatis.actable.manager.handler.StartUpHandler;
@@ -25,18 +26,17 @@ public class DemoApplication {
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(DemoApplication.class, args);
 
-        //启动mybatisplus actable
-        // StartUpHandler bean = (StartUpHandler) context.getBean(StartUpHandler.class, args);
-        // bean.startHandler();
-
-        // 解析 /repodata/primary.xml
+        // 1. 解析 /repodata/primary.xml
         ParseXml parseXml = (ParseXml) context.getBean("parseXml");
         parseXml.run();
 
-        // 解析 /repodata中的源码包(即问价名后缀为.src.rpm的包)
+        // 2. 解析 /repodata中的源码包(即问价名后缀为.src.rpm的包)
         // ParseSrcPkg parseSrcPkg = (ParseSrcPkg) context.getBean("parseSrcPkg");
         // parseSrcPkg.run();
 
+        // 3. 解析src-openeuler仓库的所有包
+        // ParseRepoType parseRepoType = (ParseRepoType) context.getBean("parseRepoType");
+        // parseRepoType.run();
 	}
 
 	@Bean

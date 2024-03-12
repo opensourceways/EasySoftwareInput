@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import com.example.converter.PkgConverter;
 import com.example.entity.po.RPMPackage;
 import com.example.util.Base64Util;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -48,6 +49,9 @@ public class ParseXml {
 
     @Autowired
     ParseSrcPkg parseSrcPkg;
+
+    @Autowired
+    PkgConverter pkgConverter;
 
     @Value("${baseXmlPath}")
     private String baseXmlPath;
@@ -100,73 +104,6 @@ public class ParseXml {
         }
         return res;
         
-    }
-
-
-    @Async
-    public RPMPackage assembleInputObject(Map<String ,String> underLineMap, List<String> srcFiles) {
-        Map<String, String> camelMap = new HashMap<>();
-        for (String underLineKey: underLineMap.keySet()) {
-            String camelKey = StringUtil.underlineToCamel(underLineKey);
-            camelMap.put(camelKey, underLineMap.get(underLineKey));
-        }
-
-        RPMPackage pkg = null;
-        try {
-            String json = objectMapper.writeValueAsString(camelMap);
-            
-            pkg = objectMapper.readValue(json, RPMPackage.class);
-        } catch (Exception e) {
-        }
-        
-        pkg.setBinDownloadUrl(camelMap.get("baseUrl") + camelMap.get("locationHref"));
-        pkg.setChangeLog("");
-
-        pkg.setMaintanierId("");
-        pkg.setMaintianerEmail("");
-        pkg.setMaintainerGiteeId("");
-        pkg.setMaintainerUpdateAt("");
-        pkg.setMaintainerStatus("");
-
-        pkg.setOs(camelMap.get("osName") + "-" + camelMap.get("osVer"));
-        pkg.setOsSupport("");
-        pkg.setRepo("openEuler官方仓库");
-        pkg.setRepoType(camelMap.get("osType"));
-        pkg.setRpmCategory("Unspecified");
-
-        Long cTime = Long.parseLong(camelMap.get("timeFile"));
-        String fTime = new SimpleDateFormat("yyyy-MM-dd").format(new Date(cTime * 1000));
-        pkg.setRpmUpdateAt(fTime);
-        
-        double sSize = (double) Integer.parseInt(camelMap.get("sizePackage")) / 1024 / 1024;
-        String fSize = String.format("%.2fMB", sSize);
-        pkg.setRpmSize(fSize);
-
-        pkg.setSecurity("");
-        pkg.setSimilarPkgs("");
-     
-        String desired = "";
-        for (String srcUrl : srcFiles) {
-            String[] splits = srcUrl.split("/");
-            String name = splits[splits.length - 1];
-            if (name.equals(camelMap.get("rpmSourcerpm"))) {
-                desired = srcUrl;
-                break;
-            }
-        }
-        pkg.setSrcDownloadUrl(desired);
-
-        pkg.setSrcRepo(camelMap.get("url"));
-
-        String formatS = String.format("1. 添加源\n`dnf config-manager --add-repo %s `\n2. 更新源索引\n" +
-                "`dnf clean all && dnf makecache`\n3. 安装 %s 软件包\n`dnf install %s`", camelMap.get("baseUrl"),
-                pkg.getName(), pkg.getName());
-        
-        pkg.setInstallation(formatS);
-        pkg.setUpStream("");
-        pkg.setVersion(camelMap.get("versionVer") + "-" + camelMap.get("versionRel"));
-
-        return pkg;
     }
 
     public List<Map<String, String>> parseFiles(Element format) {
@@ -285,9 +222,9 @@ public class ParseXml {
 
                     Map<String, String> mes = parsePkg(pkgElement, osMes);
                     List<String> srcFiles = parseSrcPkg.getSrcFile();
-                    RPMPackage pkg = assembleInputObject(mes, srcFiles);
+                    RPMPackage pkg = pkgConverter.assembleInputObject(mes, srcFiles);
                     
-                    pkg = Base64Util.encode(pkg);
+                    // pkg = Base64Util.encode(pkg);
 
                     executeService.insertRPMPackage(pkg);
 
