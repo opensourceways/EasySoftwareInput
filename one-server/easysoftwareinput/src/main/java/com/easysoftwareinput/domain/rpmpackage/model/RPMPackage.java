@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RPMPackage {
-    private String name;
+public class RPMPackage extends BasePackage {
+    // private String name;
     
     private String id;
     
@@ -18,7 +18,7 @@ public class RPMPackage {
 
     private String arch;
 
-    private String rpmCategory;
+    // private String rpmCategory;
 
     private String rpmUpdateAt;
 
@@ -50,15 +50,15 @@ public class RPMPackage {
 
     private String changeLog;
 
-    private String maintanierId;
+    // private String maintanierId;
 
-    private String maintianerEmail;
+    // private String maintianerEmail;
 
-    private String maintainerGiteeId;
+    // private String maintainerGiteeId;
 
-    private String maintainerUpdateAt;
+    // private String maintainerUpdateAt;
 
-    private String maintainerStatus;
+    // private String maintainerStatus;
 
     private String upStream;
 
