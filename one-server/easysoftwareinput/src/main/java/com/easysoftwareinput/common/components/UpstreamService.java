@@ -61,17 +61,4 @@ public class UpstreamService<T extends BasePackage> {
         appPkg.setSrcRepo(info.get("srcRepo"));
         return appPkg;
     }
-
-    public static void main(String[] args) {
-        String repoSigApi = "https://dsapi.osinfra.cn/query/repo/sig?community=openeuler&repo=%s";
-        BasePackage pkg = new BasePackage();
-        pkg.setName("opencv");
-        String resp = HttpClientUtil.getApiResponseData(String.format(repoSigApi, pkg.getName()));
-        if (resp != null && MapConstant.CATEGORY_MAP.containsKey(resp)) {
-            pkg.setCategory(MapConstant.CATEGORY_MAP.get(resp));
-        } else {
-            pkg.setCategory(MapConstant.CATEGORY_MAP.get("Other"));
-        }
-        System.out.println(pkg);
-    }
 }
