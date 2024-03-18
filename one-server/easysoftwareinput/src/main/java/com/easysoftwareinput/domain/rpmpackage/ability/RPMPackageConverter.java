@@ -13,6 +13,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.easysoftwareinput.application.rpmpackage.HttpService;
+import com.easysoftwareinput.common.components.UpstreamService;
 import com.easysoftwareinput.common.entity.MessageCode;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackage;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -32,6 +33,9 @@ public class RPMPackageConverter {
 
     @Autowired
     HttpService httpService;
+
+    @Autowired
+    UpstreamService<RPMPackage> upstreamService;
 
     private String getRepoType(String name) {
         String url = env.getProperty("rpm.remote-repo") + name;
@@ -65,12 +69,6 @@ public class RPMPackageConverter {
         pkg.setBinDownloadUrl(camelMap.get("baseUrl") + camelMap.get("locationHref"));
         pkg.setChangeLog("");
 
-        pkg.setMaintanierId("");
-        pkg.setMaintianerEmail("");
-        pkg.setMaintainerGiteeId("");
-        pkg.setMaintainerUpdateAt("");
-        pkg.setMaintainerStatus("");
-
         pkg.setOs(camelMap.get("osName") + "-" + camelMap.get("osVer"));
 
         // 版本支持情况
@@ -97,8 +95,10 @@ public class RPMPackageConverter {
         } catch (JsonProcessingException e) {
             log.error(MessageCode.EC00014.getMsgEn(), e);
         }
-        
-        pkg.setRpmCategory("Unspecified");
+
+        pkg = upstreamService.addMaintainerInfo(pkg);
+        pkg = upstreamService.addRepoDownload(pkg);
+        pkg = upstreamService.addRepoCategory(pkg);
 
         Long cTime = Long.parseLong(camelMap.get("timeFile"));
         String fTime = new SimpleDateFormat("yyyy-MM-dd").format(new Date(cTime * 1000));
