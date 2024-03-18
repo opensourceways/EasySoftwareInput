@@ -38,8 +38,9 @@ public class UpstreamService<T extends BasePackage> {
         String resp = HttpClientUtil.getApiResponseData(String.format(repoSigApi, pkg.getName()));
         if (resp != null && MapConstant.CATEGORY_MAP.containsKey(resp)) {
             pkg.setCategory(MapConstant.CATEGORY_MAP.get(resp));
+        } else {
+            pkg.setCategory(MapConstant.CATEGORY_MAP.get("Other"));
         }
-        pkg.setCategory(MapConstant.CATEGORY_MAP.get("Other"));
         return pkg;
     }
 
