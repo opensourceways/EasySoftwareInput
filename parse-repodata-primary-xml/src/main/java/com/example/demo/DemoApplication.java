@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 
 import com.baomidou.mybatisplus.autoconfigure.DdlApplicationRunner;
+import com.example.service.ParseRepoSig;
 import com.example.service.ParseRepoType;
 import com.example.service.ParseSrcPkg;
 import com.example.service.ParseXml;
@@ -27,8 +28,8 @@ public class DemoApplication {
         ConfigurableApplicationContext context = SpringApplication.run(DemoApplication.class, args);
 
         // 1. 解析 /repodata/primary.xml
-        ParseXml parseXml = (ParseXml) context.getBean("parseXml");
-        parseXml.run();
+        // ParseXml parseXml = (ParseXml) context.getBean("parseXml");
+        // parseXml.run();
 
         // 2. 解析 /repodata中的源码包(即问价名后缀为.src.rpm的包)
         // ParseSrcPkg parseSrcPkg = (ParseSrcPkg) context.getBean("parseSrcPkg");
@@ -37,6 +38,11 @@ public class DemoApplication {
         // 3. 解析src-openeuler仓库的所有包
         // ParseRepoType parseRepoType = (ParseRepoType) context.getBean("parseRepoType");
         // parseRepoType.run();
+
+        // 4. 解析src-openeuler仓库下的所有包属于哪个SIG组
+        ParseRepoSig parseRepoSig = (ParseRepoSig) context.getBean("parseRepoSig");
+        parseRepoSig.run();
+
 	}
 
 	@Bean
