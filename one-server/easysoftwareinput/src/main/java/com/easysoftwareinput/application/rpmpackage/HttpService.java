@@ -19,11 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class HttpService {
-    // @Autowired
-    // RestTemplate restTemplate;
-
-    // @Autowired
-    // ObjectMapper objectMapper;
 
     @Value("${rpm.post.url}")
     String postUrl;
@@ -36,13 +31,11 @@ public class HttpService {
                 result = restTemplate.getForObject(url, String.class);
                 return true;
             } catch (Exception e) {
-                // log.error(MessageCode.EC00015.getMsgEn(), e);
                 return false;
             }
         }
     }
-
-    @Async
+    
     public <T> void postPkg(T t) {
         RestTemplate restTemplate = new RestTemplate();
         ObjectMapper objectMapper = new ObjectMapper();
@@ -61,6 +54,7 @@ public class HttpService {
             restTemplate.postForObject(postUrl, request, String.class);
         } catch (Exception e) {
             log.error(MessageCode.EC0001.getMsgEn(), e);
+            log.error(jsonPkg, e);
         }
     }
 }

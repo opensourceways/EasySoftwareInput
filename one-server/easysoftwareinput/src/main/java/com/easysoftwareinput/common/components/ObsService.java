@@ -1,5 +1,6 @@
 package com.easysoftwareinput.common.components;
 
+import com.easysoftwareinput.application.apppackage.YamlService;
 import com.obs.services.ObsClient;
 import com.obs.services.model.ObsObject;
 import com.obs.services.model.PutObjectRequest;
@@ -11,6 +12,7 @@ import java.io.FilenameFilter;
 import java.io.InputStream;
 import java.nio.file.Paths;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.eclipse.jgit.api.Git;
@@ -31,6 +33,9 @@ public class ObsService {
 
     @Value("${obs.sk}")
     String obsSk;
+
+    @Autowired
+    YamlService yamlService;
 
     private static final Logger logger = LoggerFactory.getLogger(ObsService.class);
     private static ObsClient obsClient;
@@ -70,14 +75,15 @@ public class ObsService {
                 return;
 
             for (File file : files) {
-                processSubFolder(file);
+                processSubFolderForPicture(file);
+                processSubFolderForImageInfo(file);
             }
         } else {
             logger.info("{} does not exist or is not a directory.", folderPath);
         }
     }
 
-    private void processSubFolder(File subFolder) {
+    private void processSubFolderForPicture(File subFolder) {
         if (subFolder.isDirectory()) {
             String subFolderPath = subFolder.getAbsolutePath();
             File directory = new File(Paths.get(subFolderPath, "doc", "picture").toString());
@@ -94,6 +100,19 @@ public class ObsService {
             } else {
                 logger.info("{} does not have logo.", subFolder.getName());
             }
+        }
+    }
+
+    private void processSubFolderForImageInfo(File subFolder) {
+        if (subFolder.isDirectory()) {
+            String subFolderPath = subFolder.getAbsolutePath();
+            String fullFile = Paths.get(subFolderPath, "doc", "image-info.yml").toString();
+            File imageInfoYaml = new File(fullFile);
+            if (! imageInfoYaml.exists() || ! imageInfoYaml.isFile()) {
+                logger.info("{} does not have image-info.yaml", subFolder);
+                return;
+            }
+            yamlService.run(fullFile);
         }
     }
 

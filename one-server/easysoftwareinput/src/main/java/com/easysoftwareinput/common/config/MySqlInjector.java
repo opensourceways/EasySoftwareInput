@@ -1,4 +1,4 @@
-package com.easysoftwareinput.common.utils;
+package com.easysoftwareinput.common.config;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.easysoftwareinput.domain.apppkg.ability;
+package com.easysoftwareinput.domain.apppackage.ability;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,17 +8,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.easysoftwareinput.common.components.ObsService;
 import com.easysoftwareinput.common.components.UpstreamService;
 import com.easysoftwareinput.common.utils.ObjectMapperUtil;
-import com.easysoftwareinput.domain.rpmpackage.model.AppPkg;
+import com.easysoftwareinput.domain.apppackage.model.AppPackage;
 import com.power.common.util.StringUtil;
 
 public class AppPkgConvertor {
     @Autowired
-    UpstreamService<AppPkg> upstreamService;
+    UpstreamService<AppPackage> upstreamService;
 
     @Autowired
     ObsService obsService;
 
-    public AppPkg toEntity(Map<String, String> underLineMap) {
+    public AppPackage toEntity(Map<String, String> underLineMap) {
         Map<String, String> camelMap = new HashMap<>();
         for (String underLineKey: underLineMap.keySet()) {
             String camelKey = StringUtil.underlineToCamel(underLineKey);
@@ -26,7 +26,7 @@ public class AppPkgConvertor {
         }
 
         String json = ObjectMapperUtil.writeValueAsString(camelMap);
-        AppPkg pkg = ObjectMapperUtil.toObject(AppPkg.class, json);
+        AppPackage pkg = ObjectMapperUtil.toObject(AppPackage.class, json);
 
         pkg = upstreamService.addMaintainerInfo(pkg);
         pkg = upstreamService.addRepoDownload(pkg);

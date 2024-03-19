@@ -5,8 +5,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import com.easysoftwareinput.common.utils.MySqlInjector;
-
 @EnableTransactionManagement
 @Configuration
 @MapperScan("com.easysoftwareinput.infrastructure.mapper")
