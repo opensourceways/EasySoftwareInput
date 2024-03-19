@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.easysoftwareinput.common.constant.MapConstant;
 import com.easysoftwareinput.common.utils.HttpClientUtil;
-import com.easysoftwareinput.domain.rpmpackage.model.AppPkg;
+import com.easysoftwareinput.domain.apppackage.model.AppPackage;
 import com.easysoftwareinput.domain.rpmpackage.model.BasePackage;
 
 @Component
@@ -50,7 +50,7 @@ public class UpstreamService<T extends BasePackage> {
         return pkg;
     }
 
-    public AppPkg addAppPkgInfo(AppPkg appPkg) {
+    public AppPackage addAppPkgInfo(AppPackage appPkg) {
         Map<String, String> info = HttpClientUtil.getApiResponseMap(String.format(repoInfoApi, appPkg.getName(), "app_openeuler"));
         appPkg.setOs(info.get("os"));
         appPkg.setAppVer(info.get("latest_version") + "-" + info.get("os_version"));

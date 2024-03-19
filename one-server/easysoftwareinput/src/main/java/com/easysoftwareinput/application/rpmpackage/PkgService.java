@@ -1,6 +1,8 @@
 package com.easysoftwareinput.application.rpmpackage;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +33,7 @@ public class PkgService {
         res.put("os_ver", osMes.get("osVer"));
         res.put("os_type", osMes.get("osType"));
         res.put("base_url", osMes.get("baseUrl"));
+
 
         Stream.of("name", "arch", "summary", "description", "packager", "url", "checksum").forEach(item -> {
             res.put(item, pkg.element(item).getTextTrim());
@@ -68,6 +71,7 @@ public class PkgService {
         res.put("provides", provideString);
         res.put("conflicts", conflictString);
         res.put("files", fileString);
+
         return res;
     }
 

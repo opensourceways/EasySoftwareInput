@@ -17,6 +17,10 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.client.RestTemplate;
 
 import com.easysoftwareinput.common.constant.MapConstant;
 import com.easysoftwareinput.common.entity.MessageCode;
@@ -69,6 +73,20 @@ public class HttpClientUtil {
             logger.error(MessageCode.EC0001.getMsgEn(), e);
         }
         return null;
+    }
+
+    public static String postApp(String urlStr, String body) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> request = new HttpEntity<>(body, headers);
+        try {
+            String res = restTemplate.postForObject(urlStr, request, String.class);
+            return res;
+        } catch (Exception e) {
+            logger.error(MessageCode.EC0001.getMsgEn(), e);
+        }
+        return "";
     }
 
     public static String getHttpClient(String uri, String token, String userToken, String cookie) {

@@ -1,6 +1,8 @@
 package com.easysoftwareinput.domain.rpmpackage.ability;
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -52,19 +54,21 @@ public class RPMPackageConverter {
     }
 
     public RPMPackage toEntity(Map<String, String> underLineMap) {
+
         Map<String, String> camelMap = new HashMap<>();
         for (String underLineKey: underLineMap.keySet()) {
             String camelKey = StringUtil.underlineToCamel(underLineKey);
             camelMap.put(camelKey, underLineMap.get(underLineKey));
         }
 
-        RPMPackage pkg = null;
-        try {
-            String json = objectMapper.writeValueAsString(camelMap);
-            pkg = objectMapper.readValue(json, RPMPackage.class);
-        } catch (Exception e) {
-            log.error(MessageCode.EC00014.getMsgEn(), e);
-        }
+        RPMPackage pkg = new RPMPackage();
+        pkg.setArch(camelMap.get("arch"));
+        pkg.setConflicts(camelMap.get("conflicts"));
+        pkg.setDescription(camelMap.get("description"));
+        pkg.setName(camelMap.get("name"));
+        pkg.setProvides(camelMap.get("provides"));
+        pkg.setRequires(camelMap.get("requires"));
+        pkg.setSummary(camelMap.get("summary"));
 
         pkg.setBinDownloadUrl(camelMap.get("baseUrl") + camelMap.get("locationHref"));
         pkg.setChangeLog("");
@@ -74,7 +78,6 @@ public class RPMPackageConverter {
         // 版本支持情况
         pkg.setOsSupport(camelMap.get("osName") + "-" + camelMap.get("osVer"));
 
-        // pkg.setRepo("openEuler官方仓库");
         pkg.setRepo("");
         try {
             pkg.setRepo(objectMapper.writeValueAsString(Map.ofEntries(
@@ -84,21 +87,6 @@ public class RPMPackageConverter {
         } catch (JsonProcessingException e) {
             log.error(MessageCode.EC00014.getMsgEn(), e);
         }
-
-        // pkg.setRepoType(camelMap.get("osType"));
-        String desiredRepo = getRepoType(pkg.getName());
-        try {
-            pkg.setRepoType(objectMapper.writeValueAsString(Map.ofEntries(
-                Map.entry("type", camelMap.get("osType")),
-                Map.entry("url", desiredRepo)
-            )));
-        } catch (JsonProcessingException e) {
-            log.error(MessageCode.EC00014.getMsgEn(), e);
-        }
-
-        pkg = upstreamService.addMaintainerInfo(pkg);
-        pkg = upstreamService.addRepoDownload(pkg);
-        pkg = upstreamService.addRepoCategory(pkg);
 
         Long cTime = Long.parseLong(camelMap.get("timeFile"));
         String fTime = new SimpleDateFormat("yyyy-MM-dd").format(new Date(cTime * 1000));
@@ -123,7 +111,7 @@ public class RPMPackageConverter {
         pkg.setUpStream("");
         pkg.setVersion(camelMap.get("versionVer") + "-" + camelMap.get("versionRel"));
 
-        pkg.setCheckSum(camelMap.get("checksum"));
+        pkg.setPkgId(camelMap.get("checksum"));
         return pkg;
        
     }
