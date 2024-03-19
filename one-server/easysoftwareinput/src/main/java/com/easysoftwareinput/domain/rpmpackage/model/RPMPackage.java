@@ -18,8 +18,6 @@ public class RPMPackage extends BasePackage {
 
     private String arch;
 
-    // private String rpmCategory;
-
     private String rpmUpdateAt;
 
     private String srcRepo;
@@ -50,21 +48,11 @@ public class RPMPackage extends BasePackage {
 
     private String changeLog;
 
-    // private String maintanierId;
-
-    // private String maintianerEmail;
-
-    // private String maintainerGiteeId;
-
-    // private String maintainerUpdateAt;
-
-    // private String maintainerStatus;
-
     private String upStream;
 
     private String security;
 
     private String similarPkgs;
 
-    private String checkSum;
+    private String pkgId;
 }

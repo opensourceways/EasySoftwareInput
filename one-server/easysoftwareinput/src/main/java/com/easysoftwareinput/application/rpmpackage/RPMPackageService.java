@@ -2,6 +2,9 @@ package com.easysoftwareinput.application.rpmpackage;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -14,12 +17,15 @@ import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import com.easysoftwareinput.common.entity.MessageCode;
 import com.easysoftwareinput.domain.rpmpackage.ability.RPMPackageConverter;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackage;
 
+import co.elastic.clients.elasticsearch._types.Time;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -40,18 +46,28 @@ public class RPMPackageService {
     @Autowired
     HttpService httpService;
 
+    @Autowired
+    ThreadPoolTaskExecutor executor;
+
+    @Autowired
+    AsyncService asyncService;
+
     public void run() {
         SAXReader reader = new SAXReader();
         Document document = null;
 
+        Instant start = Instant.now();
         File fDir = new File(rpmDir);
         if (! fDir.isDirectory()) {
             log.error(MessageCode.EC00016.getMsgEn());
             return;
         }
-
+        Instant current = Instant.now();
+        log.info(Duration.between(current, start).toMillis() + "");
         File[] xmlFiles = fDir.listFiles();
+        int count = 0;
         for (File file : xmlFiles) {
+            count += 1;
             String filePath = "";
             try {
                 filePath = file.getCanonicalPath();
@@ -69,21 +85,28 @@ public class RPMPackageService {
             }
 
             parseXml(document, osMes);
+
+            current = Instant.now();
+            log.info(Duration.between(current, start).toSeconds() + " seconds each file, count: " + count);
         }
+        current = Instant.now();
+        log.info(Duration.between(current, start).toMillis() + "");
     }
 
     private void parseXml(Document xml, Map<String, String> osMes) {
-        for (Element ePkg : xml.getRootElement().elements()) {
-            String pkgName = ePkg.element("name").getTextTrim();
-
-            Map<String, String> res = pkgService.parsePkg(ePkg, osMes);
-
-            RPMPackage pkg = rpmPackageConverter.toEntity(res);
-
-            httpService.postPkg(pkg);
+        List<Element> pkgs = xml.getRootElement().elements();
+        for (int i = 0; i < pkgs.size(); i++) {
+            if (executor.getQueueSize() > 300) {
+                try {
+                    Thread.sleep(300);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            Element ePkg = pkgs.get(i);
+            asyncService.executeAsync(ePkg, osMes, i);
         }
     }
-
 
     private Map<String, String> parseFileName(String filePath) {
         String[] pathSplits = filePath.split("\\\\");
