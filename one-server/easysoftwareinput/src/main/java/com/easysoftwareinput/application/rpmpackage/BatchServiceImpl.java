@@ -6,16 +6,19 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,10 +33,7 @@ import com.easysoftwareinput.domain.rpmpackage.model.BasePackage;
 import com.easysoftwareinput.infrastructure.BasePackageDO;
 import com.easysoftwareinput.infrastructure.mapper.BasePackageDOMapper;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Service
-@Slf4j
 public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePackageDO> implements BatchService {
     @Value("${rpm.dir}")
     private String rpmDir;
@@ -44,52 +44,84 @@ public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePacka
     @Autowired
     BasePackageDOMapper basePackageMapper;
 
-    public void run() {
-        SAXReader reader = new SAXReader();
-        Document document = null;
+    private static final Logger logger = LoggerFactory.getLogger(BatchServiceImpl.class);
 
+    public void upstreamInfoTask() {
         File fDir = new File(rpmDir);
         if (!fDir.isDirectory()) {
-            log.error(MessageCode.EC00016.getMsgEn());
+            logger.error(MessageCode.EC00016.getMsgEn());
             return;
         }
 
         File[] xmlFiles = fDir.listFiles();
-        for (File file : xmlFiles) {
-            String filePath = "";
-            try {
-                filePath = file.getCanonicalPath();
-            } catch (IOException e) {
-                log.error(MessageCode.EC00016.getMsgEn());
-                return;
-            }
-            try {
-                document = reader.read(filePath);
-                log.info("handling doc: " + file.getName());
-            } catch (DocumentException e) {
-                log.error(MessageCode.EC00016.getMsgEn());
-            }
+        Set<String> pkgSet = getPkgNameListMuti(xmlFiles);
+        logger.info("All pkg num: {}", pkgSet.size());
+        dealByBatch(pkgSet);
+        Long count = getCount();
+        logger.info("count: {}", count);
+    }
 
-            List<BasePackageDO> objects = parseXml(document);
+    private Set<String> getPkgNameList(Document xml) {
+        Set<String> nameSet = new HashSet<>();
+        for (Element ePkg : xml.getRootElement().elements()) {
+            String pkgName = ePkg.element("name").getTextTrim();
+            nameSet.add(pkgName);
+        }
+        return nameSet;
+    }
+
+    private Set<String> getPkgNameListMuti(File[] xmlFiles) {
+        ConcurrentLinkedQueue<String> objects = new ConcurrentLinkedQueue<>();
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        CountDownLatch latch = new CountDownLatch(xmlFiles.length);
+        
+        for (File file : xmlFiles) {
+            executor.execute(() -> {
+                try {
+                    String filePath = file.getCanonicalPath();
+                    SAXReader reader = new SAXReader();
+                    Document document = reader.read(filePath);
+                    logger.info("handling doc: " + file.getName());
+                    synchronized (objects) {
+                        objects.addAll(getPkgNameList(document));
+                    }
+                } catch (IOException | DocumentException e) {
+                    logger.error(e.getMessage());
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+        try {
+            latch.await(); // 等待所有任务完成
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        Set<String> nameSet = new HashSet<>(objects);
+        return nameSet;
+    }
+
+    private void dealByBatch(Set<String> pkgSet) {
+        List<String> originalList = new ArrayList<>(pkgSet);
+        final int batchSize = 500;
+
+        for (int i = 0; i < originalList.size(); i += batchSize) {
+            long startTime = System.nanoTime();
+            int end = Math.min(originalList.size(), i + batchSize);
+            List<String> subList = originalList.subList(i, end);
+            getUpstreamInfo(subList);
             long endTime = System.nanoTime();
-            saveOrUpdateBatchData(objects);
-            long endTime2 = System.nanoTime();
-            long duration = (endTime2 - endTime) / 1000000;
-            log.info("save cost time: " + duration + " ms, " + "pkg num: " + objects.size());
-            break;
+            long duration = (endTime - startTime) / 1000000;
+            logger.info("cost time: " + duration + " ms, " + "pkg num: " + subList.size());
         }
     }
 
-    private List<BasePackageDO> parseXml(Document xml) {
+    private void getUpstreamInfo(List<String> pkgs) {
         ConcurrentLinkedQueue<BasePackageDO> objects = new ConcurrentLinkedQueue<>();
-        ExecutorService executor = Executors.newFixedThreadPool(20);
-        AtomicInteger taskCount = new AtomicInteger(xml.getRootElement().elements().size());
-        log.info("task num: {}", taskCount);
-
-        for (Element ePkg : xml.getRootElement().elements()) {
-            String pkgName = ePkg.element("name").getTextTrim();
-            log.info("current thread: {}, pkg name: {}", Thread.currentThread().getName(), pkgName);
-
+        ExecutorService executor = Executors.newFixedThreadPool(30);
+        CountDownLatch latch = new CountDownLatch(pkgs.size());
+        for (String pkgName: pkgs) {
+            // logger.info("current thread: {}, pkg name: {}", Thread.currentThread().getName(), pkgName);
             executor.execute(() -> {
                 BasePackage bp = new BasePackage();
                 bp.setName(pkgName);
@@ -99,23 +131,21 @@ public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePacka
                 BasePackageDO bpDO = new BasePackageDO();
                 BeanUtils.copyProperties(bp, bpDO);
 
-                objects.add(bpDO);
-                if (taskCount.decrementAndGet() == 0) {
-                    synchronized (objects) {
-                        objects.notify(); // 唤醒等待的线程
-                    }
+                synchronized (objects) {
+                    objects.add(bpDO);
                 }
+                latch.countDown();
 
             });
         }
-        synchronized (objects) {
-            try {
-                objects.wait(); // 等待所有任务完成
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
-        return new ArrayList<>(objects);
+
+        saveOrUpdateBatchData(new ArrayList<>(objects));
     }
 
     @Override
@@ -137,8 +167,13 @@ public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePacka
         return basePackageMapper.selectList(queryWrapper);
     }
 
+    public Long getCount() {
+        QueryWrapper<BasePackageDO> queryWrapper = new QueryWrapper<>();
+        return basePackageMapper.selectCount(queryWrapper);
+    }
+
     public static void main(String[] args) {
-        String url = "jdbc:sqlite:C:\\database.db";
+        String url = "jdbc:sqlite:database.db";
         try (Connection conn = DriverManager.getConnection(url);
                 Statement stmt = conn.createStatement()) {
 
@@ -155,9 +190,9 @@ public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePacka
                     "download_count TEXT" +
                     ")";
             stmt.execute(sql);
-            log.info("Table 'base_package_info' created successfully.");
+            logger.info("Table 'base_package_info' created successfully.");
         } catch (Exception e) {
-            log.error(e.getMessage());
+            logger.error(e.getMessage());
         }
     }
 }
