@@ -108,9 +108,13 @@ public class HttpClientUtil {
         String response = HttpClientUtil.getHttpClient(url, null, null, null);
         if (response != null) {
             JsonNode info = ObjectMapperUtil.toJsonNode(response);
-            if (info.get("code").asInt() == 200 && !info.get("data").isNull()) {
-                JsonNode infoData = info.get("data");
-                res = ObjectMapperUtil.jsonToMap(infoData);
+            try {
+                if (info.get("code").asInt() == 200 && !info.get("data").isNull()) {
+                    JsonNode infoData = info.get("data");
+                    res = ObjectMapperUtil.jsonToMap(infoData);
+                }
+            } catch (Exception e) {
+                logger.info(url);
             }
         }
         return res;
@@ -121,10 +125,14 @@ public class HttpClientUtil {
         String response = HttpClientUtil.getHttpClient(url, null, null, null);
         if (response != null) {
             JsonNode info = ObjectMapperUtil.toJsonNode(response);
-            if (info.get("code").asInt() == 200 && !info.get("data").isNull()) {
-                JsonNode infoData = info.get("data");
-                maintainer = ObjectMapperUtil.jsonToMap(infoData);
-                maintainer.put("id", maintainer.get("gitee_id"));
+            try {
+                if (info.get("code").asInt() == 200 && !info.get("data").isNull()) {
+                    JsonNode infoData = info.get("data");
+                    maintainer = ObjectMapperUtil.jsonToMap(infoData);
+                    maintainer.put("id", maintainer.get("gitee_id"));
+                }
+            } catch (Exception e) {
+                logger.info(url);
             }
         }
         return maintainer;
@@ -133,8 +141,12 @@ public class HttpClientUtil {
     public static String getApiResponseData(String url) {
         String response = HttpClientUtil.getHttpClient(url, null, null, null);
         JsonNode info = ObjectMapperUtil.toJsonNode(response);
-        if (info.get("code").asInt() == 200 && !info.get("data").isNull()) {
-            return info.get("data").asText();
+        try {
+            if (info.get("code").asInt() == 200 && !info.get("data").isNull()) {
+                return info.get("data").asText();
+            }
+        } catch (Exception e) {
+            logger.info(url);
         }
         return "0";
     }

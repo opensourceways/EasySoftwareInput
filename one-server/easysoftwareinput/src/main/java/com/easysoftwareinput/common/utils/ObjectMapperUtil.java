@@ -98,7 +98,7 @@ public class ObjectMapperUtil {
         try {
             return (Map) objectMapper.readValue(json, Map.class);
         } catch (Exception var2) {
-            throw new RuntimeException("字符串转为map异常！！");
+            throw new RuntimeException("json字符串转为map异常！！");
         }
     }
 
@@ -123,7 +123,7 @@ public class ObjectMapperUtil {
                 return obj;
             }
         } catch (Exception var4) {
-            throw new RuntimeException("json字符串转化错误！！");
+            throw new RuntimeException("json字符串转java对象异常！！");
         }
     }
 
@@ -182,7 +182,7 @@ public class ObjectMapperUtil {
         try {
             return objectMapper.readTree(content);
         } catch (JsonProcessingException var2) {
-            throw new RuntimeException("JSON 转化异常！");
+            return null;
         }
     }
 
