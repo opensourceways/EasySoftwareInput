@@ -161,7 +161,7 @@ public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePacka
 
     }
 
-    public List<BasePackageDO> readFromDatabase(String name) {
+    public synchronized List<BasePackageDO> readFromDatabase(String name) {
         QueryWrapper<BasePackageDO> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("name", name);
         return basePackageMapper.selectList(queryWrapper);

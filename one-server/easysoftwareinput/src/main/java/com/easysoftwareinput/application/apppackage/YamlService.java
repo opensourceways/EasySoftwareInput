@@ -31,7 +31,7 @@ public class YamlService {
     @Autowired
     ObjectMapper objectMapper;
 
-    public void run(String imagePath) {
+    public String run(String imagePath) {
         Yaml yaml = new Yaml();
 
         InputStream inputStream = null;
@@ -50,11 +50,15 @@ public class YamlService {
             logger.error(MessageCode.EC00014.getMsgEn(), e);
         }
 
+        // if (! "nginx".equals(pkg.getName())) {
+        //     return "";
+        // }
+
         String cate = StringUtils.trimToEmpty((String) map.get("category"));
         if (0 == cate.length()) {
-            pkg.setCategory(MapConstant.CATEGORY_MAP.get("Other"));
-        } else if (MapConstant.CATEGORY_MAP.keySet().contains(cate)) {
-            pkg.setCategory(MapConstant.CATEGORY_MAP.get(cate));
+            pkg.setCategory(MapConstant.APP_CATEGORY_MAP.get("Other"));
+        } else if (MapConstant.APP_CATEGORY_MAP.keySet().contains(cate)) {
+            pkg.setCategory(MapConstant.APP_CATEGORY_MAP.get(cate));
         } else {
         }
 
@@ -85,5 +89,7 @@ public class YamlService {
         }
 
         HttpClientUtil.postApp(postUrl, body);
+
+        return pkg.getName();
     }
 }

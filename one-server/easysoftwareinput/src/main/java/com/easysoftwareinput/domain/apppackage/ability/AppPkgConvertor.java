@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.easysoftwareinput.common.components.ObsService;
+import com.easysoftwareinput.application.apppackage.AppHandler;
 import com.easysoftwareinput.common.components.UpstreamService;
 import com.easysoftwareinput.common.utils.ObjectMapperUtil;
 import com.easysoftwareinput.domain.apppackage.model.AppPackage;
@@ -16,7 +16,7 @@ public class AppPkgConvertor {
     UpstreamService<AppPackage> upstreamService;
 
     @Autowired
-    ObsService obsService;
+    AppHandler obsService;
 
     public AppPackage toEntity(Map<String, String> underLineMap) {
         Map<String, String> camelMap = new HashMap<>();
