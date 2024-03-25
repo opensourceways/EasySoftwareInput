@@ -19,10 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class HttpService {
-
-    @Value("${rpm.post.url}")
-    String postUrl;
-
     public boolean validUrl(String url) {
         RestTemplate restTemplate = new RestTemplate();
         while (true) {
@@ -36,7 +32,7 @@ public class HttpService {
         }
     }
     
-    public <T> void postPkg(T t) {
+    public <T> void postPkg(T t, String postUrl) {
         RestTemplate restTemplate = new RestTemplate();
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonPkg = "";

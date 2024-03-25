@@ -1,6 +1,5 @@
-package com.easysoftwareinput.common.components;
+package com.easysoftwareinput.application.apppackage;
 
-import com.easysoftwareinput.application.apppackage.YamlService;
 import com.obs.services.ObsClient;
 import com.obs.services.model.ObsObject;
 import com.obs.services.model.PutObjectRequest;
@@ -15,12 +14,13 @@ import java.nio.file.Paths;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component
-public class ObsService {
+public class AppHandler {
 
     @Value("${obs.endpoint}")
     String obsEndpoint;
@@ -37,7 +37,7 @@ public class ObsService {
     @Autowired
     YamlService yamlService;
 
-    private static final Logger logger = LoggerFactory.getLogger(ObsService.class);
+    private static final Logger logger = LoggerFactory.getLogger(AppHandler.class);
     private static ObsClient obsClient;
 
     @PostConstruct
@@ -67,7 +67,7 @@ public class ObsService {
         return "https://" + obsBucketName + "." + obsEndpoint + "/" + objectKey;
     }
 
-    public void dataToObs(String folderPath) {
+    public void parseEachApp(String folderPath) {
         File folder = new File(folderPath);
         if (folder.exists() && folder.isDirectory()) {
             File[] files = folder.listFiles();
@@ -75,15 +75,16 @@ public class ObsService {
                 return;
 
             for (File file : files) {
-                processSubFolderForPicture(file);
-                processSubFolderForImageInfo(file);
+                String picName = parseImageInfo(file);
+                parsePicture(file, picName);
+                
             }
         } else {
             logger.info("{} does not exist or is not a directory.", folderPath);
         }
     }
 
-    private void processSubFolderForPicture(File subFolder) {
+    private void parsePicture(File subFolder, String picName) {
         if (subFolder.isDirectory()) {
             String subFolderPath = subFolder.getAbsolutePath();
             File directory = new File(Paths.get(subFolderPath, "doc", "picture").toString());
@@ -92,7 +93,13 @@ public class ObsService {
     
                 if (imageFiles != null) {
                     for (File file : imageFiles) {
-                        String key = subFolder.getName() + ".png";
+                        String key = "";
+                        if (StringUtils.isBlank(picName)) {
+                            key = subFolder.getName() + ".png";
+                        } else {
+                            key = picName + ".png";
+                        }
+
                         putData(key, file.getAbsolutePath());
                         logger.info("{} post to obs successfully.", key);
                     }
@@ -103,17 +110,18 @@ public class ObsService {
         }
     }
 
-    private void processSubFolderForImageInfo(File subFolder) {
+    private String parseImageInfo(File subFolder) {
         if (subFolder.isDirectory()) {
             String subFolderPath = subFolder.getAbsolutePath();
             String fullFile = Paths.get(subFolderPath, "doc", "image-info.yml").toString();
             File imageInfoYaml = new File(fullFile);
             if (! imageInfoYaml.exists() || ! imageInfoYaml.isFile()) {
                 logger.info("{} does not have image-info.yaml", subFolder);
-                return;
+                return "";
             }
-            yamlService.run(fullFile);
+            return yamlService.run(fullFile);
         }
+        return "";
     }
 
     static class ImageFilenameFilter implements FilenameFilter {
@@ -132,10 +140,9 @@ public class ObsService {
             Git git = Git.open(new File(repoPath));
             git.pull().call();
             git.close();
-            dataToObs(repoPath);
+            parseEachApp(repoPath);
         } catch (Exception e) {
             logger.error("git pull exception", e);
         }
     }
-
 }

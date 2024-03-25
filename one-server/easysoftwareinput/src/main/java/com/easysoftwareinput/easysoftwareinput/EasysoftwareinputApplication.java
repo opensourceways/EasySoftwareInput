@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 import com.baomidou.mybatisplus.autoconfigure.DdlApplicationRunner;
 import com.easysoftwareinput.application.apppackage.AppPackageService;
+import com.easysoftwareinput.application.epkgpackage.EPKGPackageService;
 import com.easysoftwareinput.application.rpmpackage.RPMPackageService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -23,20 +24,20 @@ import lombok.extern.slf4j.Slf4j;
 @MapperScan("com.easysoftwareinput.infrastructure.mapper")
 public class EasysoftwareinputApplication {
 
-	public static void main(String[] args) {
-		// SpringApplication.run(EasysoftwareinputApplication.class, args);
-		ConfigurableApplicationContext context = SpringApplication.run(EasysoftwareinputApplication.class, args);
+    public static void main(String[] args) {
+        // SpringApplication.run(EasysoftwareinputApplication.class, args);
+        ConfigurableApplicationContext context = SpringApplication.run(EasysoftwareinputApplication.class, args);
 
-		// 1. 解析image-info.yaml以及pictures
-		// AppPackageService appPackageService = (AppPackageService) context.getBean("appPackageService");
-		// appPackageService.run();
-		// 2. 解析/repodata/primary.xml文件
-		RPMPackageService rpmPackageService = (RPMPackageService) context.getBean(RPMPackageService.class);
-		rpmPackageService.run();
+        // 1. 解析image-info.yaml以及pictures
+        AppPackageService appPackageService = (AppPackageService) context.getBean("appPackageService");
+        appPackageService.run();
+        // 2. 解析/repodata/primary.xml文件
+        RPMPackageService rpmPackageService = (RPMPackageService) context.getBean(RPMPackageService.class);
+        rpmPackageService.run();
 
-
-
-
+        // 3. 解析epkg文件
+        // EPKGPackageService epkgPackageService = (EPKGPackageService) context.getBean(EPKGPackageService.class);
+        // epkgPackageService.run(); 
 	}
 
 	@Bean

@@ -22,6 +22,7 @@ public enum MessageCode {
     EC00014("EC00014", "Json Exception", "无法解析json字符串"),
     EC00015("EC00015", "Gitee Connection Exception", "无法调用Gitee Api"),
     EC00016("EC00016", "Read /repodata/primary.xml failed", "读取/repodata/primary.xml失败"),
+    EC00017("EC00017", "thread interrupted exception", "线程中断异常"),
 
     // self service exception
     ES0001("ES0001", "Internal Server Error", "服务异常");
