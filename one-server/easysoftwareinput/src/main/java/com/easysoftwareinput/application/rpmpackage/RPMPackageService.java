@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.xml.namespace.QName;
 
@@ -34,8 +35,14 @@ public class RPMPackageService {
     @Value("${rpm.dir}")
     private String rpmDir;
 
+    @Value("${rpm.post.url}")
+    String postUrl;
+
     @Autowired
     Environment env;
+
+    @Value("${async.executor.thread.queue_capacity}")
+    private int queueCapacity;
 
     @Autowired
     PkgService pkgService;
@@ -52,18 +59,17 @@ public class RPMPackageService {
     @Autowired
     AsyncService asyncService;
 
+    private int pkgNum = 0;
+
     public void run() {
         SAXReader reader = new SAXReader();
         Document document = null;
 
-        Instant start = Instant.now();
         File fDir = new File(rpmDir);
         if (! fDir.isDirectory()) {
             log.error(MessageCode.EC00016.getMsgEn());
             return;
         }
-        Instant current = Instant.now();
-        log.info(Duration.between(current, start).toMillis() + "");
         File[] xmlFiles = fDir.listFiles();
         int count = 0;
         for (File file : xmlFiles) {
@@ -83,28 +89,28 @@ public class RPMPackageService {
             } catch (DocumentException e) {
                 log.error(MessageCode.EC00016.getMsgEn());
             }
-
-            parseXml(document, osMes);
-
-            current = Instant.now();
-            log.info(Duration.between(current, start).toSeconds() + " seconds each file, count: " + count);
+            parseXml(document, osMes, count);
         }
-        current = Instant.now();
-        log.info(Duration.between(current, start).toMillis() + "");
     }
 
-    private void parseXml(Document xml, Map<String, String> osMes) {
+    private void parseXml(Document xml, Map<String, String> osMes, int count) {
         List<Element> pkgs = xml.getRootElement().elements();
+
         for (int i = 0; i < pkgs.size(); i++) {
-            if (executor.getQueueSize() > 300) {
+            pkgNum++;
+            log.info("queue size: {}", executor.getQueueSize());
+
+            // main线程向阻塞队列写入数据太快了，限制写入
+            if (executor.getQueueSize() > (int) queueCapacity / 2) {
                 try {
-                    Thread.sleep(300);
+                    Thread.sleep(100);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    log.error(MessageCode.EC00017.getMsgEn(), e);
                 }
             }
             Element ePkg = pkgs.get(i);
-            asyncService.executeAsync(ePkg, osMes, i);
+            asyncService.executeAsync(ePkg, osMes, i, pkgNum, postUrl);
+            
         }
     }
 

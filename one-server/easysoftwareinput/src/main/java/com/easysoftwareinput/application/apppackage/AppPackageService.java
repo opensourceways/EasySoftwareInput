@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.easysoftwareinput.common.components.ObsService;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -21,7 +19,7 @@ public class AppPackageService {
     String repoPath;
 
     @Autowired
-    ObsService obsService;
+    AppHandler appHandler;
 
     public void gitPull(String repoPath) {
         try {         
@@ -33,9 +31,8 @@ public class AppPackageService {
         }
     }
 
-
     public void run() {
-        gitPull(repoPath);
-        obsService.dataToObs(repoPath);
+        // gitPull(repoPath);
+        appHandler.parseEachApp(repoPath);
     }
 }
