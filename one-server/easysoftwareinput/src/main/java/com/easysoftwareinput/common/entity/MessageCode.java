@@ -25,9 +25,9 @@ public enum MessageCode {
     EC00017("EC00017", "thread interrupted exception", "线程中断异常"),
 
     // self service exception
-    ES0001("ES0001", "Internal Server Error", "服务异常");
-
-
+    ES0001("ES0001", "Internal Server Error", "服务异常"),
+    ES0002("ES0002", "batch save to sql happens error", "批数据写入异常"),
+    ES0003("ES0003", "convert entity error", "rpmpkg数据实体转换发生异常");
     private final String code;
     private final String msgEn;
     private final String msgZh;
