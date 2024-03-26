@@ -108,8 +108,8 @@ public class RPMPackageConverter {
         Long cTime = Long.parseLong(camelMap.get("timeFile"));
         String fTime = new SimpleDateFormat("yyyy-MM-dd").format(new Date(cTime * 1000));
         pkg.setRpmUpdateAt(fTime);
-        
-        double sSize = (double) Integer.parseInt(camelMap.get("sizePackage")) / 1024 / 1024;
+        // bug fixed 改为parselong
+        double sSize = (double) Long.parseLong(camelMap.get("sizePackage")) / 1024 / 1024;
         String fSize = String.format("%.2fMB", sSize);
         pkg.setRpmSize(fSize);
 
@@ -128,13 +128,26 @@ public class RPMPackageConverter {
         pkg.setUpStream("");
         pkg.setVersion(camelMap.get("versionVer") + "-" + camelMap.get("versionRel"));
     
-        String cBase = camelMap.get("baseUrl");
-        String[] cSplits = cBase.split("org");
-        String cId = cSplits[1].replace("/", "");
-        StringBuilder cSb = new StringBuilder();
-        cSb.append(cId);
-        cSb.append(camelMap.get("checksum"));
-        pkg.setPkgId(cSb.toString());
+        try {
+            String cBase = camelMap.get("baseUrl");
+            String[] cSplits = null;
+            if (cBase.contains(env.getProperty("rpm.archive1.url"))) {
+                cSplits = cBase.split("cn");
+            } else if (cBase.contains(env.getProperty("rpm.archive2.url"))) {
+                cSplits = cBase.split("org");
+            }
+
+            String cId = cSplits[1].replace("/", "");
+            StringBuilder cSb = new StringBuilder();
+            cSb.append(cId);
+            cSb.append(camelMap.get("checksum"));
+            pkg.setPkgId(cSb.toString());
+        } catch (Exception e) {
+            synchronized(RPMPackageConverter.class) {
+                log.info("url error");
+                log.info(camelMap.toString());
+            }
+        }
 
         List<BasePackageDO> baseList = batchService.readFromDatabase(pkg.getName());
         if (baseList.size() >= 1) {
