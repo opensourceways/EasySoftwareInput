@@ -29,8 +29,8 @@ public class EasysoftwareinputApplication {
         ConfigurableApplicationContext context = SpringApplication.run(EasysoftwareinputApplication.class, args);
 
         // 1. 解析image-info.yaml以及pictures
-        AppPackageService appPackageService = (AppPackageService) context.getBean("appPackageService");
-        appPackageService.run();
+        // AppPackageService appPackageService = (AppPackageService) context.getBean("appPackageService");
+        // appPackageService.run();
         // 2. 解析/repodata/primary.xml文件
         RPMPackageService rpmPackageService = (RPMPackageService) context.getBean(RPMPackageService.class);
         rpmPackageService.run();

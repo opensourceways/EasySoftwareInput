@@ -22,21 +22,29 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+
 import com.easysoftwareinput.common.entity.MessageCode;
 import com.easysoftwareinput.domain.rpmpackage.ability.RPMPackageConverter;
+import com.easysoftwareinput.domain.rpmpackage.model.BasePackage;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackage;
+import com.easysoftwareinput.infrastructure.mapper.RPMPackageMapper;
 
 import co.elastic.clients.elasticsearch._types.Time;
 import lombok.extern.slf4j.Slf4j;
-
+import java.util.ArrayList;
 @Service
 @Slf4j
-public class RPMPackageService {
+public class RPMPackageService extends ServiceImpl<RPMPackageMapper,RPMPackage> implements IService<RPMPackage> {
     @Value("${rpm.dir}")
     private String rpmDir;
 
     @Value("${rpm.post.url}")
     String postUrl;
+
+    @Value("${rpm.maxWriteBatchNum}")
+    int maxWriteBatchNum;
 
     @Autowired
     Environment env;
@@ -59,9 +67,13 @@ public class RPMPackageService {
     @Autowired
     AsyncService asyncService;
 
+    @Autowired
+    private RPMPackageMapper rPMPkgMapper;
+
     private int pkgNum = 0;
 
     public void run() {
+        
         SAXReader reader = new SAXReader();
         Document document = null;
 
@@ -89,8 +101,60 @@ public class RPMPackageService {
             } catch (DocumentException e) {
                 log.error(MessageCode.EC00016.getMsgEn());
             }
-            parseXml(document, osMes, count);
+            //1. 原始版本发送post请求写入数据
+            //parseXml(document, osMes, count);
+            //2. 优化版本直接写入mysql
+            parseXmlAndWrite(document,osMes,count);
         }
+    }
+
+    private void parseXmlAndWrite(Document xml, Map<String, String> osMes, int count) {
+        List<Element> pkgs = xml.getRootElement().elements();
+        List<RPMPackage> persistentPkgs = new ArrayList<>();
+        int pkgCount = 0;
+        long startTimeTotal = System.nanoTime();
+        for (int i = 0; i < pkgs.size(); i++) {
+            pkgNum++;
+            pkgCount ++;
+            Element ePkg = pkgs.get(i);
+            Map<String, String> res = pkgService.parsePkg(ePkg, osMes);
+            
+            try {
+                RPMPackage pkg = rpmPackageConverter.toEntity(res);
+                persistentPkgs.add(pkg);
+            } catch(Exception e ){
+                log.error(MessageCode.ES0003.getMsgEn());
+                log.info("Exception: {}", e);
+            }
+            
+            // 数据写入代码块 批量写入mysql
+            if(pkgCount % maxWriteBatchNum == 0){
+                long startTime = System.nanoTime();
+                try {
+                    saveBatch(persistentPkgs);
+                }catch (Exception e) {
+                    // 批量写入失败重试日志
+                    log.error(MessageCode.ES0002.getMsgEn());
+                }
+                long endTime = System.nanoTime();
+                long duration = (endTime - startTime) / 1000000;
+                System.out.println("批量写入耗时： " + duration + " 毫秒，" + "数据量："  + persistentPkgs.size());
+                persistentPkgs.clear();
+            }
+        }
+        // 数据写入代码块  批数量不够时，直接写
+        if(persistentPkgs.size() > 0){
+            try {
+                saveBatch(persistentPkgs);
+            } catch (Exception e) {
+                // 批量写入失败重试日志
+                log.error(MessageCode.ES0002.getMsgEn());
+            }
+            persistentPkgs.clear();
+        }
+        long endTimeTotal = System.nanoTime();
+        long Totalduration = (endTimeTotal - startTimeTotal) / 1000000;
+        System.out.println("总写入耗时 " + Totalduration + " 毫秒，" + "数据量："  + pkgCount);
     }
 
     private void parseXml(Document xml, Map<String, String> osMes, int count) {

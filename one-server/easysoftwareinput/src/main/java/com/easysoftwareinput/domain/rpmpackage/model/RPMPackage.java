@@ -1,5 +1,9 @@
 package com.easysoftwareinput.domain.rpmpackage.model;
 
+import java.io.Serial;
+
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,9 +11,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@TableName("rpm_pkg_base")
 public class RPMPackage extends BasePackage {
     // private String name;
-    
+    @Serial
     private String id;
     
     private String version;

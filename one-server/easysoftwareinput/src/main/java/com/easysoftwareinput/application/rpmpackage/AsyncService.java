@@ -38,7 +38,10 @@ public class AsyncService {
     public void executeAsync(Element ePkg, Map<String, String> osMes, int i, int count, String postUrl) {
         logger.info("thread name: {}, xml index: {}, global index: {}", Thread.currentThread().getName(), i, count);
         Map<String, String> res = pkgService.parsePkg(ePkg, osMes);
+        // 1. pkg实体
         RPMPackage pkg = rpmPackageConverter.toEntity(res);
+        
+        
         httpService.postPkg(pkg, postUrl);
     }
 }
