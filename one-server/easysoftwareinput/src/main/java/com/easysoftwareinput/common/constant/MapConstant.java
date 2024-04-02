@@ -28,7 +28,7 @@ public class MapConstant {
         categoryMap.put("database", "数据库");
         categoryMap.put("cloud", "云服务");
         categoryMap.put("hpc", "HPC");
-        categoryMap.put("Other", "其他");
+        categoryMap.put("others", "其他");
         APP_CATEGORY_MAP = Collections.unmodifiableMap(categoryMap);
     }
 

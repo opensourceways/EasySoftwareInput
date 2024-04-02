@@ -54,4 +54,6 @@ public class EPKGPackage extends BasePackage{
     private String similarPkgs;
 
     private String pkgId;
+
+    private String files;
 }

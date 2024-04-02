@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import com.baomidou.mybatisplus.autoconfigure.DdlApplicationRunner;
@@ -16,28 +17,28 @@ import com.easysoftwareinput.application.apppackage.AppPackageService;
 import com.easysoftwareinput.application.epkgpackage.EPKGPackageService;
 import com.easysoftwareinput.application.rpmpackage.RPMPackageService;
 
-import lombok.extern.slf4j.Slf4j;
 
 @EnableAsync
+@EnableRetry
 @SpringBootApplication
 @ComponentScan(basePackages = {"com.easysoftwareinput.*"})
 @MapperScan("com.easysoftwareinput.infrastructure.mapper")
 public class EasysoftwareinputApplication {
 
     public static void main(String[] args) {
-        // SpringApplication.run(EasysoftwareinputApplication.class, args);
         ConfigurableApplicationContext context = SpringApplication.run(EasysoftwareinputApplication.class, args);
 
         // 1. 解析image-info.yaml以及pictures
-        AppPackageService appPackageService = (AppPackageService) context.getBean("appPackageService");
+        AppPackageService appPackageService = (AppPackageService) context.getBean(AppPackageService.class);
         appPackageService.run();
+
         // 2. 解析/repodata/primary.xml文件
         RPMPackageService rpmPackageService = (RPMPackageService) context.getBean(RPMPackageService.class);
         rpmPackageService.run();
 
         // 3. 解析epkg文件
-        // EPKGPackageService epkgPackageService = (EPKGPackageService) context.getBean(EPKGPackageService.class);
-        // epkgPackageService.run(); 
+        EPKGPackageService epkgPackageService = (EPKGPackageService) context.getBean(EPKGPackageService.class);
+        epkgPackageService.run(); 
 	}
 
 	@Bean

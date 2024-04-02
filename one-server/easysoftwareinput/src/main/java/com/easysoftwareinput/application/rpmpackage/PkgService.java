@@ -45,6 +45,8 @@ public class PkgService {
             listA.stream().forEach(a -> res.put(item + "_" + a.getName(), a.getValue()));
         });
 
+        
+
         Element format = pkg.element("format");
         Map<String ,String> forRes = parseFormat(format);
         res.putAll(forRes);

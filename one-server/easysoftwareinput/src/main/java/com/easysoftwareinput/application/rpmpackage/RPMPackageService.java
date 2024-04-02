@@ -16,6 +16,7 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
@@ -54,6 +55,7 @@ public class RPMPackageService {
     HttpService httpService;
 
     @Autowired
+    @Qualifier("asyncServiceExecutor")
     ThreadPoolTaskExecutor executor;
 
     @Autowired
@@ -98,16 +100,14 @@ public class RPMPackageService {
 
         for (int i = 0; i < pkgs.size(); i++) {
             pkgNum++;
+            
+            
             log.info("queue size: {}", executor.getQueueSize());
 
             // main线程向阻塞队列写入数据太快了，限制写入
-            if (executor.getQueueSize() > (int) queueCapacity / 2) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    log.error(MessageCode.EC00017.getMsgEn(), e);
-                }
+            while (executor.getQueueSize() > (int) queueCapacity / 2) {
             }
+            
             Element ePkg = pkgs.get(i);
             asyncService.executeAsync(ePkg, osMes, i, pkgNum, postUrl);
             

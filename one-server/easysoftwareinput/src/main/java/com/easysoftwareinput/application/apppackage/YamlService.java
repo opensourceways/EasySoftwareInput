@@ -50,10 +50,6 @@ public class YamlService {
             logger.error(MessageCode.EC00014.getMsgEn(), e);
         }
 
-        // if (! "nginx".equals(pkg.getName())) {
-        //     return "";
-        // }
-
         String cate = StringUtils.trimToEmpty((String) map.get("category"));
         if (0 == cate.length()) {
             pkg.setCategory(MapConstant.APP_CATEGORY_MAP.get("Other"));
@@ -81,6 +77,8 @@ public class YamlService {
 
         pkg.setAppVer("");
 
+        pkg.setPkgId(pkg.getName());
+
         String body = "";
         try {
 			body = objectMapper.writeValueAsString(pkg);
@@ -89,6 +87,8 @@ public class YamlService {
         }
 
         HttpClientUtil.postApp(postUrl, body);
+
+        logger.info("app posted! name: {}", pkg.getName());
 
         return pkg.getName();
     }

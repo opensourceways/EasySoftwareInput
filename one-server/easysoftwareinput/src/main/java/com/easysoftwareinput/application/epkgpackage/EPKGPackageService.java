@@ -18,13 +18,13 @@ import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
-import com.easysoftwareinput.application.rpmpackage.AsyncService;
 import com.easysoftwareinput.application.rpmpackage.HttpService;
 import com.easysoftwareinput.application.rpmpackage.PkgService;
 import com.easysoftwareinput.common.entity.MessageCode;
@@ -50,17 +50,17 @@ public class EPKGPackageService {
     Environment env;
 
     @Autowired
-    PkgService pkgService;
-
-   
-    @Autowired
-    HttpService httpService;
+    EPKGAsyncService asyncService;
 
     @Autowired
-    EPKGPackageConverter epkgPackageConverter;
+    @Qualifier("epkgasyncServiceExecutor")
+    ThreadPoolTaskExecutor executor;
+
+    @Value("${async.executor.thread.queue_capacity}")
+    private int queueCapacity;
 
     public void run() {
-        Map osMes = Map.ofEntries(
+        Map<String, String> osMes = Map.ofEntries(
             Map.entry("osName", env.getProperty("epkg.os-name")),
             Map.entry("osVer", env.getProperty("epkg.os-ver")),
             Map.entry("osType", env.getProperty("epkg.os-type")),
@@ -77,11 +77,17 @@ public class EPKGPackageService {
         
         List<Element> pkgs = document.getRootElement().elements();
         for (int i = 0; i < pkgs.size(); i++) {
+            logger.info("queue size : {}", executor.getQueueSize());
+            if (executor.getQueueSize() > (int) queueCapacity / 2) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    logger.error(MessageCode.EC00017.getMsgEn(), e);
+                }
+            }
             Element pkg = pkgs.get(i);
-            Map<String, String> res = pkgService.parsePkg(pkg, osMes);
-            EPKGPackage ePkg = epkgPackageConverter.toEntity(res);
-            httpService.postPkg(ePkg, postUrl);
+            asyncService.executeAsync(pkg, osMes, i, postUrl);
         }
-        
     }
 }
+

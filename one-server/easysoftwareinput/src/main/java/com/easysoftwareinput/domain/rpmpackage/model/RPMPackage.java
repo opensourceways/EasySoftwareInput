@@ -55,4 +55,6 @@ public class RPMPackage extends BasePackage {
     private String similarPkgs;
 
     private String pkgId;
+
+    private String subPath;
 }

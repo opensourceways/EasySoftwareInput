@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Service
 public class AppPackageService {
     private static final Logger logger = LoggerFactory.getLogger(AppPackageService.class);
@@ -32,7 +30,8 @@ public class AppPackageService {
     }
 
     public void run() {
-        // gitPull(repoPath);
+        gitPull(repoPath);
         appHandler.parseEachApp(repoPath);
+        logger.info("finished parse applicaiton package");
     }
 }
