@@ -57,4 +57,6 @@ public class AppPackage extends BasePackage {
     private String srcDownloadUrl;
 
     private String binDownloadUrl;
+
+    private String pkgId;
 }

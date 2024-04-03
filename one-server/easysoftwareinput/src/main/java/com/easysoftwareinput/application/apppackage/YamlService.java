@@ -20,6 +20,7 @@ import com.easysoftwareinput.common.utils.HttpClientUtil;
 import com.easysoftwareinput.domain.apppackage.model.AppPackage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.alibaba.fastjson.*;
 
 @Component
 public class YamlService {
@@ -27,6 +28,9 @@ public class YamlService {
 
     @Value("${app.post.url}")
     String postUrl;
+
+    @Value("${monitoring.url}")
+    String monitorUrl;
 
     @Autowired
     ObjectMapper objectMapper;
@@ -76,10 +80,42 @@ public class YamlService {
 		} catch (JsonProcessingException e) {
             logger.error(MessageCode.EC00014.getMsgEn(), e);
 		}
-
+        
         pkg.setType("IMAGE");
+        String curUrl =  monitorUrl +  pkg.getName();
+       
+        String response = HttpClientUtil.getRequest(curUrl);
 
-        pkg.setAppVer("");
+        JSONObject  responseJson = JSONObject.parseObject(response);
+        JSONArray itemsArray = responseJson.getJSONArray("items"); 
+        String appVer = "";
+        String osSupport = "";
+        for (int i = 0; i < itemsArray.size(); i++) {  
+            // 获取每个项目对象  
+            JSONObject itemObject = itemsArray.getJSONObject(i);  
+  
+            // 从项目对象中提取tag字段  
+            String tag = itemObject.getString("tag");  
+            // System.out.println("tagss : " + tag);  
+            // 上游obeject信息
+            if(tag.equals("app_up")){
+                String version = itemObject.getString("version");
+                appVer = version;
+               
+            }
+            // openeuler信息
+            if(tag.equals("app_openeuler")){
+                JSONArray rawVersionsArray = itemObject.getJSONArray("raw_versions"); 
+                for(int j = 0; j < rawVersionsArray.size(); j ++){
+                    osSupport = osSupport + rawVersionsArray.get(j) + " ";
+                }
+          
+            }
+        }  
+       
+        pkg.setAppVer(appVer);
+        pkg.setOsSupport(osSupport);
+        pkg.setPkgId(pkg.getName());
 
         String body = "";
         try {
