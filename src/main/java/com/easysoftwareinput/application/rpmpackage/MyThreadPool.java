@@ -49,9 +49,6 @@ public class MyThreadPool extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> 
     @Autowired
     Environment env;
 
-    // ThreadLocal<MyServiceImpl> batchLocal = ThreadLocal.withInitial(() -> {return new MyServiceImpl();});
-
-
     @Async("asyncServiceExecutor")
     public void parseXml(Document xml, Map<String, String> osMes, int count, Map<String, String> srcUrls,
             Map<String, BasePackageDO> maintainers) {
@@ -78,8 +75,6 @@ public class MyThreadPool extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> 
         log.info("finish-xml-parse, thread name: {}, list.size(): {}, time used: {}ms, fileIndex: {}", Thread.currentThread()
                 .getName(), pkgList.size(), (System.currentTimeMillis() - s), count);
 
-        // List<RPMPackageDO> doList = rpmPackageConverter.toDO(pkgList);
-        // saveBatch(doList);
 
         List<String> bodyList = filterPkg(pkgList);
         post(bodyList, env.getProperty("rpm.post-url"));
