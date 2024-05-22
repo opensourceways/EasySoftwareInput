@@ -68,6 +68,8 @@ public class AppPackage extends BasePackage {
 
     private String pullStr;
 
+    private String latestOsSupport;
+
     public AppPackage(AppPackage other) {  
         super(other);
         // 深拷贝AppPackage的字段  

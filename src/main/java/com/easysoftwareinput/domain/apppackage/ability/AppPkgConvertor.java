@@ -19,6 +19,7 @@ import com.easysoftwareinput.common.components.UpstreamService;
 import com.easysoftwareinput.common.constant.MapConstant;
 import com.easysoftwareinput.common.utils.HttpClientUtil;
 import com.easysoftwareinput.common.utils.ObjectMapperUtil;
+import com.easysoftwareinput.common.utils.UUidUtil;
 import com.easysoftwareinput.domain.apppackage.model.AppPackage;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.power.common.util.StringUtil;
@@ -88,7 +89,7 @@ public class AppPkgConvertor {
         pkg.setMaintainerId(MapConstant.MAINTAINER.get("id"));
 
 
-        String url = String.format(env.getProperty("maintainer.url"), pkg.getName().replace(" ", "%20"));
+        String url = env.getProperty("maintainer.url");
 
         String res = HttpClientUtil.getHttpClient(url, null, null, null);
         if (res != null) {
@@ -157,6 +158,7 @@ public class AppPkgConvertor {
         pkg.setOsSupport(osAndVer.get("osVer"));
         pkg.setOs(osAndVer.get("osVer"));
         pkg.setPkgId(pkg.getName() + pkg.getOs() + pkg.getArch());
+        pkg.setId(UUidUtil.getUUID32());
         return pkg;
     }
 
@@ -181,11 +183,49 @@ public class AppPkgConvertor {
         return appList;
     }
 
+    private String getLatestOsPerName(List<AppPackage> appList) {
+        if (appList.size() == 0) {
+            return "";
+        }
+
+        String latest = appList.get(0).getOsSupport();
+        for (AppPackage pkg : appList) {
+            String curOsSupport = pkg.getOsSupport();
+            if (latest.compareTo(curOsSupport) < 0) {
+                latest = curOsSupport;
+            }
+            
+        }
+        return latest;
+    }
+
+    private void setLatestOsSupport(List<AppPackage> appList) {
+        if (appList.size() == 0) {
+            return;
+        }
+
+        String latestSupp = getLatestOsPerName(appList);
+        
+        for (AppPackage pkg : appList) {
+            if (latestSupp.equals(pkg.getOsSupport())) {
+                pkg.setLatestOsSupport("true");
+            } else {
+                pkg.setLatestOsSupport("false");
+            }
+        }
+    }
+
     public List<AppPackage> mapToPkgList(Map<String, Object> map) {
         AppPackage pkg = initSet(map);
         setCategory(map, pkg);
         setMaintainer(map, pkg);
         Map<String, Object> monMap = getFromMonitor(pkg.getName());
-        return splitByMonMap(pkg, monMap);
+        // 如果监控服务里容器镜像的数据，则不保存该容器镜像
+        if (monMap.size() == 0) {
+            return Collections.emptyList();
+        }
+        List<AppPackage> appList = splitByMonMap(pkg, monMap);
+        setLatestOsSupport(appList);
+        return appList;
     }
 }
