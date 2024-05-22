@@ -1,5 +1,7 @@
 package com.easysoftwareinput.domain.domainpackage.model;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -10,9 +12,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@TableName("domain_package")
 public class DomainPackage {
     private String os;
     private String arch;
@@ -23,4 +22,12 @@ public class DomainPackage {
     private Set<String> tags;
     private Map<String, String> pkgIds;
     private String description;
+
+    public DomainPackage() {
+        this.tags = new HashSet<>();
+        this.pkgIds = new HashMap<>();
+        this.pkgIds.put("IMAGE", "");
+        this.pkgIds.put("RPM", "");
+        this.pkgIds.put("EPKG", "");
+    }
 }

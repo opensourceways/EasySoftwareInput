@@ -14,6 +14,10 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.baomidou.mybatisplus.autoconfigure.DdlApplicationRunner;
+import com.easysoftwareinput.application.apppackage.AppPackageService;
+import com.easysoftwareinput.application.domainpackage.DomainPkgService;
+import com.easysoftwareinput.application.epkgpackage.EPKGPackageService;
+import com.easysoftwareinput.application.fieldpkg.FieldPkgService;
 import com.easysoftwareinput.application.rpmpackage.BatchServiceImpl;
 import com.easysoftwareinput.application.rpmpackage.RPMPackageService;
 
@@ -41,8 +45,8 @@ public class EasysoftwareinputApplication {
         rpmPackageService.run();
 
         // 3. 解析epkg软件包
-        // EPKGPackageService epkgPackageService = (EPKGPackageService) context.getBean(EPKGPackageService.class);
-        // epkgPackageService.run();
+        EPKGPackageService epkgPackageService = (EPKGPackageService) context.getBean(EPKGPackageService.class);
+        epkgPackageService.run();
 
         // 4. 解析operation_config
         // OperationConfigService opCoService = (OperationConfigService) context.getBean(OperationConfigService.class);
@@ -62,6 +66,10 @@ public class EasysoftwareinputApplication {
 
         // 8. 解析oepkgs
         // OeRpmService 
+
+        // 9. 解析领域应用
+        // FieldPkgService fieldPkgService = (FieldPkgService) context.getBean(FieldPkgService.class);
+        // fieldPkgService.run();
     }
 
 	@Bean

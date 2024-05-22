@@ -1,5 +1,6 @@
 package com.easysoftwareinput.infrastructure.domainpackage;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import lombok.AllArgsConstructor;
@@ -18,6 +19,7 @@ public class DomainPkgDO {
     private String category;
     private String iconUrl;
     private String tags;
+    @TableId(value = "pkg_id")
     private String pkgIds;
     private String description;
 }

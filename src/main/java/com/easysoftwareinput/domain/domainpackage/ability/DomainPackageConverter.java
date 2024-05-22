@@ -158,4 +158,12 @@ public class DomainPackageConverter {
         pkgDO.setTags(ObjectMapperUtil.writeValueAsString(pkg.getTags()));
         return pkgDO;
     }
+
+    public List<DomainPkgDO> toDo(List<DomainPackage> pkgList) {
+        List<DomainPkgDO> oList = new ArrayList<>();
+        for (DomainPackage pkg : pkgList) {
+            oList.add(toEntity(pkg));
+        }
+        return oList;
+    }
 }

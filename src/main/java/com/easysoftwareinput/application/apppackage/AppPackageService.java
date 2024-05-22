@@ -25,6 +25,7 @@ import com.easysoftwareinput.common.utils.ObjectMapperUtil;
 import com.easysoftwareinput.common.utils.YamlUtil;
 import com.easysoftwareinput.domain.apppackage.ability.AppPkgConvertor;
 import com.easysoftwareinput.domain.apppackage.model.AppPackage;
+import com.easysoftwareinput.infrastructure.apppkg.AppGatewayImpl;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,9 @@ public class AppPackageService {
 
     @Autowired
     AppPkgConvertor converter;
+
+    @Autowired
+    AppGatewayImpl appGateway;
 
     public void gitPull(String repoPath) {
         try {
@@ -112,11 +116,10 @@ public class AppPackageService {
 
     private void postInfo(Map<String, Object> map, String posturl) {
         List<AppPackage> pkgList = converter.mapToPkgList(map);
-        for (AppPackage pkg : pkgList) {
-            String body = ObjectMapperUtil.writeValueAsString(pkg);
-            String res = HttpClientUtil.postApp(posturl, body);
-            logger.info("finish-post,name: {}, res: {}, body: {}, posturl: {}", pkg.getName(), res, body, posturl);
+        if (pkgList.size() == 0) {
+            return;
         }
+        appGateway.saveAll(pkgList);
     }
 
     private void handleEachApp(String repoPath, String posturl) {
