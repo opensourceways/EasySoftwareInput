@@ -35,16 +35,11 @@ import com.easysoftwareinput.domain.epkgpackage.model.EPKGPackage;
 import com.easysoftwareinput.domain.rpmpackage.ability.RPMPackageConverter;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackage;
 import com.power.common.util.StringUtil;
-
-import co.elastic.clients.elasticsearch._types.Time;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 public class EPKGPackageService {
     private static final Logger logger = LoggerFactory.getLogger(EPKGPackageService.class);
-
-    @Value("${epkg.path}")
-    private String epkgPath;
 
     @Value("${epkg.post.url}")
     String postUrl;
@@ -61,9 +56,6 @@ public class EPKGPackageService {
     @Autowired
     @Qualifier("epkgasyncServiceExecutor")
     ThreadPoolTaskExecutor executor;
-
-    @Value("${async.executor.thread.queue_capacity}")
-    private int queueCapacity;
 
     private static SAXReader reader = new SAXReader();
 
@@ -104,21 +96,27 @@ public class EPKGPackageService {
     }
 
     public void run() {
+        String epkgPath = env.getProperty("epkg.path");
+
         Map<String, String> osMes = initMap();
         Document document = parseDocument(epkgPath);
 
         List<Element> pkgs = document.getRootElement().elements();
         Map<String, String> srcMap = initSrc(pkgs, osMes);
 
-        for (int i = 0; i < pkgs.size(); i++) {
-            while (executor.getQueueSize() > 2) {
+        int batchSize = 1000;
+
+        for (int i = 0; i < pkgs.size(); i += batchSize) {
+            int end = Math.min(i + batchSize, pkgs.size());
+            List<Element> eList = pkgs.subList(i, end);
+
+            while (executor.getQueueSize() > 3) {
             }
 
-            Element pkg = pkgs.get(i);
-            asyncService.executeAsync(pkg, osMes, i, postUrl, srcMap);
+            asyncService.executeAsync(eList, osMes, i, postUrl, srcMap);
         }
 
-        while (executor.getQueueSize() > 0 && executor.getActiveCount() > 0) {
+        while (executor.getQueueSize() > 0 || executor.getActiveCount() > 0) {
         }
 
         logger.info("finish-epkg-package");

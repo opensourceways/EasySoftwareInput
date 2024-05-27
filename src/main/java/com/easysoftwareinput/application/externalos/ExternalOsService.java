@@ -30,7 +30,7 @@ public class ExternalOsService {
         Map<String, Object> map = YamlUtil.parseYaml(path);
         List<ExternalOs> exOsList = ExternalOsConverter.toEntityList(map);
         post(exOsList, postUrl);
-        logger.info("finished external os");
+        logger.info("finish-external-os");
 
     }
 

@@ -19,6 +19,7 @@ import com.easysoftwareinput.common.utils.HttpClientUtil;
 import com.easysoftwareinput.common.utils.ObjectMapperUtil;
 import com.easysoftwareinput.domain.apppackage.model.AppPackage;
 import com.easysoftwareinput.domain.appver.AppVersion;
+import com.easysoftwareinput.infrastructure.appver.AppVerGatewayImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,9 @@ import lombok.extern.slf4j.Slf4j;
 public class AppVerService {
     @Autowired
     Environment env;
+
+    @Autowired
+    AppVerGatewayImpl gateway;
 
     private Set<String> getAppList(String appUrl) {
         Set<String> names = new HashSet<>();
@@ -102,7 +106,7 @@ public class AppVerService {
         } else if ("22.03-lts".equals(rawOs)) {
             os = "openEuler-22.03-LTS";
         } else if ("20.03-lts-sp1".equals(rawOs)) {
-            os = "openEuler-22.03-LTS-SP1";
+            os = "openEuler-20.03-LTS-SP1";
         } else if ("oe2203lts".equals(rawOs)) {
             os = "openEuler-22.03-LTS";
         } else {
@@ -199,6 +203,7 @@ public class AppVerService {
 
         Set<String> names = getAppList(appUrl);
         List<AppVersion> verList = generateAppVerList(names, monUrl);
-        post(verList, postUrl);
+        gateway.saveAll(verList);
+        // post(verList, postUrl);
     }
 }

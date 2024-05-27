@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -29,6 +30,7 @@ import com.easysoftwareinput.domain.rpmpackage.model.RPMPackage;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackageDO;
 import com.easysoftwareinput.infrastructure.BasePackageDO;
 import com.easysoftwareinput.infrastructure.mapper.RPMPackageDOMapper;
+import com.easysoftwareinput.infrastructure.rpmpkg.RpmGatewayImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -48,6 +50,9 @@ public class MyThreadPool extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> 
 
     @Autowired
     Environment env;
+
+    @Autowired
+    RpmGatewayImpl gateway;
 
     @Async("asyncServiceExecutor")
     public void parseXml(Document xml, Map<String, String> osMes, int count, Map<String, String> srcUrls,
@@ -72,12 +77,13 @@ public class MyThreadPool extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> 
             }
         }
 
-        log.info("finish-xml-parse, thread name: {}, list.size(): {}, time used: {}ms, fileIndex: {}", Thread.currentThread()
-                .getName(), pkgList.size(), (System.currentTimeMillis() - s), count);
+        long s1 = System.currentTimeMillis();
+        log.info("finish-xml-parse, thread name: {}, list.size(): {}, time used: {}ms, fileIndex: {}", Thread.currentThread().getName(), pkgList.size(), (s1 - s), count);
 
-
-        List<String> bodyList = filterPkg(pkgList);
-        post(bodyList, env.getProperty("rpm.post-url"));
+        gateway.saveAll(pkgList);
+        log.info("finish-mysql, thread name: {}, list.size(): {}, time used: {}ms, fileIndex: {}", Thread.currentThread().getName(), pkgList.size(), (s1 - s), count);
+        // List<String> bodyList = filterPkg(pkgList);
+        // post(bodyList, env.getProperty("rpm.post-url"));
     }
 
     private void post(List<String> bodyList, String postUrl) {

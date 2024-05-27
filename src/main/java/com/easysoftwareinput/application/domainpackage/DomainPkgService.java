@@ -17,6 +17,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.repository.support.DomainClassConverter;
 import org.springframework.stereotype.Service;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.easysoftwareinput.common.utils.ObjectMapperUtil;
 import com.easysoftwareinput.domain.domainpackage.ability.DomainPackageConverter;
 import com.easysoftwareinput.domain.domainpackage.model.DomainPackage;
@@ -102,19 +103,19 @@ public class DomainPkgService {
             Map<String, String> pkgIds = domain.getPkgIds();
 
             AppDo app = appGateway.queryPkgIdByName(name);
-            if (StringUtils.isNotBlank(app.getPkgId())) {
+            if (app != null && StringUtils.isNotBlank(app.getPkgId())) {
                 tags.add("IMAGE");
                 pkgIds.put("IMAGE", app.getPkgId());
             }
 
             RPMPackageDO rpm = rpmGateway.queryPkgIdByName(name);
-            if (StringUtils.isNotBlank(rpm.getPkgId())) {
+            if (rpm != null && StringUtils.isNotBlank(rpm.getPkgId())) {
                 tags.add("RPM");
                 pkgIds.put("RPM", rpm.getPkgId());
             }
 
             EpkgDo epkg = epkgGateway.queryPkgIdByName(name);
-            if (StringUtils.isNotBlank(epkg.getPkgId())) {
+            if (epkg != null && StringUtils.isNotBlank(epkg.getPkgId())) {
                 tags.add("EPKG");
                 pkgIds.put("EPKG", epkg.getPkgId());
             }
@@ -144,6 +145,7 @@ public class DomainPkgService {
     }
 
     public void run() {
+
         List<AppDo> appList = appGateway.getDomain();
         List<RPMPackageDO> rpmList = rpmGateway.getDomain();
         List<DomainPackage> domainList = toDomainList(appList, rpmList);
