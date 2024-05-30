@@ -120,6 +120,11 @@ public class AppPackageService {
             return;
         }
         appGateway.saveAll(pkgList);
+        // for (AppPackage pkg : pkgList) {
+        //     String body = ObjectMapperUtil.writeValueAsString(pkg);
+        //     String res = HttpClientUtil.postApp(posturl, body);
+        //     logger.info("finish-post,name: {}, res: {}, body: {}, posturl: {}", pkg.getName(), res, body, posturl);
+        // }
     }
 
     private void handleEachApp(String repoPath, String posturl) {
@@ -149,7 +154,6 @@ public class AppPackageService {
         gitPull(repoPath);
         handleEachApp(repoPath, posturl);
         logger.info("finish-update-application");
-        System.exit(0);
     }
 
     static class ImageFilenameFilter implements FilenameFilter {

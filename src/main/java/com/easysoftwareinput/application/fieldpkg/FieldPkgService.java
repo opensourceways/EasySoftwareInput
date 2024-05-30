@@ -54,7 +54,7 @@ public class FieldPkgService {
     Environment env;
 
     private Map<String, Map<String, RPMPackageDO>> getRPMList() {
-        List<String> osList = rpmGateway.getOs();
+        List<String> osList = rpmGateway.getDistinctOs();
 
         Map<String, Map<String, RPMPackageDO>> doMap = new HashMap<>();
         for (String os : osList) {
@@ -65,7 +65,7 @@ public class FieldPkgService {
     }
 
     private Map<String, Map<String, EpkgDo>> getEpkgList() {
-        List<String> osList = epkgGateway.getOs();
+        List<String> osList = epkgGateway.getDistinctOs();
         Map<String, Map<String, EpkgDo>> doMap = new HashMap<>();
         for (String os : osList) {
             List<EpkgDo> doList = epkgGateway.getPkg(os);
@@ -75,7 +75,7 @@ public class FieldPkgService {
     }
 
     private Map<String, Map<String, AppDo>> getAppList() {
-        List<String> osList = appGateway.getOs();
+        List<String> osList = appGateway.getDistinctOs();
         Map<String, Map<String, AppDo>> doMap = new HashMap<>();
         for (String os : osList) {
             List<AppDo> doList = appGateway.getPkg(os);
@@ -169,13 +169,13 @@ public class FieldPkgService {
 
     private List<Field> mapToField(Map<String, Map<String, RPMPackageDO>> rpm, Map<String, Map<String, EpkgDo>> epkg,
             Map<String, Map<String, AppDo>> app) {
-        Set<String> set = new HashSet<>();
-        set.addAll(rpm.keySet());
-        set.addAll(epkg.keySet());
-        set.addAll(app.keySet());
+        Set<String> osSet = new HashSet<>();
+        osSet.addAll(rpm.keySet());
+        osSet.addAll(epkg.keySet());
+        osSet.addAll(app.keySet());
         
         List<Field> fList = new ArrayList<>();
-        for (String os : set) {
+        for (String os : osSet) {
             List<Field> osList = getFieldsPerOs(rpm.get(os), epkg.get(os), app.get(os));
             fList.addAll(osList);
         }
@@ -183,14 +183,18 @@ public class FieldPkgService {
     }
 
     public void run() {
+        long s = System.currentTimeMillis();
+
         Map<String, Map<String, RPMPackageDO>> rpm = getRPMList();
         Map<String, Map<String, EpkgDo>> epkg = getEpkgList();
         Map<String, Map<String, AppDo>> app = getAppList();
 
         List<Field> fList = mapToField(rpm, epkg, app);
 
+        long s1 = System.currentTimeMillis();
+        log.info("Jiexi shijin: {}", s1 - s);
         fieldGateway.saveAll(fList);
 
-        log.info(null);
+        log.info("finish-write-domain");
     }
 }

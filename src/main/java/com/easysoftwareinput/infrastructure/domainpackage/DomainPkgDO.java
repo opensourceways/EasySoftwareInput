@@ -19,7 +19,7 @@ public class DomainPkgDO {
     private String category;
     private String iconUrl;
     private String tags;
-    @TableId(value = "pkg_id")
+    @TableId(value = "pkg_ids")
     private String pkgIds;
     private String description;
 }

@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 @Component
 public class ObsService {
-
+    // test
     @Value("${obs.endpoint}")
     String obsEndpoint;
 
@@ -74,4 +74,6 @@ public class ObsService {
             logger.info("key: {}", obo.getObjectKey());
         }
     }
+
+  
 }

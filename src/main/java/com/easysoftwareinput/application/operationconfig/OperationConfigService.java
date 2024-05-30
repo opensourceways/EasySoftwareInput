@@ -3,11 +3,16 @@ package com.easysoftwareinput.application.operationconfig;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.javassist.bytecode.Opcode;
@@ -24,8 +29,9 @@ import com.easysoftwareinput.common.entity.MessageCode;
 import com.easysoftwareinput.common.entity.ResultVo;
 import com.easysoftwareinput.common.utils.HttpClientUtil;
 import com.easysoftwareinput.common.utils.ObjectMapperUtil;
-import com.easysoftwareinput.domain.operationconfig.ability.OpCoConverter;
 import com.easysoftwareinput.domain.operationconfig.model.OpCo;
+import com.easysoftwareinput.infrastructure.operationconfig.OpCoGatewayImpl;
+import com.easysoftwareinput.infrastructure.operationconfig.converter.OpCoConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
@@ -46,10 +52,14 @@ public class OperationConfigService {
     @Value("${operation-config.redis-deletekey-url}")
     private String deleteKeyUrl;
 
+    @Autowired
+    OpCoGatewayImpl gateway;
+
     public void run() {
         gitPull(repoPath);
         String yamlPath = getYamlPath(repoPath);
         if (StringUtils.isBlank(yamlPath)) {
+            logger.error("not repo: {}", repoPath);
             return;
         }
 
@@ -58,29 +68,27 @@ public class OperationConfigService {
         Map<String, List<String>> recommends = praseCategoryRecommend(map);
         List<OpCo> opCos = OpCoConverter.toEntity(rote, recommends);
         
-        HttpClientUtil.getRequest(truncateUrl);
-        post(opCos, postUrl);
-        resetRedis();
+        gateway.saveAll(opCos);
         
-        logger.info("Finished operation_config");
+        logger.info("Finish-operation-config");
     }
 
     private String getYamlPath(String path) {
-        File folder = new File(path);
-        String basePath = "";
-        try {
-            basePath = folder.getCanonicalPath();
+        Optional<String> opS = null;
+        try (Stream<Path> pathS = Files.walk(Paths.get(path))) {
+            opS = pathS.map(p -> p.toString()).filter(s -> s.endsWith("easySoftwareDomainConfig.yaml"))
+                    .findFirst();
         } catch (Exception e) {
-            logger.error("get yaml path exception", e);
+            logger.error("error to get config.yaml");
+            return null;
         }
-        String fullPath = Paths.get(basePath, "src", "openeuler", "easySoftwareDomainConfig.yaml").toString();
 
-        File fullFile = new File(fullPath);
-        if (! fullFile.exists() || ! fullFile.isFile()) {
-            logger.error("{} does not have config.yaml", path);
-            return "";
-        }  
-        return fullPath;
+        String cPath = opS.orElseGet(null);
+        if (StringUtils.isBlank(cPath)) {
+            logger.error("no path of config.yaml");
+            return null;
+        }
+        return cPath;
     }
 
     private void gitPull(String path) {

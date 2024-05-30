@@ -2,8 +2,11 @@ package com.easysoftwareinput.infrastructure.apppkg;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,15 +31,11 @@ public class AppGatewayImpl extends ServiceImpl<AppDoMapper, AppDo> {
         return saveOrUpdateBatch(dList, 50);
     }
 
-    public List<String> getOs() {
+    public List<String> getDistinctOs() {
         QueryWrapper<AppDo> wrapper = new QueryWrapper<>();
         wrapper.select("distinct os");
         List<AppDo> doList = mapper.selectList(wrapper);
-        List<String> osList = new ArrayList<>();
-        for (AppDo pkg : doList) {
-            osList.add(pkg.getOs());
-        }
-        return osList;
+        return doList.stream().map(AppDo::getOs).collect(Collectors.toList());
     }
 
     public List<AppDo> getPkg(String os) {
@@ -49,11 +48,16 @@ public class AppGatewayImpl extends ServiceImpl<AppDoMapper, AppDo> {
     public List<AppDo> getDomain() {
         QueryWrapper<AppDo> wrapper = new QueryWrapper<>();
         wrapper.select("os, arch, name, app_ver, category, icon_url, pkg_id, description");
-        wrapper.groupBy("name");
-        return mapper.selectList(wrapper);
+        List<AppDo> aList = mapper.selectList(wrapper);
+        return converter.filterDuplicate(aList);
     }
 
     public AppDo queryPkgIdByName(String name) {
+        name = StringUtils.trimToEmpty(name);
+        if (StringUtils.isBlank(name)) {
+            return null;
+        }
+
         QueryWrapper<AppDo> wrapper = new QueryWrapper<>();
         wrapper.select("name, pkg_id");
         wrapper.eq("name", name);
@@ -62,6 +66,6 @@ public class AppGatewayImpl extends ServiceImpl<AppDoMapper, AppDo> {
         if (list.size() >= 1) {
             return list.get(0);
         }
-        return new AppDo();
+        return null;
     }
 }

@@ -105,27 +105,36 @@ public class RPMPackageService {
             }
 
             String name = href.split("/")[1];
-            String src = osMes.get("baseUrl") + href;
+            String src = osMes.get("baseUrl") + "/" + href;
             map.put(name, src);
         }
         return map;
     }
 
-    public void run() {
-        List<String> files = listSubMenus(env.getProperty("rpm.dir"));
-
-        // 获取源码包链接
+    private Map<String, String> getSrcUrls(List<String> files) {
         Map<String, String> srcUrls = new HashMap<>();
         for (String filePath : files) {
+            if (! filePath.contains("source")) {
+                continue;
+            }
+
             Map<String, String> osMes = parseFileName(filePath);
             Document document = parseDocument(filePath);
             if (document == null) {
                 continue;
             }
+
             List<Element> pkgs = document.getRootElement().elements();
             Map<String, String> srcMap = initSrc(pkgs, osMes);
             srcUrls.putAll(srcMap);
         }
+        return srcUrls;
+    }
+
+    public void run() {
+        List<String> files = listSubMenus(env.getProperty("rpm.dir"));
+
+        Map<String, String> srcUrls = getSrcUrls(files);
 
         // 获取maintainer信息
         Map<String, BasePackageDO> maintainers = batchService.getNames();
@@ -146,14 +155,14 @@ public class RPMPackageService {
             threadPool.parseXml(document, osMes, fileIndex, srcUrls, maintainers);
         }
 
-        while (executor.getQueueSize() > 0 && executor.getActiveCount() > 0) {
+        while (executor.getQueueSize() > 0 || executor.getActiveCount() > 0) {
         }
 
         log.info("finish-rpm-package");
     }
 
     private Map<String, String> parseFileName(String filePath) {
-        String[] pathSplits = filePath.split("\\\\");
+        String[] pathSplits = filePath.split(File.separator);
         String filename = pathSplits[pathSplits.length - 1];
         String[] nameSplits = filename.split("_a_");
 

@@ -4,20 +4,17 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpClientErrorException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
+import lombok.extern.slf4j.Slf4j;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
-    private static final Logger logger =  LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(Exception.class)
+    public void exception(final Exception e) {
+        log.error("e: {}, thread: {}", e, Thread.currentThread().getName());
+    }
 
-    // @ExceptionHandler(HttpClientErrorException.class)
-    // @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    // public ResponseEntity<Object> exception(HttpClientErrorException e) {
-    //     // return ResultUtil.fail(HttpStatus.INTERNAL_SERVER_ERROR, MessageCode.ES0001, e.getMessage());
-    // }
+    
 }

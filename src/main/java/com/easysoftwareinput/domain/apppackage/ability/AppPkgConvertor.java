@@ -1,5 +1,6 @@
 package com.easysoftwareinput.domain.apppackage.ability;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -65,6 +66,8 @@ public class AppPkgConvertor {
         pkg.setInstallation((String) map.get("install"));
         pkg.setType("IMAGE");
         pkg.setIconUrl(obsService.generateUrl(pkg.getName()));
+        pkg.setId(UUidUtil.getUUID32());
+        pkg.setUpdateAt(new Timestamp(System.currentTimeMillis()));
 
         List<String> simi = (List<String>) map.get("similar_packages");
         pkg.setSimilarPkgs(ObjectMapperUtil.writeValueAsString(simi));
@@ -220,7 +223,7 @@ public class AppPkgConvertor {
         setCategory(map, pkg);
         setMaintainer(map, pkg);
         Map<String, Object> monMap = getFromMonitor(pkg.getName());
-        // 如果监控服务里容器镜像的数据，则不保存该容器镜像
+        // 如果没有监控服务里容器镜像的数据，则不保存该容器镜像
         if (monMap.size() == 0) {
             return Collections.emptyList();
         }

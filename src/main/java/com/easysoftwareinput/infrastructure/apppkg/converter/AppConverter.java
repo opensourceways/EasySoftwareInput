@@ -1,9 +1,12 @@
 package com.easysoftwareinput.infrastructure.apppkg.converter;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
@@ -16,6 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class AppConverter {
+    private static final List<String> ORDER = new ArrayList<>(){{add("x86_64"); add("aarch64");}};
+
     public List<AppDo> toDo(List<AppPackage> aList) {
         List<AppDo> oList = new ArrayList<>();
         for (AppPackage pkg : aList) {
@@ -39,18 +44,18 @@ public class AppConverter {
 
         List<AppDo> filterList = filterDuplicate(doList);
 
-        for (AppDo pkg : doList) {
+        for (AppDo pkg : filterList) {
             String name = pkg.getName();
             curMap.put(name, pkg);
         }
     }
 
-    private List<AppDo> filterDuplicate(List<AppDo> doList) {
+    public List<AppDo> filterDuplicate(List<AppDo> doList) {
         Map<String, List<AppDo>> map = groupByName(doList);
 
         List<AppDo> singleList = new ArrayList<>();
         for (List<AppDo> list : map.values()) {
-            singleList.add(getLatest(list));
+            singleList.add(pickOne(list));
         }
         return singleList;
     }
@@ -69,7 +74,7 @@ public class AppConverter {
         return map;
     }
 
-    private  AppDo getLatest(List<AppDo> list) {
+    private  AppDo pickOne(List<AppDo> list) {
         Integer size = list.size();
         if (size == 0) {
             return null;
@@ -81,15 +86,11 @@ public class AppConverter {
     }
 
     private AppDo pickLatest(List<AppDo> list) {
-        String ver = list.get(0).getAppVer();
-        AppDo winner = null;
-        for (AppDo pkg : list) {
-            if (pkg.getAppVer().compareTo(ver) > 0) {
-                winner = pkg;
-            }
-        }
-        return winner;
+        List<AppDo> sort = list.stream().sorted(
+                Comparator.comparing(AppDo::getAppVer, Comparator.reverseOrder())
+                .thenComparing(pkg -> ORDER.indexOf(pkg.getArch()), Comparator.reverseOrder())
+        ).collect(Collectors.toList());
+        return sort.get(0);
     }
-
-  
 }
+
