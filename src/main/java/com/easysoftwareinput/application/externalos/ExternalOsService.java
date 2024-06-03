@@ -1,7 +1,5 @@
 package com.easysoftwareinput.application.externalos;
 
-import java.io.UnsupportedEncodingException;
-import java.net.http.HttpClient;
 import java.util.List;
 import java.util.Map;
 
@@ -18,22 +16,39 @@ import com.easysoftwareinput.domain.externalos.model.ExternalOs;
 
 @Service
 public class ExternalOsService {
-    private static final Logger logger = LoggerFactory.getLogger(ExternalOsService.class);
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExternalOsService.class);
 
+    /**
+     * path of file.
+     */
     @Value("${externalos.path}")
     private String path;
 
+    /**
+     * post url.
+     */
     @Value("${externalos.url}")
     private String postUrl;
-    
+
+    /**
+     * run the program.
+     */
     public void run() {
         Map<String, Object> map = YamlUtil.parseYaml(path);
         List<ExternalOs> exOsList = ExternalOsConverter.toEntityList(map);
         post(exOsList, postUrl);
-        logger.info("finished external os");
+        LOGGER.info("finished external os");
 
     }
 
+    /**
+     * post to url.
+     * @param exOsList list to be posted.
+     * @param url url.
+     */
     private void post(List<ExternalOs> exOsList, String url) {
         for (ExternalOs exOs : exOsList) {
             String body = ObjectMapperUtil.writeValueAsString(exOs);
