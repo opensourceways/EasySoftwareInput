@@ -8,17 +8,25 @@ import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public class RestTemplateConfig {
+    /**
+     * create RestTemplate.
+     * @param factory factory.
+     * @return RestTemplate.
+     */
     @Bean
     public RestTemplate restTemplate(ClientHttpRequestFactory factory) {
         return new RestTemplate(factory);
     }
 
+    /**
+     * create ClientHttpRequestFactory.
+     * @return ClientHttpRequestFactory.
+     */
     @Bean
     public ClientHttpRequestFactory simpleClientHttpRequestFactory() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        //超时设置
-        factory.setReadTimeout(5000);//ms
-        factory.setConnectTimeout(15000);//ms
+        factory.setReadTimeout(5000);
+        factory.setConnectTimeout(15000);
         return factory;
     }
 }
