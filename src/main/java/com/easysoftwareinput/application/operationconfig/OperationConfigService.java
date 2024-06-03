@@ -10,42 +10,55 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.javassist.bytecode.Opcode;
 import org.eclipse.jgit.api.Git;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.yaml.snakeyaml.Yaml;
 
 import com.easysoftwareinput.application.epkgpackage.EPKGPackageService;
 import com.easysoftwareinput.common.entity.MessageCode;
-import com.easysoftwareinput.common.entity.ResultVo;
 import com.easysoftwareinput.common.utils.HttpClientUtil;
 import com.easysoftwareinput.common.utils.ObjectMapperUtil;
 import com.easysoftwareinput.domain.operationconfig.ability.OpCoConverter;
 import com.easysoftwareinput.domain.operationconfig.model.OpCo;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 
 @Service
 public class OperationConfigService {
-    private static final Logger logger = LoggerFactory.getLogger(EPKGPackageService.class);
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(EPKGPackageService.class);
 
+    /**
+     * path of repo.
+     */
     @Value("${operation-config.path}")
     private String repoPath;
 
+    /**
+     * post url.
+     */
     @Value("${operation-config.url}")
     private String postUrl;
 
+    /**
+     * url used to truncate table.
+     */
     @Value("${operation-config.truncate-url}")
     private String truncateUrl;
 
+    /**
+     * url used to deleting keys.
+     */
     @Value("${operation-config.redis-deletekey-url}")
     private String deleteKeyUrl;
 
+    /**
+     * run the grogram.
+     */
     public void run() {
         gitPull(repoPath);
         String yamlPath = getYamlPath(repoPath);
@@ -57,46 +70,63 @@ public class OperationConfigService {
         List<String> rote =  parseRote(map);
         Map<String, List<String>> recommends = praseCategoryRecommend(map);
         List<OpCo> opCos = OpCoConverter.toEntity(rote, recommends);
-        
+
         HttpClientUtil.getRequest(truncateUrl);
         post(opCos, postUrl);
         resetRedis();
-        
-        logger.info("Finished operation_config");
+
+        LOGGER.info("Finished operation_config");
     }
 
+    /**
+     * get the yaml path of repo.
+     * @param path path of repo.
+     * @return path of yaml file.
+     */
     private String getYamlPath(String path) {
         File folder = new File(path);
         String basePath = "";
         try {
             basePath = folder.getCanonicalPath();
         } catch (Exception e) {
-            logger.error("get yaml path exception", e);
+            LOGGER.error("get yaml path exception", e);
         }
         String fullPath = Paths.get(basePath, "src", "openeuler", "easySoftwareDomainConfig.yaml").toString();
 
         File fullFile = new File(fullPath);
-        if (! fullFile.exists() || ! fullFile.isFile()) {
-            logger.error("{} does not have config.yaml", path);
+        if (!fullFile.exists() || !fullFile.isFile()) {
+            LOGGER.error("{} does not have config.yaml", path);
             return "";
-        }  
+        }
         return fullPath;
     }
 
+    /**
+     * git pull from the repo.
+     * @param path path of repo.
+     */
     private void gitPull(String path) {
-        try {         
+        try {
             Git git = Git.open(new File(path));
             git.pull().call();
             git.close();
         } catch (Exception e) {
-            logger.error("git pull exception", e);
+            LOGGER.error("git pull exception", e);
         }
     }
 
+    /**
+     * reset the redis.
+     */
     private void resetRedis() {
         HttpClientUtil.getRequest(deleteKeyUrl);
     }
 
+    /**
+     * post.
+     * @param opCos list to be posted.
+     * @param url url.
+     */
     private void post(List<OpCo> opCos, String url) {
         for (OpCo opCo : opCos) {
             String body = ObjectMapperUtil.writeValueAsString(opCo);
@@ -104,13 +134,18 @@ public class OperationConfigService {
         }
     }
 
+    /**
+     * parse recommend.
+     * @param map map from yaml file.
+     * @return map of category and recommend.s
+     */
     private Map<String, List<String>> praseCategoryRecommend(Map<String, Object> map) {
         Map<String, List<String>> res = new HashMap<>();
         Map<String, Map<String, List<String>>> cateMap = null;
         try {
             cateMap = (Map<String, Map<String, List<String>>>) map.get("categorys");
         } catch (Exception e) {
-            logger.info("Failed to parse category");
+            LOGGER.info("Failed to parse category");
         }
 
         for (Map.Entry<String, Map<String, List<String>>> entry : cateMap.entrySet()) {
@@ -124,17 +159,26 @@ public class OperationConfigService {
         return res;
     }
 
-
+    /**
+     * parse rote.
+     * @param map map of yaml file.
+     * @return list of sort.
+     */
     private List<String> parseRote(Map<String, Object> map) {
         List<String> res = new ArrayList<>();
         try {
             res = (List<String>) map.get("sort");
         } catch (Exception e) {
-            logger.info("Failed to parse rote");
+            LOGGER.info("Failed to parse rote");
         }
         return res;
     }
 
+    /**
+     * convert yaml to map.
+     * @param yamlPath path of yaml file.
+     * @return map.
+     */
     private Map<String, Object> parseYaml(String yamlPath) {
         Yaml yaml = new Yaml();
 
@@ -144,9 +188,8 @@ public class OperationConfigService {
             inputStream = new FileInputStream(yamlPath);
             map = yaml.load(inputStream);
         } catch (FileNotFoundException e) {
-            logger.error(MessageCode.EC0009.getMsgEn(), yamlPath);
+            LOGGER.error(MessageCode.EC0009.getMsgEn(), yamlPath);
         }
-        
         return map;
     }
 }

@@ -1,15 +1,10 @@
 package com.easysoftwareinput.application.rpmpackage;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.session.SqlSessionFactory;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +14,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.easysoftwareinput.common.utils.ObjectMapperUtil;
 import com.easysoftwareinput.domain.rpmpackage.ability.RPMPackageConverter;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackage;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackageDO;
@@ -37,18 +30,32 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class MyThreadPool extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> {
+    /**
+     * pkg service.
+     */
     @Autowired
-    PkgService pkgService;
+    private PkgService pkgService;
 
+    /**
+     * rpm converter.
+     */
     @Autowired
-    RPMPackageConverter rpmPackageConverter;
+    private RPMPackageConverter rpmPackageConverter;
 
+    /**
+     * env.
+     */
     @Autowired
-    HttpService httpService;
+    private Environment env;
 
-    @Autowired
-    Environment env;
-
+    /**
+     * parse xml by mylti threads.
+     * @param xml xml.
+     * @param osMes os.
+     * @param count file index.
+     * @param srcUrls map of src pkgs.
+     * @param maintainers maintainers.
+     */
     @Async("asyncServiceExecutor")
     public void parseXml(Document xml, Map<String, String> osMes, int count, Map<String, String> srcUrls,
             Map<String, BasePackageDO> maintainers) {
@@ -72,14 +79,18 @@ public class MyThreadPool extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> 
             }
         }
 
-        log.info("finish-xml-parse, thread name: {}, list.size(): {}, time used: {}ms, fileIndex: {}", Thread.currentThread()
-                .getName(), pkgList.size(), (System.currentTimeMillis() - s), count);
-
+        log.info("finish-xml-parse, thread name: {}, list.size(): {}, time used: {}ms, fileIndex: {}",
+                Thread.currentThread().getName(), pkgList.size(), (System.currentTimeMillis() - s), count);
 
         List<String> bodyList = filterPkg(pkgList);
         post(bodyList, env.getProperty("rpm.post-url"));
     }
 
+    /**
+     * post.
+     * @param bodyList pkg to be posted.
+     * @param postUrl url.
+     */
     private void post(List<String> bodyList, String postUrl) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -98,17 +109,20 @@ public class MyThreadPool extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> 
         log.info("post time(ms): {}", System.currentTimeMillis() - s);
     }
 
-
+    /**
+     * filter the pkgs.
+     * @param pkgList pkgs.
+     * @return list of string.
+     */
     private List<String> filterPkg(List<RPMPackage> pkgList) {
         ObjectMapper objectMapper = new ObjectMapper();
         List<String> bodyList = new ArrayList<>();
         for (RPMPackage pkg : pkgList) {
-            
-            // fitlerPkg(pkg, forBiddenedFields);
+
             String body = "";
             try {
                 body = objectMapper.writeValueAsString(pkg);
-                
+
             } catch (JsonProcessingException e) {
                 log.info("can not transfer: {}", e);
             }
@@ -117,22 +131,17 @@ public class MyThreadPool extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> 
         return bodyList;
     }
 
- 
+    /**
+     * store the pkgs to database.
+     * @param list list of pkg.
+     */
     public synchronized void saveBatch(List<RPMPackageDO> list) {
         log.info("start-save-batch; thread: {}", Thread.currentThread().getName());
         long s = System.currentTimeMillis();
 
         saveOrUpdateBatch(list);
 
-        log.info("finish-mysql-batch-save; thread name: {}, list.size(): {}, time used: {}ms", Thread.currentThread().getName(), list.size(), (System.currentTimeMillis() - s));
-
+        log.info("finish-mysql-batch-save; thread name: {}, list.size(): {}, time used: {}ms",
+                Thread.currentThread().getName(), list.size(), (System.currentTimeMillis() - s));
     }
-    
 }
-
-// class MyServiceImpl extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> {
-//     @Override
-//     public SqlSessionFactory getSqlSessionFactory() {
-//         return super.getSqlSessionFactory();
-//     }
-// }
