@@ -12,21 +12,38 @@ import com.easysoftwareinput.domain.rpmpackage.model.BasePackage;
 
 @Component
 public class UpstreamService<T extends BasePackage> {
+    /**
+     * maintainer api.
+     */
     @Value("${api.repoMaintainer}")
-    String repoMaintainerApi;
+    private String repoMaintainerApi;
 
+    /**
+     * repo api.
+     */
     @Value("${api.repoSig}")
-    String repoSigApi;
+    private String repoSigApi;
 
+    /**
+     * repodownload api.
+     */
     @Value("${api.repoDownload}")
-    String repoDownloadApi;
+    private String repoDownloadApi;
 
+    /**
+     * repo info api.
+     */
     @Value("${api.repoInfo}")
-    String repoInfoApi;
+    private String repoInfoApi;
 
+    /**
+     * add maintainer.
+     * @param pkg pkg
+     * @return pkg.
+     */
     public T addMaintainerInfo(T pkg) {
-        
-        Map<String, String> maintainer = HttpClientUtil.getApiResponseMaintainer(String.format(repoMaintainerApi, pkg.getName()));
+        Map<String, String> maintainer = HttpClientUtil.getApiResponseMaintainer(
+                String.format(repoMaintainerApi, pkg.getName()));
         pkg.setMaintainerGiteeId(maintainer.get("gitee_id"));
         pkg.setMaintainerId(maintainer.get("id"));
         pkg.setMaintainerEmail(maintainer.get("email"));
@@ -34,6 +51,11 @@ public class UpstreamService<T extends BasePackage> {
         return pkg;
     }
 
+    /**
+     * add category.
+     * @param pkg pkg.
+     * @return pkg.
+     */
     public T addRepoCategory(T pkg) {
         String resp = HttpClientUtil.getApiResponseData(String.format(repoSigApi, pkg.getName()));
         if (resp != null && MapConstant.CATEGORY_MAP.containsKey(resp)) {
@@ -44,14 +66,25 @@ public class UpstreamService<T extends BasePackage> {
         return pkg;
     }
 
+    /**
+     * add download.
+     * @param pkg pkg.
+     * @return pkg.
+     */
     public T addRepoDownload(T pkg) {
         String resp = HttpClientUtil.getApiResponseData(String.format(repoDownloadApi, pkg.getName()));
         pkg.setDownloadCount(resp);
         return pkg;
     }
 
+    /**
+     * add pkginfo.
+     * @param appPkg pkg.
+     * @return pkg.
+     */
     public AppPackage addAppPkgInfo(AppPackage appPkg) {
-        Map<String, String> info = HttpClientUtil.getApiResponseMap(String.format(repoInfoApi, appPkg.getName(), "app_openeuler"));
+        Map<String, String> info = HttpClientUtil.getApiResponseMap(String.format(repoInfoApi, appPkg.getName(),
+                "app_openeuler"));
         appPkg.setOs(info.get("os"));
         appPkg.setAppVer(info.get("latest_version") + "-" + info.get("os_version"));
         appPkg.setArch(info.get("arch"));
