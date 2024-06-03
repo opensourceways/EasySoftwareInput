@@ -4,9 +4,26 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MapConstant {
+public final class MapConstant {
+    // Private constructor to prevent instantiation of the utility class
+    private MapConstant() {
+        // private constructor to hide the implicit public one
+        throw new AssertionError("ClientUtil class cannot be instantiated.");
+    }
+
+    /**
+     * category map.
+     */
     public static final Map<String, String> CATEGORY_MAP;
+
+    /**
+     * maintainer map.
+     */
     public static final Map<String, String> MAINTAINER;
+
+    /**
+     * app category map.
+     */
     public static final Map<String, String> APP_CATEGORY_MAP;
 
     static {

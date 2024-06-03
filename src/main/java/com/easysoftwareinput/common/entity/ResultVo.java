@@ -9,8 +9,23 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResultVo {
-        private int code;
+    /**
+     * code.
+     */
+    private int code;
+
+    /**
+     * msg.
+     */
     private Object msg;
+
+    /**
+     * data.
+     */
     private Object data;
+
+    /**
+     * error.
+     */
     private String error;
 }
