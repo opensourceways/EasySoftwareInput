@@ -1,21 +1,12 @@
 package com.easysoftwareinput.application.epkgpackage;
 
-import java.io.File;
-import java.io.IOException;
-import java.sql.Timestamp;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.xml.namespace.QName;
-
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.dom4j.Namespace;
 import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,51 +14,71 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
-
-import com.easysoftwareinput.application.rpmpackage.HttpService;
 import com.easysoftwareinput.application.rpmpackage.PkgService;
 import com.easysoftwareinput.common.entity.MessageCode;
-import com.easysoftwareinput.domain.epkgpackage.ability.EPKGPackageConverter;
-import com.easysoftwareinput.domain.epkgpackage.model.EPKGPackage;
-import com.easysoftwareinput.domain.rpmpackage.ability.RPMPackageConverter;
-import com.easysoftwareinput.domain.rpmpackage.model.RPMPackage;
-import com.power.common.util.StringUtil;
-
-import co.elastic.clients.elasticsearch._types.Time;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 public class EPKGPackageService {
-    private static final Logger logger = LoggerFactory.getLogger(EPKGPackageService.class);
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(EPKGPackageService.class);
 
+    /**
+     * file path of epkg.
+     */
     @Value("${epkg.path}")
     private String epkgPath;
 
+    /**
+     * post url.
+     */
     @Value("${epkg.post.url}")
-    String postUrl;
+    private String postUrl;
 
+    /**
+     * env.
+     */
     @Autowired
-    Environment env;
+    private Environment env;
 
+    /**
+     * pkg service.
+     */
     @Autowired
-    PkgService pkgService;
+    private PkgService pkgService;
 
+    /**
+     * epkg service.
+     */
     @Autowired
-    EPKGAsyncService asyncService;
+    private EPKGAsyncService asyncService;
 
+    /**
+     * thread pool.
+     */
     @Autowired
     @Qualifier("epkgasyncServiceExecutor")
-    ThreadPoolTaskExecutor executor;
+    private ThreadPoolTaskExecutor executor;
 
+    /**
+     * thread pool queue capacity.
+     */
     @Value("${async.executor.thread.queue_capacity}")
     private int queueCapacity;
 
+    /**
+     * xml reader.
+     */
     private static SAXReader reader = new SAXReader();
 
-    private Map<String, String> initMap(){
+    /**
+     * init os.
+     * @return map of os.
+     */
+    private Map<String, String> initMap() {
         return Map.ofEntries(
             Map.entry("osName", env.getProperty("epkg.os-name")),
             Map.entry("osVer", env.getProperty("epkg.os-ver")),
@@ -76,23 +87,34 @@ public class EPKGPackageService {
         );
     }
 
+    /**
+     * parse each xml file.
+     * @param filePath filepath.
+     * @return document.
+     */
     private Document parseDocument(String filePath) {
         Document document = null;
         try {
             document = reader.read(filePath);
         } catch (DocumentException e) {
-            logger.error(MessageCode.EC00016.getMsgEn());
+            LOGGER.error(MessageCode.EC00016.getMsgEn());
         }
         return document;
     }
 
+    /**
+     * parse message of src pkg.
+     * @param pkgs epkg.
+     * @param osMes os.
+     * @return map of src name and src url.
+     */
     private Map<String, String> initSrc(List<Element> pkgs, Map<String, String> osMes) {
         Map<String, String> map = new HashMap<>();
         for (Element p : pkgs) {
             Map<String, String> res = pkgService.parseSrc(p, osMes);
 
             String href = StringUtils.trimToEmpty(res.get("location_href"));
-            if (StringUtils.isBlank(href) || ! "src".equals(res.get("arch"))) {
+            if (StringUtils.isBlank(href) || !"src".equals(res.get("arch"))) {
                 continue;
             }
 
@@ -103,6 +125,9 @@ public class EPKGPackageService {
         return map;
     }
 
+    /**
+     * run the program.
+     */
     public void run() {
         Map<String, String> osMes = initMap();
         Document document = parseDocument(epkgPath);
@@ -112,6 +137,7 @@ public class EPKGPackageService {
 
         for (int i = 0; i < pkgs.size(); i++) {
             while (executor.getQueueSize() > 2) {
+                int other = 0; // wait to avoid pushing too much pkg to threadpool queue.
             }
 
             Element pkg = pkgs.get(i);
@@ -119,9 +145,10 @@ public class EPKGPackageService {
         }
 
         while (executor.getQueueSize() > 0 && executor.getActiveCount() > 0) {
+            int other = 0; // until all the thread work finished.
         }
 
-        logger.info("finish-epkg-package");
+        LOGGER.info("finish-epkg-package");
     }
 }
 
