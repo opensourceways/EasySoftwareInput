@@ -1,41 +1,46 @@
 package com.easysoftwareinput.application.rpmpackage;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
-
 import com.easysoftwareinput.common.entity.MessageCode;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class HttpService {
+    /**
+     * resttemplate.
+     */
     @Autowired
-    RestTemplate restTemplate;
+    private RestTemplate restTemplate;
 
+    /**
+     * http headers.
+     */
     private HttpHeaders headers = null;
 
+    /**
+     * init the header.
+     */
     @PostConstruct
     public void init() {
         headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
     }
 
+    /**
+     * whether the url is valid.
+     * @param url url.
+     * @return whether the url is valid.
+     */
     public boolean validUrl(String url) {
         RestTemplate restTemplate = new RestTemplate();
         while (true) {
@@ -48,8 +53,13 @@ public class HttpService {
             }
         }
     }
-    
-    @Retryable(value = Exception.class,maxAttempts = 3,backoff = @Backoff(delay = 2000,multiplier = 1.5))
+
+    /**
+     * post the pkg.
+     * @param jsonPkg pkg.
+     * @param postUrl url.
+     */
+    @Retryable(value = Exception.class, maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier = 1.5))
     public synchronized void postPkg(String jsonPkg, String postUrl) {
         // log.info("body: {}", jsonPkg);
         HttpEntity<String> request = new HttpEntity<>(jsonPkg, headers);
@@ -58,11 +68,15 @@ public class HttpService {
         log.info("post-res: {}", res);
     }
 
+    /**
+     * log if the method "postPkg" failed.
+     * @param e exception.
+     * @param jsonPkg pkg.
+     * @param postUrl url.
+     */
     @Recover
     public void recover(Exception e, String jsonPkg, String postUrl) {
         log.error(MessageCode.EC0001.getMsgEn(), e);
         log.error("Failed post! pkg: {}", jsonPkg);
     }
-        
-    
 }
