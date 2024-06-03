@@ -1,10 +1,7 @@
 package com.easysoftwareinput.application.domainpackage;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,58 +9,56 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.data.repository.support.DomainClassConverter;
 import org.springframework.stereotype.Service;
-
-import com.easysoftwareinput.common.utils.ObjectMapperUtil;
-import com.easysoftwareinput.domain.domainpackage.ability.DomainPackageConverter;
 import com.easysoftwareinput.domain.domainpackage.model.DomainPackage;
-import com.easysoftwareinput.domain.rpmpackage.model.RPMPackage;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackageDO;
 import com.easysoftwareinput.infrastructure.apppkg.AppGatewayImpl;
 import com.easysoftwareinput.infrastructure.apppkg.dataobject.AppDo;
-import com.easysoftwareinput.infrastructure.domainpackage.DomainPkgDO;
 import com.easysoftwareinput.infrastructure.domainpackage.DomainPkgGatewayImpl;
 import com.easysoftwareinput.infrastructure.epkgpkg.EpkgGatewayImpl;
 import com.easysoftwareinput.infrastructure.epkgpkg.dataobject.EpkgDo;
-import com.easysoftwareinput.infrastructure.mapper.DomainPkgMapper;
 import com.easysoftwareinput.infrastructure.rpmpkg.RpmGatewayImpl;
-import com.fasterxml.jackson.core.exc.StreamReadException;
-import com.fasterxml.jackson.databind.DatabindException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import ch.qos.logback.core.joran.util.beans.BeanUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class DomainPkgService {
-    @Value("${domain.file}")
-    private String path;
-
+    /**
+     * domain pkg gateway.
+     */
     @Autowired
-    ObjectMapper objectMapper;
+    private DomainPkgGatewayImpl gateway;
 
+    /**
+     * app pkg gateway.
+     */
     @Autowired
-    DomainPackageConverter converter;
+    private AppGatewayImpl appGateway;
 
+    /**
+     * rpm pkg gateway.
+     */
     @Autowired
-    DomainPkgGatewayImpl gateway;
+    private RpmGatewayImpl rpmGateway;
 
+    /**
+     * epkg pkg gateway.
+     */
     @Autowired
-    AppGatewayImpl appGateway;
+    private EpkgGatewayImpl epkgGateway;
 
+    /**
+     * env.
+     */
     @Autowired
-    RpmGatewayImpl rpmGateway;
+    private Environment env;
 
-    @Autowired
-    EpkgGatewayImpl epkgGateway;
-
-    @Autowired
-    Environment env;
-
+    /**
+     * generate domain pkg by app pkg.
+     * @param domainMap domainMap to be updated.
+     * @param appList applist.
+     */
     private void mergeApp(Map<String, DomainPackage> domainMap, List<AppDo> appList) {
         for (AppDo app : appList) {
             String name = app.getName();
@@ -79,6 +74,11 @@ public class DomainPkgService {
         }
     }
 
+    /**
+     * generate domain pkg by rpm pkg.
+     * @param domainMap domainMap to be updated.
+     * @param rpmList  rpmlist.
+     */
     private void mergeRpm(Map<String, DomainPackage> domainMap, List<RPMPackageDO> rpmList) {
         for (RPMPackageDO rpm : rpmList) {
             String name = rpm.getName();
@@ -94,6 +94,10 @@ public class DomainPkgService {
         }
     }
 
+    /**
+     * search tags of each domain pkg.
+     * @param domainMap domainMap to be updated.
+     */
     private void extendsId(Map<String, DomainPackage> domainMap) {
         for (Map.Entry<String, DomainPackage> entry : domainMap.entrySet()) {
             String name = entry.getKey();
@@ -121,6 +125,10 @@ public class DomainPkgService {
         }
     }
 
+    /**
+     * set iconUrl of domain pkg.
+     * @param domainMap domainMap.
+     */
     private void setIconUrls(Map<String, DomainPackage> domainMap) {
         String defaltIconUrl = env.getProperty("domain.icon");
         for (DomainPackage domain : domainMap.values()) {
@@ -130,6 +138,12 @@ public class DomainPkgService {
         }
     }
 
+    /**
+     * generate domain list by app list and rpm list.
+     * @param appList applist.
+     * @param rpmList rpmlist.
+     * @return domain list.
+     */
     private List<DomainPackage> toDomainList(List<AppDo> appList, List<RPMPackageDO> rpmList) {
         Map<String, DomainPackage> domainMap = new HashMap<>();
 
@@ -143,6 +157,9 @@ public class DomainPkgService {
         return new ArrayList<DomainPackage>(domainMap.values());
     }
 
+    /**
+     * run the grogram.
+     */
     public void run() {
         List<AppDo> appList = appGateway.getDomain();
         List<RPMPackageDO> rpmList = rpmGateway.getDomain();
