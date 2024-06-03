@@ -10,14 +10,12 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.jcajce.provider.digest.GOST3411.HashMac;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import com.easysoftwareinput.common.utils.HttpClientUtil;
 import com.easysoftwareinput.common.utils.ObjectMapperUtil;
-import com.easysoftwareinput.domain.apppackage.model.AppPackage;
 import com.easysoftwareinput.domain.appver.AppVersion;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -26,9 +24,17 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class AppVerService {
+    /**
+     * env.
+     */
     @Autowired
-    Environment env;
+    private Environment env;
 
+    /**
+     * get iamges.
+     * @param appUrl appurl.
+     * @return a list of images.
+     */
     private Set<String> getAppList(String appUrl) {
         Set<String> names = new HashSet<>();
         JsonNode resp = HttpClientUtil.getApiResponseJson(appUrl);
@@ -43,6 +49,12 @@ public class AppVerService {
         return names;
     }
 
+    /**
+     * get result of monitor service.
+     * @param name pkg name.
+     * @param monUrl monurl.
+     * @return a map.
+     */
     private Map<String, JsonNode> getItems(String name, String monUrl) {
         name = name.replaceAll(" ", "%20");
         String url = String.format(monUrl, name);
@@ -67,6 +79,10 @@ public class AppVerService {
         return tagMap;
     }
 
+    /**
+     * set status of AppVerison.
+     * @param appVer appVer.
+     */
     private void setStatus(AppVersion appVer) {
         if (StringUtils.isBlank(appVer.getOpeneulerVersion())) {
             appVer.setStatus("MISSING");
@@ -77,6 +93,11 @@ public class AppVerService {
         }
     }
 
+    /**
+     * get rawversions of jsonNode.
+     * @param euler jsonNode object.
+     * @return raw versions.
+     */
     private List<String> getRawVersions(JsonNode euler) {
         if (euler == null) {
             return Collections.emptyList();
@@ -90,6 +111,11 @@ public class AppVerService {
         return vers;
     }
 
+    /**
+     * split string to os and version.
+     * @param versionAndOs origin string.
+     * @return a map.
+     */
     public Map<String, String> splitVer(String versionAndOs) {
         String[] parts = versionAndOs.split("-");
         String version = parts[0];
@@ -114,12 +140,23 @@ public class AppVerService {
         );
     }
 
+    /**
+     * set appVer by osAndVer and euler.
+     * @param appVer the object to be updated.
+     * @param osAndVer osAndVer.
+     * @param euler euler.
+     */
     private void setByEuler(AppVersion appVer, Map<String, String> osAndVer, JsonNode euler) {
         appVer.setEulerOsVersion(osAndVer.get("osVer"));
         appVer.setOpeneulerVersion(osAndVer.get("pkgVer"));
         appVer.setEulerHomepage(euler.get("homepage").asText());
     }
 
+    /**
+     * generate appvers by rawversions of euler.
+     * @param euler euler.
+     * @return a list of appver.
+     */
     private List<AppVersion> generateEntityByEuler(JsonNode euler) {
         List<String> rawVers = getRawVersions(euler);
         if (rawVers.size() == 0) {
@@ -136,6 +173,11 @@ public class AppVerService {
         return appList;
     }
 
+    /**
+     * fill appList with op.
+     * @param appList apList to be updated.
+     * @param up up.
+     */
     private void fillWithUp(List<AppVersion> appList, JsonNode up) {
         if (up == null) {
             return;
@@ -151,6 +193,11 @@ public class AppVerService {
         }
     }
 
+    /**
+     * fill appList with ci.
+     * @param appList applist to be updated.
+     * @param ci ci.
+     */
     private void fillWithCi(List<AppVersion> appList, JsonNode ci) {
         if (ci == null) {
             return;
@@ -162,16 +209,28 @@ public class AppVerService {
         }
     }
 
+    /**
+     * fill aplist.
+     * @param appList applist to be updated.
+     * @param items itmes from monitor service.
+     * @param name name of pkg.
+     */
     private void fillUp(List<AppVersion> appList, Map<String, JsonNode> items, String name) {
         fillWithUp(appList, items.get("app_up"));
         fillWithCi(appList, items.get("app_ci_openeuler"));
 
-        for(AppVersion app : appList) {
+        for (AppVersion app : appList) {
             setStatus(app);
             app.setName(name);
         }
     }
 
+    /**
+     * generate appvers by names.
+     * @param names names of pkgs.
+     * @param monUrl monurl.
+     * @return a list of appver.
+     */
     private List<AppVersion> generateAppVerList(Set<String> names, String monUrl) {
         List<AppVersion> verList = new ArrayList<>();
         for (String name : names) {
@@ -183,8 +242,13 @@ public class AppVerService {
         return verList;
     }
 
+    /**
+     * post to url.
+     * @param verList list to be posted.
+     * @param postUrl posturl.
+     */
     private void post(List<AppVersion> verList, String postUrl) {
-        for (int idx = 0; idx < verList.size(); idx ++) {
+        for (int idx = 0; idx < verList.size(); idx++) {
             AppVersion ver = verList.get(idx);
             String body = ObjectMapperUtil.writeValueAsString(ver);
             String re = HttpClientUtil.postHttpClient(postUrl, body);
@@ -192,6 +256,9 @@ public class AppVerService {
         }
     }
 
+    /**
+     * run program.
+     */
     public void run() {
         String appUrl = env.getProperty("appver.appurl");
         String monUrl = env.getProperty("appver.monurl");
