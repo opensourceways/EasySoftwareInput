@@ -13,92 +13,144 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AppPackage extends BasePackage {
+    /**
+     * uuid.
+     */
     @Serial
     private String id;
 
+    /**
+     * time of pkg created.
+     */
     private Timestamp createAt;
 
+    /**
+     * time of pkg updated.
+     */
     private Timestamp updateAt;
 
-    public String description;
+    /**
+     * description of pkg.
+     */
+    private String description;
 
-    public String license;
+    /**
+     * license of pkg.
+     */
+    private String license;
 
+    /**
+     * download of pkg.
+     */
     private String download;
-    
+
+    /**
+     * environment of pkg.
+     */
     private String environment;
-    
+
+    /**
+     * installation  of pkg.
+     */
     private String installation;
 
+    /**
+     * similarPkgs of pkg.
+     */
     private String similarPkgs;
 
+    /**
+     * dependencyPkgs of pkg.
+     */
     private String dependencyPkgs;
 
+    /**
+     * type of pkg.
+     */
     private String type;
 
+    /**
+     * iconUrl of pkg.
+     */
     private String iconUrl;
 
+    /**
+     * appVer of pkg.
+     */
     private String appVer;
 
+    /**
+     * osSupport of pkg.
+     */
     private String osSupport;
 
+    /**
+     * os of pkg.
+     */
     private String os;
 
+    /**
+     * arch of pkg.
+     */
     private String arch;
 
+    /**
+     * securityLevel of pkg.
+     */
     private String securityLevel;
 
+    /**
+     * safeLabel of pkg.
+     */
     private String safeLabel;
 
+    /**
+     * appSize of pkg.
+     */
     private String appSize;
 
+    /**
+     * srcRepo of pkg.
+     */
     private String srcRepo;
 
+    /**
+     * srcDownloadUrl of pkg.
+     */
     private String srcDownloadUrl;
 
+    /**
+     * binDownloadUrl of pkg.
+     */
     private String binDownloadUrl;
 
+    /**
+     * pkgId of pkg.
+     */
     private String pkgId;
 
+    /**
+     * imageTags of pkg.
+     */
     private String imageTags;
 
+    /**
+     * imageUsage of pkg.
+     */
     private String imageUsage;
 
+    /**
+     * dockerfileLink of pkg.
+     */
     private String dockerfileLink;
 
+    /**
+     * pullStr of pkg.
+     */
     private String pullStr;
 
+    /**
+     * latestOsSupport of pkg.
+     */
     private String latestOsSupport;
-
-    public AppPackage(AppPackage other) {  
-        super(other);
-        // 深拷贝AppPackage的字段  
-        this.id = other.id;  
-        this.createAt = other.createAt;  
-        this.updateAt = other.updateAt;  
-        this.description = other.description;  
-        this.license = other.license;  
-        this.download = other.download;  
-        this.environment = other.environment;  
-        this.installation = other.installation;  
-        this.similarPkgs = other.similarPkgs;  
-        this.dependencyPkgs = other.dependencyPkgs;  
-        this.type = other.type;  
-        this.iconUrl = other.iconUrl;  
-        this.appVer = other.appVer;  
-        this.osSupport = other.osSupport;  
-        this.os = other.os;  
-        this.arch = other.arch;  
-        this.securityLevel = other.securityLevel;  
-        this.safeLabel = other.safeLabel;  
-        this.appSize = other.appSize;  
-        this.srcRepo = other.srcRepo;  
-        this.srcDownloadUrl = other.srcDownloadUrl;  
-        this.binDownloadUrl = other.binDownloadUrl;  
-        this.pkgId = other.pkgId;  
-        this.imageTags = other.imageTags;  
-        this.imageUsage = other.imageUsage;
-        this.dockerfileLink = other.dockerfileLink;
-        this.pullStr = other.pullStr;
-    }
 }
