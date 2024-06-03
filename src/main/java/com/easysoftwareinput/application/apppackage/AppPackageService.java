@@ -2,12 +2,9 @@ package com.easysoftwareinput.application.apppackage;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,46 +13,64 @@ import org.eclipse.jgit.api.Git;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import com.easysoftwareinput.common.utils.HttpClientUtil;
-import com.easysoftwareinput.common.utils.ObjectMapperUtil;
 import com.easysoftwareinput.common.utils.YamlUtil;
 import com.easysoftwareinput.domain.apppackage.ability.AppPkgConvertor;
 import com.easysoftwareinput.domain.apppackage.model.AppPackage;
 import com.easysoftwareinput.infrastructure.apppkg.AppGatewayImpl;
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-
 @Service
 public class AppPackageService {
-    private static final Logger logger = LoggerFactory.getLogger(AppPackageService.class);
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(AppPackageService.class);
 
+    /**
+     * env.
+     */
     @Autowired
-    Environment env;
+    private Environment env;
 
+    /**
+     * obs.
+     */
     @Autowired
-    ObsService obsService;
+    private ObsService obsService;
 
+    /**
+     * converter.
+     */
     @Autowired
-    AppPkgConvertor converter;
+    private AppPkgConvertor converter;
 
+    /**
+     * appgatewayimpl.
+     */
     @Autowired
-    AppGatewayImpl appGateway;
+    private AppGatewayImpl appGateway;
 
+    /**
+     * git pull.
+     * @param repoPath repoPath.
+     */
     public void gitPull(String repoPath) {
         try {
             Git git = Git.open(new File(repoPath));
             git.pull().call();
             git.close();
         } catch (Exception e) {
-            logger.error("git pull exception", e);
+            LOGGER.error("git pull exception", e);
         }
     }
 
+    /**
+     * get sub menus of repoPath.
+     * @param repoPath repoPath
+     * @return sub menus.
+     */
     private List<File> getSubMenus(String repoPath) {
         File folder = new File(repoPath);
         if (!folder.exists() || (!folder.isDirectory())) {
@@ -70,6 +85,11 @@ public class AppPackageService {
         return pkgList;
     }
 
+    /**
+     * whether the file exists.
+     * @param infoPath infoPath.
+     * @return whether the file exists.
+     */
     private boolean existInfoFile(String infoPath) {
         File file = new File(infoPath);
         if (file.exists() && file.isFile()) {
@@ -78,10 +98,15 @@ public class AppPackageService {
         return false;
     }
 
+    /**
+     * get map from file.
+     * @param pkg file.
+     * @return a map.
+     */
     private Map<String, Object> getInfoMap(File pkg) {
         String infoPath = Paths.get(pkg.getAbsolutePath(), new String[]{"doc", "image-info.yml"}).toString();
 
-        if (! existInfoFile(infoPath)) {
+        if (!existInfoFile(infoPath)) {
             return Collections.emptyMap();
         }
 
@@ -89,15 +114,20 @@ public class AppPackageService {
 
         String name = (String) yamlMap.get("name");
         if (StringUtils.isBlank(name)) {
-            logger.info("no yaml name, file: {}", pkg.toString());
+            LOGGER.info("no yaml name, file: {}", pkg.toString());
             return Collections.emptyMap();
         }
         return yamlMap;
     }
 
+    /**
+     * get path of pic.
+     * @param pkg
+     * @return return "" if the path of pic does not exist.
+     */
     private String getPicPath(File pkg) {
         File picMenu = new File(Paths.get(pkg.getAbsolutePath(), new String[]{"doc", "picture"}).toString());
-        if (! picMenu.exists() || ! picMenu.isDirectory()) {
+        if (!picMenu.exists() || !picMenu.isDirectory()) {
             return "";
         }
 
@@ -114,7 +144,11 @@ public class AppPackageService {
         obsService.putData(name, picPath);
     }
 
-    private void postInfo(Map<String, Object> map, String posturl) {
+    /**
+     * save the data.
+     * @param map data.
+     */
+    private void postInfo(Map<String, Object> map) {
         List<AppPackage> pkgList = converter.mapToPkgList(map);
         if (pkgList.size() == 0) {
             return;
@@ -122,7 +156,11 @@ public class AppPackageService {
         appGateway.saveAll(pkgList);
     }
 
-    private void handleEachApp(String repoPath, String posturl) {
+    /**
+     * handle each app pkg.
+     * @param repoPath repoPath.
+     */
+    private void handleEachApp(String repoPath) {
         List<File> pkgs = getSubMenus(repoPath);
         for (File pkg : pkgs) {
             Map<String, Object> map = getInfoMap(pkg);
@@ -138,28 +176,32 @@ public class AppPackageService {
 
             pushPic(pkg, map.get("name"));
 
-            postInfo(map, posturl);
+            postInfo(map);
         }
-       
     }
 
+    /**
+     * run the program.
+     */
     public void run() {
         String repoPath = env.getProperty("app.path");
-        String posturl = env.getProperty("app.posturl");
         gitPull(repoPath);
-        handleEachApp(repoPath, posturl);
-        logger.info("finish-update-application");
+        handleEachApp(repoPath);
+        LOGGER.info("finish-update-application");
         System.exit(0);
     }
 
+    /**
+     * filter the image by ext.
+     */
     static class ImageFilenameFilter implements FilenameFilter {
         @Override
         public boolean accept(File dir, String name) {
-            return name.toLowerCase().endsWith(".jpg") ||
-                   name.toLowerCase().endsWith(".jpeg") ||
-                   name.toLowerCase().endsWith(".png") ||
-                   name.toLowerCase().endsWith(".gif") ||
-                   name.toLowerCase().endsWith(".bmp");
+            return name.toLowerCase().endsWith(".jpg")
+                    || name.toLowerCase().endsWith(".jpeg")
+                    || name.toLowerCase().endsWith(".png")
+                    || name.toLowerCase().endsWith(".gif")
+                    || name.toLowerCase().endsWith(".bmp");
         }
     }
 }
