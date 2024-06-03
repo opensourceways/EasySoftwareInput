@@ -3,16 +3,13 @@ package com.easysoftwareinput.domain.epkgpackage.ability;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-
 import com.easysoftwareinput.application.rpmpackage.BatchServiceImpl;
 import com.easysoftwareinput.common.constant.MapConstant;
 import com.easysoftwareinput.common.entity.MessageCode;
@@ -21,31 +18,51 @@ import com.easysoftwareinput.infrastructure.BasePackageDO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.power.common.util.StringUtil;
-
 import jakarta.annotation.PostConstruct;
-
-
 
 @Service
 public class EPKGPackageConverter {
-    private static final Logger logger = LoggerFactory.getLogger(EPKGPackageConverter.class);
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(EPKGPackageConverter.class);
 
+    /**
+     * objectmaper.
+     */
     @Autowired
-    ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
+    /**
+     * batch service.
+     */
     @Autowired
-    BatchServiceImpl batchService;
+    private BatchServiceImpl batchService;
 
+    /**
+     * env.
+     */
     @Autowired
-    Environment env;
+    private Environment env;
 
+    /**
+     * map of base pkg.
+     */
     private Map<String, BasePackageDO> bases = new HashMap<>();
 
+    /**
+     * init of bases.
+     */
     @PostConstruct
     public void init() {
         bases = batchService.getNames();
     }
 
+    /**
+     * change the format of key: underline to camel.
+     * @param underLineMap map.
+     * @return map.
+     */
     private Map<String, String> changeMap(Map<String, String> underLineMap) {
         Map<String, String> camelMap = new HashMap<>();
         for (String underLineKey: underLineMap.keySet()) {
@@ -54,7 +71,13 @@ public class EPKGPackageConverter {
         }
         return camelMap;
     }
-  
+
+    /**
+     * set download url of pkg.
+     * @param pkg pkg.
+     * @param camelMap map.
+     * @param srcMap map of src pkgs.
+     */
     private void setDownloadUrl(EPKGPackage pkg, Map<String, String> camelMap, Map<String, String> srcMap) {
         String arch = camelMap.get("arch");
         String url = camelMap.get("baseUrl") + "/" + camelMap.get("locationHref");
@@ -72,6 +95,12 @@ public class EPKGPackageConverter {
         pkg.setBinDownloadUrl(url);
     }
 
+    /**
+     * change map to epkg pkg.
+     * @param underLineMap map.
+     * @param srcMap map of src pkgs.
+     * @return epkg pkg.
+     */
     public EPKGPackage toEntity(Map<String, String> underLineMap, Map<String, String> srcMap) {
         Map<String, String> camelMap = changeMap(underLineMap);
 
@@ -101,7 +130,7 @@ public class EPKGPackageConverter {
                 Map.entry("url", env.getProperty("epkg.official"))
             )));
         } catch (JsonProcessingException e) {
-            logger.error(MessageCode.EC00014.getMsgEn(), e);
+            LOGGER.error(MessageCode.EC00014.getMsgEn(), e);
         }
 
         pkg.setRepoType("");
@@ -111,13 +140,13 @@ public class EPKGPackageConverter {
                 Map.entry("url", env.getProperty("epkg.official") + pkg.getName())
             )));
         } catch (JsonProcessingException e) {
-            logger.error("", e);
+            LOGGER.error("", e);
         }
 
         Long cTime = Long.parseLong(camelMap.get("timeFile"));
         String fTime = new SimpleDateFormat("yyyy-MM-dd").format(new Date(cTime * 1000));
         pkg.setEpkgUpdateAt(fTime);
-        
+
         double sSize = (double) Integer.parseInt(camelMap.get("sizePackage")) / 1024 / 1024;
         String fSize = String.format("%.2fMB", sSize);
         pkg.setEpkgSize(fSize);
@@ -127,8 +156,8 @@ public class EPKGPackageConverter {
 
         pkg.setSrcRepo(camelMap.get("url"));
 
-        String formatS = String.format("1. 添加源\n```\nepkg config-manager --add-repo %s\n```\n2. 更新源索引\n" +
-                "```\nepkg clean all && epkg makecache\n```\n3. 安装 %s 软件包\n```\nepkg install %s\n```", 
+        String formatS = String.format("1. 添加源\n```\nepkg config-manager --add-repo %s\n```\n2. 更新源索引\n"
+                + "```\nepkg clean all && epkg makecache\n```\n3. 安装 %s 软件包\n```\nepkg install %s\n```",
                 camelMap.get("baseUrl"), pkg.getName(), pkg.getName());
 
         pkg.setInstallation(formatS);
