@@ -1,77 +1,106 @@
 package com.easysoftwareinput.application.apppackage;
 
-import com.easysoftwareinput.common.utils.YamlUtil;
 import com.obs.services.ObsClient;
 import com.obs.services.model.ObjectListing;
 import com.obs.services.model.ObsObject;
 import com.obs.services.model.PutObjectRequest;
-
 import jakarta.annotation.PostConstruct;
-
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.InputStream;
-import java.nio.file.Paths;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jgit.api.Git;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component
 public class ObsService {
-
+    /**
+     * obs endpoint.
+     */
     @Value("${obs.endpoint}")
-    String obsEndpoint;
+    private String obsEndpoint;
 
+    /**
+     * bos bucket name.
+     */
     @Value("${obs.bucket}")
-    String obsBucketName;
+    private String obsBucketName;
 
+    /**
+     * obs ak.
+     */
     @Value("${obs.ak}")
-    String obsAk;
+    private String obsAk;
 
+    /**
+     * obs sk.
+     */
     @Value("${obs.sk}")
-    String obsSk;
+    private String obsSk;
 
-    private static final Logger logger = LoggerFactory.getLogger(ObsService.class);
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(ObsService.class);
+
+    /**
+     * obsclient.
+     */
     private static ObsClient obsClient;
 
+    /**
+     * init of obsclient.
+     */
     @PostConstruct
     public void init() {
         obsClient =  new ObsClient(obsAk, obsSk, obsEndpoint);
     }
 
+    /**
+     * save the data to obs.
+     * @param ObjectKey key of data.
+     * @param filePath file path to be stored.
+     */
     public void putData(String ObjectKey, String filePath) {
         PutObjectRequest request = new PutObjectRequest();
         request.setBucketName(obsBucketName);
         request.setObjectKey(ObjectKey);
         request.setFile(new File(filePath));
         obsClient.putObject(request);
-        logger.info("finish-push-pic, key: {}, path: {}", ObjectKey, filePath);
+        LOGGER.info("finish-push-pic, key: {}, path: {}", ObjectKey, filePath);
     }
 
+    /**
+     * get data by key.
+     * @param ObjectKey key
+     * @return a res.
+     */
     public InputStream getData(String ObjectKey) {
         ObsObject object = obsClient.getObject(obsBucketName, ObjectKey);
         InputStream res = object.getObjectContent();
         return res;
     }
 
+    /**
+     * get url of key.
+     * @param name key.
+     * @return a url.
+     */
     public String generateUrl(String name) {
         String objectKey = name;
-        if(!obsClient.doesObjectExist(obsBucketName, objectKey)) {
+        if (!obsClient.doesObjectExist(obsBucketName, objectKey)) {
             objectKey = "logo.png";
         }
         return "https://" + obsBucketName + "." + obsEndpoint + "/" + objectKey;
     }
 
+    /**
+     * list the keys of obs.
+     */
     public void list() {
         ObjectListing obs = obsClient.listObjects(obsBucketName);
         for (ObsObject obo : obs.getObjects()) {
-            logger.info("key: {}", obo.getObjectKey());
+            LOGGER.info("key: {}", obo.getObjectKey());
         }
     }
 }
