@@ -13,12 +13,29 @@ import com.easysoftwareinput.common.entity.MessageCode;
 import com.power.common.util.StringUtil;
 
 
-public class QueryWrapperUtil {
-    private static final Logger logger = LoggerFactory.getLogger(QueryWrapperUtil.class);
+public final class QueryWrapperUtil {
+    // Private constructor to prevent instantiation of the utility class
+    private QueryWrapperUtil() {
+        // private constructor to hide the implicit public one
+        throw new AssertionError("ClientUtil class cannot be instantiated.");
+    }
 
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(QueryWrapperUtil.class);
+
+    /**
+     * create querywrapper.
+     * @param <T> generic type.
+     * @param <U> generic type.
+     * @param t object.
+     * @param u object.
+     * @return querywraper.
+     */
     public static <T, U> QueryWrapper<T> createQueryWrapper(T t, U u) {
         QueryWrapper<T> wrapper = new QueryWrapper<>();
-        
+
         Field[] fields = u.getClass().getDeclaredFields();
         for (Field field: fields) {
             field.setAccessible(true);
@@ -27,9 +44,9 @@ public class QueryWrapperUtil {
             try {
                 value = field.get(u);
             } catch (Exception e) {
-                logger.error(MessageCode.EC00011.getMsgEn(), e);
+                LOGGER.error(MessageCode.EC00011.getMsgEn(), e);
             }
-            if (! (value instanceof String)) {
+            if (!(value instanceof String)) {
                 continue;
             }
 
@@ -40,7 +57,7 @@ public class QueryWrapperUtil {
             }
 
             String undLine = StringUtil.camelToUnderline(field.getName());
-            
+
             //","代表该字段有多个参数
             if (vStr.contains(",")) {
                 List<String> items = splitStr(vStr);
@@ -52,11 +69,15 @@ public class QueryWrapperUtil {
                 vStr = StringUtils.trimToEmpty(vStr);
                 wrapper.eq(undLine, vStr);
             }
-            
         }
         return wrapper;
     }
 
+    /**
+     * split strs.
+     * @param vStr origin str.
+     * @return a list of string.
+     */
     private static List<String> splitStr(String vStr) {
         List<String> res = new ArrayList<>();
 

@@ -1,33 +1,38 @@
 package com.easysoftwareinput.common.utils;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
+import java.util.TimeZone;
+
 
 /**
- * Jackson工具类
+ * Jackson工具类.
  */
-public class ObjectMapperUtil {
+public final class ObjectMapperUtil {
 
+    /**
+     * objectMapper.
+     */
     private static ObjectMapper objectMapper = null;
 
+    // Private constructor to prevent instantiation of the utility class
     private ObjectMapperUtil() {
+        // private constructor to hide the implicit public one
+        throw new AssertionError("ClientUtil class cannot be instantiated.");
     }
 
     static {
@@ -51,6 +56,11 @@ public class ObjectMapperUtil {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
+    /**
+     * writeValueAsString.
+     * @param obj object.
+     * @return string.
+     */
     public static String writeValueAsString(Object obj) {
         try {
             return objectMapper.writeValueAsString(obj);
@@ -59,6 +69,13 @@ public class ObjectMapperUtil {
         }
     }
 
+    /**
+     * string to object.
+     * @param <T> generic type.
+     * @param json sting,
+     * @param valueType class object.
+     * @return generic type.
+     */
     public static <T> T jsonToObject(String json, Class<T> valueType) {
         try {
             return objectMapper.readValue(json, valueType);
@@ -67,51 +84,13 @@ public class ObjectMapperUtil {
         }
     }
 
-    public static String writeValueAsStringForNull(Object obj) {
-        objectMapper
-                .getSerializerProvider()
-                .setNullValueSerializer(
-                        new JsonSerializer<Object>() {
-                            @Override
-                            public void serialize(Object arg0, JsonGenerator arg1, SerializerProvider arg2)
-                                    throws IOException, JsonProcessingException {
-                                arg1.writeString("");
-                            }
-                        });
-
-        try {
-            return objectMapper.writeValueAsString(obj);
-        } catch (JsonProcessingException var2) {
-            throw new RuntimeException("JSON 转化异常！");
-        }
-    }
-
-    public static byte[] toJsonByte(Object obj) {
-        try {
-            return objectMapper.writeValueAsBytes(obj);
-        } catch (Exception var2) {
-            throw new RuntimeException("将对象转换为JSON字符串二进制数组错误！！");
-        }
-    }
-
-    public static Map<String, Object> toMap(String json) {
-        try {
-            return (Map) objectMapper.readValue(json, Map.class);
-        } catch (Exception var2) {
-            throw new RuntimeException("json字符串转为map异常！！");
-        }
-    }
-
-    public static OutputStream toJsonOutStream(Object obj) {
-        try {
-            OutputStream os = new ByteArrayOutputStream();
-            objectMapper.writeValue(os, obj);
-            return os;
-        } catch (Exception var2) {
-            throw new RuntimeException("无法转化为字符串流！！");
-        }
-    }
-
+    /**
+     * convert string to object.
+     * @param <T> generic type.
+     * @param clazz class.
+     * @param json string.
+     * @return generic object.
+     */
     public static <T> T toObject(Class<T> clazz, String json) {
         T obj = null;
 
@@ -127,6 +106,13 @@ public class ObjectMapperUtil {
         }
     }
 
+    /**
+     * convert byte array to object.
+     * @param <T> generic type.
+     * @param clazz class.
+     * @param bytes byte array.
+     * @return generic type.
+     */
     public static <T> T toObject(Class<T> clazz, byte[] bytes) {
         T obj = null;
 
@@ -142,42 +128,11 @@ public class ObjectMapperUtil {
         }
     }
 
-    public static <T> List<T> toObjectList(Class<T> clazz, String json) {
-        try {
-            JavaType javaType = objectMapper.getTypeFactory().constructParametricType(List.class, clazz);
-            return objectMapper.readValue(json, javaType);
-        } catch (IOException var3) {
-            throw new RuntimeException("json字符串转为list异常！！");
-        }
-    }
-
-    public static String toJsonTree(List<ConcurrentHashMap<String, Object>> pageMap, Object... count) {
-        List<ConcurrentHashMap<String, Object>> myMap = new ArrayList<>();
-        for (ConcurrentHashMap<String, Object> map : pageMap) {
-            ConcurrentHashMap<String, Object> tempMap = new ConcurrentHashMap<>();
-            String key;
-            Object value;
-            for (Iterator<String> iterator = map.keySet().iterator();
-                 iterator.hasNext();
-                 tempMap.put(key.toLowerCase(), value)) {
-                key = iterator.next();
-                value = map.get(key);
-                if ("parentid".equals(key)) {
-                    tempMap.put("_parentId", value);
-                }
-            }
-            myMap.add(tempMap);
-        }
-        Map<String, Object> jsonMap = new HashMap<>(2);
-        jsonMap.put("total", count);
-        jsonMap.put("rows", myMap);
-        try {
-            return objectMapper.writeValueAsString(jsonMap);
-        } catch (JsonProcessingException var9) {
-            throw new RuntimeException("转换json树异常！！");
-        }
-    }
-
+    /**
+     * convert string to jsonnode.
+     * @param content string.
+     * @return jsonnode.
+     */
     public static JsonNode toJsonNode(String content) {
         try {
             return objectMapper.readTree(content);
@@ -186,8 +141,14 @@ public class ObjectMapperUtil {
         }
     }
 
+    /**
+     * convert object to map.
+     * @param <T> generic type.
+     * @param obj object.
+     * @return map.
+     */
     public static <T> Map<String, T> jsonToMap(Object obj) {
-        Map<String, T> res = objectMapper.convertValue(obj, new TypeReference<Map<String, T>>() {});
+        Map<String, T> res = objectMapper.convertValue(obj, new TypeReference<Map<String, T>>() { });
         return res;
     }
 }
