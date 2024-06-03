@@ -11,11 +11,19 @@ import com.baomidou.mybatisplus.core.config.GlobalConfig;
 @Configuration
 @MapperScan("com.easysoftwareinput.infrastructure.mapper")
 public class MybatisPlusConfig {
+    /**
+     * create a mybatis injector.
+     * @return a MySqlInjector.
+     */
     @Bean
-    public MySqlInjector mySqlInjector(){
+    public MySqlInjector mySqlInjector() {
         return new MySqlInjector();
     }
 
+    /**
+     * config the mybatis.
+     * @return globalconfig.
+     */
     @Bean
     public GlobalConfig globalConfiguration() {
         GlobalConfig globalConfig = new GlobalConfig();
