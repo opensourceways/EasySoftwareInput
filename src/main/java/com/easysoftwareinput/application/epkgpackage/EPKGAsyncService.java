@@ -13,35 +13,41 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.easysoftwareinput.application.rpmpackage.HttpService;
 import com.easysoftwareinput.application.rpmpackage.PkgService;
 import com.easysoftwareinput.domain.epkgpackage.ability.EPKGPackageConverter;
 import com.easysoftwareinput.domain.epkgpackage.model.EPKGPackage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Service
-@Slf4j
 public class EPKGAsyncService {
-    private static final Logger logger = LoggerFactory.getLogger(EPKGAsyncService.class);
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(EPKGAsyncService.class);
 
+    /**
+     * pkgservice.
+     */
     @Autowired
-    PkgService pkgService;
+    private PkgService pkgService;
 
-   
+    /**
+     * epkg pkg converter.
+     */
     @Autowired
-    HttpService httpService;
+    private EPKGPackageConverter epkgPackageConverter;
 
-    @Autowired
-    EPKGPackageConverter epkgPackageConverter;
-
-    @Autowired
-    ObjectMapper objectMapper;
-
+    /**
+     * execute parse epkg xml by multi thread.
+     * @param e epkg.
+     * @param osMes os.
+     * @param i file index.
+     * @param postUrl posturl.
+     * @param srcMap src pkg name and url.
+     */
     @Async("epkgasyncServiceExecutor")
     public void executeAsync(Element e, Map<String, String> osMes, int i, String postUrl, Map<String, String> srcMap) {
-        logger.info("thread name: {},  index: {}", Thread.currentThread().getName(), i);
+        LOGGER.info("thread name: {},  index: {}", Thread.currentThread().getName(), i);
         Map<String, String> res = pkgService.parsePkg(e, osMes);
 
         EPKGPackage ePkg = epkgPackageConverter.toEntity(res, srcMap);
@@ -56,16 +62,13 @@ public class EPKGAsyncService {
         try {
             body = ma.writeValueAsString(ePkg);
         } catch (Exception ex) {
-            log.info("can not tojson, pkg: {}", ePkg);
+            LOGGER.info("can not tojson, pkg: {}", ePkg);
         }
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> request = new HttpEntity<>(body, headers);
         RestTemplate restTemplate = new RestTemplate();
-        String rr = restTemplate.postForObject(postUrl, request, String.class);
-        // System.out.println(body);System.out.println(postUrl);System.exit(0);
-        // // httpService.postPkg(body, postUrl);
-        // // System.exit(0);
+        restTemplate.postForObject(postUrl, request, String.class);
     }
 }
