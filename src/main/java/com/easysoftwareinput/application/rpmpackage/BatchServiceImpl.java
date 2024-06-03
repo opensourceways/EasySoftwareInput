@@ -37,32 +37,52 @@ import com.easysoftwareinput.infrastructure.mapper.BasePackageDOMapper;
 
 @Service
 public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePackageDO> implements BatchService {
+    /**
+     * path of rpm file.
+     */
     @Value("${rpm.dir}")
     private String rpmDir;
 
+    /**
+     * upstream service.
+     */
     @Autowired
-    UpstreamService<BasePackage> upstreamService;
+    private UpstreamService<BasePackage> upstreamService;
 
+    /**
+     * base package mapper.
+     */
     @Autowired
-    BasePackageDOMapper basePackageMapper;
+    private BasePackageDOMapper basePackageMapper;
 
-    private static final Logger logger = LoggerFactory.getLogger(BatchServiceImpl.class);
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(BatchServiceImpl.class);
 
+    /**
+     * get upstream.
+     */
     public void upstreamInfoTask() {
         File fDir = new File(rpmDir);
         if (!fDir.isDirectory()) {
-            logger.error(MessageCode.EC00016.getMsgEn());
+            LOGGER.error(MessageCode.EC00016.getMsgEn());
             return;
         }
 
         File[] xmlFiles = fDir.listFiles();
         Set<String> pkgSet = getPkgNameListMuti(xmlFiles);
-        logger.info("All pkg num: {}", pkgSet.size());
+        LOGGER.info("All pkg num: {}", pkgSet.size());
         dealByBatch(pkgSet);
         Long count = getCount();
-        logger.info("count: {}", count);
+        LOGGER.info("count: {}", count);
     }
 
+    /**
+     * get pkg name list.
+     * @param xml xml file.
+     * @return pkg name list.
+     */
     private Set<String> getPkgNameList(Document xml) {
         Set<String> nameSet = new HashSet<>();
         for (Element ePkg : xml.getRootElement().elements()) {
@@ -72,23 +92,27 @@ public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePacka
         return nameSet;
     }
 
+    /**
+     * get names of all xml.
+     * @param xmlFiles xml files.
+     * @return names.
+     */
     private Set<String> getPkgNameListMuti(File[] xmlFiles) {
         ConcurrentLinkedQueue<String> objects = new ConcurrentLinkedQueue<>();
         ExecutorService executor = Executors.newFixedThreadPool(2);
         CountDownLatch latch = new CountDownLatch(xmlFiles.length);
-        
         for (File file : xmlFiles) {
             executor.execute(() -> {
                 try {
                     String filePath = file.getCanonicalPath();
                     SAXReader reader = new SAXReader();
                     Document document = reader.read(filePath);
-                    logger.info("handling doc: " + file.getName());
+                    LOGGER.info("handling doc: " + file.getName());
                     synchronized (objects) {
                         objects.addAll(getPkgNameList(document));
                     }
                 } catch (IOException | DocumentException e) {
-                    logger.error(e.getMessage());
+                    LOGGER.error(e.getMessage());
                 } finally {
                     latch.countDown();
                 }
@@ -103,6 +127,10 @@ public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePacka
         return nameSet;
     }
 
+    /**
+     * get upstream by batch.
+     * @param pkgSet pkg names.
+     */
     private void dealByBatch(Set<String> pkgSet) {
         List<String> originalList = new ArrayList<>(pkgSet);
         final int batchSize = 500;
@@ -114,16 +142,20 @@ public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePacka
             getUpstreamInfo(subList);
             long endTime = System.nanoTime();
             long duration = (endTime - startTime) / 1000000;
-            logger.info("cost time: " + duration + " ms, " + "pkg num: " + subList.size());
+            LOGGER.info("cost time: " + duration + " ms, " + "pkg num: " + subList.size());
         }
     }
 
+    /**
+     * get upstream.
+     * @param pkgs list of pkg name.
+     */
     private void getUpstreamInfo(List<String> pkgs) {
         ConcurrentLinkedQueue<BasePackageDO> objects = new ConcurrentLinkedQueue<>();
         ExecutorService executor = Executors.newFixedThreadPool(30);
         CountDownLatch latch = new CountDownLatch(pkgs.size());
         for (String pkgName: pkgs) {
-            // logger.info("current thread: {}, pkg name: {}", Thread.currentThread().getName(), pkgName);
+            // LOGGER.info("current thread: {}, pkg name: {}", Thread.currentThread().getName(), pkgName);
             executor.execute(() -> {
                 BasePackage bp = new BasePackage();
                 bp.setName(pkgName);
@@ -137,32 +169,38 @@ public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePacka
                     objects.add(bpDO);
                 }
                 latch.countDown();
-
             });
         }
-
         try {
             latch.await();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-
         saveOrUpdateBatchData(new ArrayList<>(objects));
     }
 
+    /**
+     * save or update pkgs.
+     */
     @Override
-    
     public void saveOrUpdateBatchData(List<BasePackageDO> dataObjects) {
         saveOrUpdateBatch(dataObjects);
     }
 
+    /**
+     * insert one pkg to databse.
+     * @param bp pkg.
+     */
     public void writeToDatabase(BasePackage bp) {
         BasePackageDO bpDO = new BasePackageDO();
         BeanUtils.copyProperties(bp, bpDO);
         basePackageMapper.insert(bpDO);
-
     }
 
+    /**
+     * get names from databse.
+     * @return list of names.
+     */
     public Map<String, BasePackageDO> getNames() {
         List<BasePackageDO> list = basePackageMapper.selectList(null);
         Map<String, BasePackageDO> res = new HashMap<>();
@@ -172,17 +210,30 @@ public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePacka
         return res;
     }
 
+    /**
+     * query pkg by name.
+     * @param name name.
+     * @return list of pkg.
+     */
     public List<BasePackageDO> readFromDatabase(String name) {
         QueryWrapper<BasePackageDO> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("name", name);
         return basePackageMapper.selectList(queryWrapper);
     }
 
+    /**
+     * query count of pkgs.
+     * @return count.
+     */
     public Long getCount() {
         QueryWrapper<BasePackageDO> queryWrapper = new QueryWrapper<>();
         return basePackageMapper.selectCount(queryWrapper);
     }
 
+    /**
+     * execute the program.
+     * @param args args.
+     */
     public static void main(String[] args) {
         String url = "jdbc:sqlite:database.db";
         try (Connection conn = DriverManager.getConnection(url);
@@ -191,19 +242,19 @@ public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePacka
             String sql = "DROP TABLE IF EXISTS base_package_info";
             stmt.execute(sql);
 
-            sql = "CREATE TABLE IF NOT EXISTS base_package_info (" +
-                    "name TEXT NOT NULL PRIMARY KEY," +
-                    "maintainer_id TEXT," +
-                    "category TEXT," +
-                    "maintainer_email TEXT," +
-                    "maintainer_gitee_id TEXT," +
-                    "maintainer_update_at TEXT," +
-                    "download_count TEXT" +
-                    ")";
+            sql = "CREATE TABLE IF NOT EXISTS base_package_info ("
+                    + "name TEXT NOT NULL PRIMARY KEY,"
+                    + "maintainer_id TEXT,"
+                    + "category TEXT,"
+                    + "maintainer_email TEXT,"
+                    + "maintainer_gitee_id TEXT,"
+                    + "maintainer_update_at TEXT,"
+                    + "download_count TEXT"
+                    + ")";
             stmt.execute(sql);
-            logger.info("Table 'base_package_info' created successfully.");
+            LOGGER.info("Table 'base_package_info' created successfully.");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            LOGGER.error(e.getMessage());
         }
     }
 }

@@ -15,7 +15,6 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -27,26 +26,49 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-// @Profile("rpmpkg")
 public class RPMPackageService {
+    /**
+     * env.
+     */
     @Autowired
-    Environment env;
+    private Environment env;
 
+    /**
+     * thread pool.
+     */
     @Autowired
     @Qualifier("asyncServiceExecutor")
-    ThreadPoolTaskExecutor executor;
+    private ThreadPoolTaskExecutor executor;
 
+    /**
+     * service to parse each file.
+     */
     @Autowired
-    MyThreadPool threadPool;
+    private MyThreadPool threadPool;
 
+    /**
+     * pkg service.
+     */
     @Autowired
-    PkgService pkgService;
+    private PkgService pkgService;
 
+    /**
+     * batch service.
+     */
     @Autowired
-    BatchServiceImpl batchService;
+    private BatchServiceImpl batchService;
 
+    /**
+     * xml file parser.
+     */
     private static SAXReader reader = new SAXReader();
 
+    /**
+     * valid the files.
+     * @param xmlFiles all xmlfile.
+     * @param rpmDir file.
+     * @return list of valiated files.
+     */
     private List<String> validFiles(File[] xmlFiles, String rpmDir) {
         List<String> files = new ArrayList<>();
         for (File file : xmlFiles) {
@@ -58,6 +80,12 @@ public class RPMPackageService {
         return files;
     }
 
+    /**
+     * valid each file.
+     * @param file file.
+     * @param rpmDir file path.
+     * @return return the filepath.
+     */
     private String validFile(File file, String rpmDir) {
         String filePath = "";
         try {
@@ -66,16 +94,21 @@ public class RPMPackageService {
             log.error(MessageCode.EC00016.getMsgEn());
             return "";
         }
-        if (! filePath.startsWith(rpmDir)) {
+        if (!filePath.startsWith(rpmDir)) {
             log.error(MessageCode.EC00016.getMsgEn());
             return "";
         }
         return filePath;
     }
 
+    /**
+     * list sub menus.
+     * @param rpmDir current directory.
+     * @return list of files.
+     */
     private List<String> listSubMenus(String rpmDir) {
         File fDir = new File(rpmDir);
-        if (! fDir.isDirectory()) {
+        if (!fDir.isDirectory()) {
             log.error(MessageCode.EC00016.getMsgEn());
             return Collections.emptyList();
         }
@@ -84,6 +117,11 @@ public class RPMPackageService {
         return validFiles(xmlFiles, rpmDir);
     }
 
+    /**
+     * parse document of xml file.
+     * @param filePath filepath.
+     * @return document.
+     */
     private Document parseDocument(String filePath) {
         Document document = null;
         try {
@@ -94,13 +132,19 @@ public class RPMPackageService {
         return document;
     }
 
+    /**
+     * init the src pkg.
+     * @param pkgs pkgs.
+     * @param osMes os.
+     * @return map of src pkgs.
+     */
     private Map<String, String> initSrc(List<Element> pkgs, Map<String, String> osMes) {
         Map<String, String> map = new HashMap<>();
         for (Element p : pkgs) {
             Map<String, String> res = pkgService.parseSrc(p, osMes);
 
             String href = StringUtils.trimToEmpty(res.get("location_href"));
-            if (StringUtils.isBlank(href) || ! "src".equals(res.get("arch"))) {
+            if (StringUtils.isBlank(href) || !"src".equals(res.get("arch"))) {
                 continue;
             }
 
@@ -111,6 +155,9 @@ public class RPMPackageService {
         return map;
     }
 
+    /**
+     * run the program.
+     */
     public void run() {
         List<String> files = listSubMenus(env.getProperty("rpm.dir"));
 
@@ -141,17 +188,24 @@ public class RPMPackageService {
             }
 
             while (executor.getQueueSize() > 3) {
+                int temp = 0;
             }
 
             threadPool.parseXml(document, osMes, fileIndex, srcUrls, maintainers);
         }
 
         while (executor.getQueueSize() > 0 && executor.getActiveCount() > 0) {
+            int temp = 0;
         }
 
         log.info("finish-rpm-package");
     }
 
+    /**
+     * parse file name.
+     * @param filePath filename.
+     * @return map of os.
+     */
     private Map<String, String> parseFileName(String filePath) {
         String[] pathSplits = filePath.split("\\\\");
         String filename = pathSplits[pathSplits.length - 1];
@@ -175,6 +229,11 @@ public class RPMPackageService {
         );
     }
 
+    /**
+     * assemble url.
+     * @param nameSplits nameSplits.
+     * @return url.
+     */
     private String assembleBaseUrl(String[] nameSplits) {
         StringBuilder baseUrl = new StringBuilder();
         List<String> archive1 = (List<String>) env.getProperty("rpm.archive1.name", List.class);

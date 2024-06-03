@@ -1,35 +1,25 @@
 package com.easysoftwareinput.application.rpmpackage;
 
-import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-
 import org.dom4j.Attribute;
 import org.dom4j.Element;
-import org.dom4j.Namespace;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.easysoftwareinput.common.entity.MessageCode;
 import com.easysoftwareinput.common.utils.ObjectMapperUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Service
-@Slf4j
 public class PkgService {
-    @Autowired
-    ObjectMapper objectMapper;
 
+    /**
+     * init the pkg.
+     * @param osMes os.
+     * @return map of os.
+     */
     private Map<String, String> initMap(Map<String, String> osMes) {
-        Map<String ,String> res = new HashMap<>();
+        Map<String, String> res = new HashMap<>();
         res.put("os_name", osMes.get("osName"));
         res.put("os_ver", osMes.get("osVer"));
         res.put("os_type", osMes.get("osType"));
@@ -37,13 +27,23 @@ public class PkgService {
         return res;
     }
 
-    private void setText(Element pkg, Map<String ,String> res) {
+    /**
+     * parse text of pkg.
+     * @param pkg pkg.
+     * @param res map.
+     */
+    private void setText(Element pkg, Map<String, String> res) {
         Stream.of("name", "arch", "summary", "description", "packager", "url", "checksum").forEach(item -> {
             res.put(item, pkg.element(item).getTextTrim());
         });
     }
 
-    private void setAttribute(Element pkg, Map<String ,String> res) {
+    /**
+     * parse attribute of pkg.
+     * @param pkg pkg.
+     * @param res map.
+     */
+    private void setAttribute(Element pkg, Map<String, String> res) {
         Stream.of("version", "time", "size", "location", "checksum").forEach(item -> {
             Element e = pkg.element(item);
             List<Attribute> listA = e.attributes();
@@ -51,12 +51,22 @@ public class PkgService {
         });
     }
 
-    private void setFormat(Element format, Map<String ,String> res) {
-        Map<String ,String> forRes = parseFormat(format);
+    /**
+     * parse format tag of pkg.
+     * @param format format.
+     * @param res map.
+     */
+    private void setFormat(Element format, Map<String, String> res) {
+        Map<String, String> forRes = parseFormat(format);
         res.putAll(forRes);
     }
 
-    private void setFormatArray(Element format, Map<String ,String> res) {
+    /**
+     * parse the array of format tag.
+     * @param format format.
+     * @param res map.
+     */
+    private void setFormatArray(Element format, Map<String, String> res) {
         List<Map<String, String>> provides = parseArray(format, "provides");
         List<Map<String, String>> requires = parseArray(format, "requires");
         List<Map<String, String>> conflicts = parseArray(format, "conflicts");
@@ -68,8 +78,14 @@ public class PkgService {
         res.put("files", ObjectMapperUtil.writeValueAsString(files));
     }
 
-    public Map<String ,String> parseSrc(Element pkg, Map<String, String> osMes) {
-        Map<String ,String> res = initMap(osMes);
+    /**
+     * parse src pkgs.
+     * @param pkg pkg.
+     * @param osMes os.
+     * @return map of src pkg name and url.
+     */
+    public Map<String, String> parseSrc(Element pkg, Map<String, String> osMes) {
+        Map<String, String> res = initMap(osMes);
         Element format = pkg.element("format");
         Element s = format.element("sourcerpm");
         res.put("rpm_sourcerpm", s.getTextTrim());
@@ -78,8 +94,14 @@ public class PkgService {
         return res;
     }
 
-    public Map<String ,String> parsePkg(Element pkg, Map<String, String> osMes) {
-        Map<String ,String> res = initMap(osMes);
+    /**
+     * parse each pkg.
+     * @param pkg pkg.
+     * @param osMes os.
+     * @return map.
+     */
+    public Map<String, String> parsePkg(Element pkg, Map<String, String> osMes) {
+        Map<String, String> res = initMap(osMes);
         setText(pkg, res);
         setAttribute(pkg, res);
 
@@ -90,9 +112,14 @@ public class PkgService {
         return res;
     }
 
-    private Map<String ,String> parseFormat(Element format) {
-        Map<String ,String> res = new HashMap<>();
-        Stream.of ("license", "vendor", "group", "buildhost", "sourcerpm").forEach(item -> {
+    /**
+     * parse format tag.
+     * @param format format.
+     * @return map.
+     */
+    private Map<String, String> parseFormat(Element format) {
+        Map<String, String> res = new HashMap<>();
+        Stream.of("license", "vendor", "group", "buildhost", "sourcerpm").forEach(item -> {
             Element e = format.element(item);
             if (e != null) {
                 res.put("rpm_" + item, e.getTextTrim());
@@ -115,6 +142,12 @@ public class PkgService {
         return res;
     }
 
+    /**
+     * parse attribute array of each name.
+     * @param root root.
+     * @param aName name.
+     * @return list of atributes.
+     */
     private List<Map<String, String>> parseArray(Element root, String aName) {
         List<Map<String, String>> res = new ArrayList<>();
         Element element = root.element(aName);
@@ -133,6 +166,11 @@ public class PkgService {
         return res;
     }
 
+    /**
+     * parse <file> tag.
+     * @param format format.
+     * @return list of files.
+     */
     private List<Map<String, String>> parseFiles(Element format) {
         List<Map<String, String>> res = new ArrayList<>();
         List<Element> listElement = format.elements("file");
