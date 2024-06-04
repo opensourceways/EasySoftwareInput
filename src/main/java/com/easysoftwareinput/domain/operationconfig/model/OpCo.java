@@ -8,8 +8,22 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OpCo {
+    /**
+     * category.
+     */
     private String categorys;
+    /**
+     * order of current object.
+     */
     private String orderIndex;
+
+    /**
+     * recommend pkgs.
+     */
     private String recommend;
+
+    /**
+     * config type.
+     */
     private String type;
 }
