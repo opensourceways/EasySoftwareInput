@@ -4,16 +4,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.stereotype.Component;
-
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackageDO;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @Component
 public class RpmConverter {
+    /**
+     * convert list to value of map, key is os.
+     * @param doMap map.
+     * @param doList list.
+     * @param os os.
+     */
     public void convertToMap(Map<String, Map<String, RPMPackageDO>> doMap, List<RPMPackageDO> doList, String os) {
         Map<String, RPMPackageDO> curMap = doMap.get(os);
         if (curMap == null) {
@@ -29,6 +30,11 @@ public class RpmConverter {
         }
     }
 
+    /**
+     * remove the duplicated pkg.
+     * @param doList list of pkg.
+     * @return list of pkg.s
+     */
     private List<RPMPackageDO> filterDuplicate(List<RPMPackageDO> doList) {
         Map<String, List<RPMPackageDO>> map = groupByName(doList);
 
@@ -40,6 +46,11 @@ public class RpmConverter {
         return singleList;
     }
 
+    /**
+     * the list of pkg group by name.
+     * @param doList list of pkg.
+     * @return map.
+     */
     private Map<String, List<RPMPackageDO>> groupByName(List<RPMPackageDO> doList) {
         Map<String, List<RPMPackageDO>> map = new HashMap();
         for (RPMPackageDO pkg : doList) {
@@ -54,6 +65,11 @@ public class RpmConverter {
         return map;
     }
 
+    /**
+     * get latest pkg.
+     * @param list list of pkg.
+     * @return pkg.
+     */
     private  RPMPackageDO getLatest(List<RPMPackageDO> list) {
         Integer size = list.size();
         if (size == 0) {
@@ -65,6 +81,11 @@ public class RpmConverter {
         }
     }
 
+    /**
+     * get latest pkg from list.
+     * @param list list of pkg.
+     * @return pkg.
+     */
     private  RPMPackageDO pickLatest(List<RPMPackageDO> list) {
         String ver = list.get(0).getVersion();
         RPMPackageDO winner = null;

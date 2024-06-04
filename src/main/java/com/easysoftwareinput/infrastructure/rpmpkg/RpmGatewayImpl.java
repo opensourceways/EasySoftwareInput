@@ -2,21 +2,24 @@ package com.easysoftwareinput.infrastructure.rpmpkg;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackageDO;
-import com.easysoftwareinput.infrastructure.apppkg.dataobject.AppDo;
 import com.easysoftwareinput.infrastructure.mapper.RPMPackageDOMapper;
 
 @Component
 public class RpmGatewayImpl {
+    /**
+     * mapper.
+     */
     @Autowired
-    RPMPackageDOMapper mapper;
+    private RPMPackageDOMapper mapper;
 
+    /**
+     * get distinct os from table.
+     * @return list of os.
+     */
     public List<String> getOs() {
         QueryWrapper<RPMPackageDO> wrapper = new QueryWrapper<>();
         wrapper.select("distinct os");
@@ -29,6 +32,11 @@ public class RpmGatewayImpl {
         return osList;
     }
 
+    /**
+     * get pkg by os.
+     * @param os os.
+     * @return lsit of pkgs.
+     */
     public List<RPMPackageDO> getPkg(String os) {
         QueryWrapper<RPMPackageDO> wrapper = new QueryWrapper<>();
         wrapper.select("os, arch, name, version, category, pkg_id, description");
@@ -37,6 +45,10 @@ public class RpmGatewayImpl {
         return mapper.selectList(wrapper);
     }
 
+    /**
+     * get pkgs which will be converted to domain pkg.
+     * @return list of pkg.
+     */
     public List<RPMPackageDO> getDomain() {
         QueryWrapper<RPMPackageDO> wrapper = new QueryWrapper<>();
         wrapper.in("category", List.of("AI", "大数据", "分布式存储", "数据库", "云服务", "HPC"));
@@ -45,6 +57,11 @@ public class RpmGatewayImpl {
         return mapper.selectList(wrapper);
     }
 
+    /**
+     * get one pkg by name.
+     * @param name name.
+     * @return one pkg.
+     */
     public RPMPackageDO queryPkgIdByName(String name) {
         QueryWrapper<RPMPackageDO> wrapper = new QueryWrapper<>();
         wrapper.select("name, pkg_id");
