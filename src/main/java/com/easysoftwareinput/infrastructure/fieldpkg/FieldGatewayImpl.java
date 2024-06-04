@@ -13,9 +13,17 @@ import com.easysoftwareinput.infrastructure.mapper.FieldDoMapper;
 
 @Component
 public class FieldGatewayImpl extends ServiceImpl<FieldDoMapper, FieldDo> {
+    /**
+     * converter.
+     */
     @Autowired
-    FieldConverter converter;
+    private FieldConverter converter;
 
+    /**
+     * save all the pkg.
+     * @param fList list of pkg.
+     * @return boolean.
+     */
     public boolean saveAll(List<Field> fList) {
         List<FieldDo> dList = converter.toDo(fList);
         return saveOrUpdateBatch(dList, 1000);
