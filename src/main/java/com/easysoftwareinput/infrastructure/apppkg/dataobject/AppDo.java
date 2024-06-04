@@ -180,6 +180,9 @@ public class AppDo {
      */
     private String imageUsage;
 
+    /**
+     * latestOsSupport of pkg.
+     */
     private String latestOsSupport;
 
 }
