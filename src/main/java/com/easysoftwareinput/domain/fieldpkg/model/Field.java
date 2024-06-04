@@ -6,13 +6,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 public class Field {
-        /**
+    /**
      * Serializable class with a defined serial version UID.
      */
     @Serial
@@ -58,6 +56,9 @@ public class Field {
      */
     private String description;
 
+    /**
+     * init tags and pkgids.
+     */
     public Field() {
         this.tags = new HashSet<>();
         this.pkgIds = new HashMap<>();
