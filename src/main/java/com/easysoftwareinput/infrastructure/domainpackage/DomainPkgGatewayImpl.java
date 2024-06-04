@@ -12,12 +12,19 @@ import com.easysoftwareinput.infrastructure.mapper.DomainPkgMapper;
 
 @Service
 public class DomainPkgGatewayImpl extends ServiceImpl<DomainPkgMapper, DomainPkgDO> {
+    /**
+     * converter.
+     */
     @Autowired
-    DomainPackageConverter converter;
+    private DomainPackageConverter converter;
 
+    /**
+     * save all pkg.
+     * @param fList
+     * @return boolean.
+     */
     public boolean saveAll(List<DomainPackage> fList) {
         List<DomainPkgDO> dList = converter.toDo(fList);
         return saveOrUpdateBatch(dList, 1000);
     }
 }
-
