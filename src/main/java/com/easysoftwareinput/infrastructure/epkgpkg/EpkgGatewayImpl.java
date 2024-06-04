@@ -2,7 +2,6 @@ package com.easysoftwareinput.infrastructure.epkgpkg;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -13,9 +12,16 @@ import com.easysoftwareinput.infrastructure.mapper.EpkgDoMapper;
 
 @Component
 public class EpkgGatewayImpl {
+    /**
+     * mapper.
+     */
     @Autowired
-    EpkgDoMapper mapper;
+    private EpkgDoMapper mapper;
 
+    /**
+     * get distinct os from table.
+     * @return list of os.
+     */
     public List<String> getOs() {
         QueryWrapper<EpkgDo> wrapper = new QueryWrapper<>();
         wrapper.select("distinct os");
@@ -27,7 +33,11 @@ public class EpkgGatewayImpl {
         return osList;
     }
 
-
+    /**
+     * get list of pkgs by os.
+     * @param os os.
+     * @return list of pkgs.
+     */
     public List<EpkgDo> getPkg(String os) {
         QueryWrapper<EpkgDo> wrapper = new QueryWrapper<>();
         wrapper.select("os, arch, name, version, category, pkg_id, description");
@@ -35,6 +45,11 @@ public class EpkgGatewayImpl {
         return mapper.selectList(wrapper);
     }
 
+    /**
+     * get one pkgid by name.
+     * @param name name.
+     * @return one pkgid.
+     */
     public EpkgDo queryPkgIdByName(String name) {
         QueryWrapper<EpkgDo> wrapper = new QueryWrapper<>();
         wrapper.select("name, pkg_id");
