@@ -14,9 +14,23 @@ import org.yaml.snakeyaml.Yaml;
 
 import com.easysoftwareinput.common.entity.MessageCode;
 
-public class YamlUtil {
-    private static final Logger logger = LoggerFactory.getLogger(YamlUtil.class);
+public final class YamlUtil {
+    // Private constructor to prevent instantiation of the utility class
+    private YamlUtil() {
+        // private constructor to hide the implicit public one
+        throw new AssertionError("ClientUtil class cannot be instantiated.");
+    }
 
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(YamlUtil.class);
+
+    /**
+     * parse yaml file.
+     * @param yamlPath file.
+     * @return map.
+     */
     public static Map<String, Object> parseYaml(String yamlPath) {
         Yaml yaml = new Yaml();
 
@@ -26,11 +40,16 @@ public class YamlUtil {
             inputStream = new FileInputStream(yamlPath);
             map = yaml.load(inputStream);
         } catch (FileNotFoundException e) {
-            logger.error(MessageCode.EC0009.getMsgEn(), yamlPath);
+            LOGGER.error(MessageCode.EC0009.getMsgEn(), yamlPath);
         }
         return map;
     }
 
+    /**
+     * parse yaml files.
+     * @param yamlPaths list of files.
+     * @return list of maps.
+     */
     public static List<Map<String, Object>> parseYaml(List<String> yamlPaths) {
         List<Map<String, Object>> mapList = new ArrayList<>();
         for (String yamlPath : yamlPaths) {
