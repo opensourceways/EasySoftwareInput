@@ -188,7 +188,6 @@ public class AppPackageService {
         gitPull(repoPath);
         handleEachApp(repoPath);
         LOGGER.info("finish-update-application");
-        System.exit(0);
     }
 
     /**
