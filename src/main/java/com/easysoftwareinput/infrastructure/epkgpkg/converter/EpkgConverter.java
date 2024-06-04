@@ -9,11 +9,14 @@ import org.springframework.stereotype.Component;
 
 import com.easysoftwareinput.infrastructure.epkgpkg.dataobject.EpkgDo;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @Component
 public class EpkgConverter {
+    /**
+     * convert list to value of map, key is os.
+     * @param doMap map.
+     * @param doList list.
+     * @param os os.
+     */
     public void convertToMap(Map<String, Map<String, EpkgDo>> doMap, List<EpkgDo> doList, String os) {
         Map<String, EpkgDo> curMap = doMap.get(os);
         if (curMap == null) {
@@ -22,13 +25,18 @@ public class EpkgConverter {
         }
 
         List<EpkgDo> filterList = filterDuplicate(doList);
-        
+
         for (EpkgDo pkg : doList) {
             String name = pkg.getName();
             curMap.put(name, pkg);
         }
     }
 
+    /**
+     * remove the duplicated pkg.
+     * @param doList list of pkg.
+     * @return list of pkg.
+     */
     private List<EpkgDo> filterDuplicate(List<EpkgDo> doList) {
         Map<String, List<EpkgDo>> map = groupByName(doList);
 
@@ -40,6 +48,11 @@ public class EpkgConverter {
         return singleList;
     }
 
+    /**
+     * group the list of pkgs by name.
+     * @param doList the list of pkgs.
+     * @return map.
+     */
     private Map<String, List<EpkgDo>> groupByName(List<EpkgDo> doList) {
         Map<String, List<EpkgDo>> map = new HashMap();
         for (EpkgDo pkg : doList) {
@@ -54,6 +67,11 @@ public class EpkgConverter {
         return map;
     }
 
+    /**
+     * get the latest pkg.
+     * @param list list of pkg.
+     * @return the latest pkg.
+     */
     private  EpkgDo getLatest(List<EpkgDo> list) {
         Integer size = list.size();
         if (size == 0) {
@@ -65,6 +83,11 @@ public class EpkgConverter {
         }
     }
 
+    /**
+     * get the latest pkg from list of pkg.
+     * @param list list of pkg.
+     * @return the latest pkg.
+     */
     private  EpkgDo pickLatest(List<EpkgDo> list) {
         String ver = list.get(0).getVersion();
         EpkgDo winner = null;
