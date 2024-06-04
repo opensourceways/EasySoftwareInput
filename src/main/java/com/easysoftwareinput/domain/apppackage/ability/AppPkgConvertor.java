@@ -1,7 +1,6 @@
 package com.easysoftwareinput.domain.apppackage.ability;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -26,18 +25,35 @@ import com.power.common.util.StringUtil;
 
 @Component
 public class AppPkgConvertor {
+    /**
+     * env.
+     */
     @Autowired
-    Environment env;
+    private Environment env;
 
+    /**
+     * upstream service.
+     */
     @Autowired
-    UpstreamService<AppPackage> upstreamService;
+    private UpstreamService<AppPackage> upstreamService;
 
+    /**
+     * obsservice.
+     */
     @Autowired
-    ObsService obsService;
+    private ObsService obsService;
 
+    /**
+     * appver service.
+     */
     @Autowired
-    AppVerService verService;
+    private AppVerService verService;
 
+    /**
+     * convert map to AppPackage object.
+     * @param underLineMap map.
+     * @return AppPackage object.
+     */
     public AppPackage toEntity(Map<String, String> underLineMap) {
         Map<String, String> camelMap = new HashMap<>();
         for (String underLineKey: underLineMap.keySet()) {
@@ -52,10 +68,14 @@ public class AppPkgConvertor {
         pkg = upstreamService.addRepoDownload(pkg);
         pkg = upstreamService.addRepoCategory(pkg);
         pkg.setIconUrl(obsService.generateUrl(pkg.getName()));
-        
         return pkg;
     }
 
+    /**
+     * init set of AppPackage object.
+     * @param map map.
+     * @return AppPackage object.
+     */
     private AppPackage initSet(Map<String, Object> map) {
         String json = ObjectMapperUtil.writeValueAsString(map);
         AppPackage pkg = ObjectMapperUtil.jsonToObject(json, AppPackage.class);
@@ -75,6 +95,11 @@ public class AppPkgConvertor {
         return pkg;
     }
 
+    /**
+     * set cateogry of AppPackage object.
+     * @param map map.
+     * @param pkg AppPackage object.
+     */
     private void setCategory(Map<String, Object> map, AppPackage pkg) {
         String cate = StringUtils.trimToEmpty((String) map.get("category"));
         if (cate.length() == 0) {
@@ -83,6 +108,11 @@ public class AppPkgConvertor {
         pkg.setCategory(MapConstant.APP_CATEGORY_MAP.get(cate));
     }
 
+    /**
+     * set maintainer of AppPackage object.
+     * @param map map.
+     * @param pkg AppPackage object.
+     */
     private void setMaintainer(Map<String, Object> map, AppPackage pkg) {
         pkg.setMaintainerEmail(MapConstant.MAINTAINER.get("email"));
         pkg.setMaintainerGiteeId(MapConstant.MAINTAINER.get("gitee_id"));
@@ -104,6 +134,11 @@ public class AppPkgConvertor {
         }
     }
 
+    /**
+     * reset the arch.
+     * @param originArch the orgin arch.
+     * @return the target arch.
+     */
     private String convertArch(String originArch) {
         if ("amd64".equals(originArch)) {
             return "x86_64";
@@ -114,6 +149,11 @@ public class AppPkgConvertor {
         }
     }
 
+    /**
+     * assemble monMap by appOp.
+     * @param monMap monmap.
+     * @param appOp AppPackage object.
+     */
     private void setAppOp(Map<String, Object> monMap, JsonNode appOp) {
         List<String> rawVers = new ArrayList<>();
         for (JsonNode v : appOp.get("raw_versions")) {
@@ -129,6 +169,11 @@ public class AppPkgConvertor {
         monMap.put("arch", archList);
     }
 
+    /**
+     * get map from monitor service.
+     * @param name name.
+     * @return map.
+     */
     private Map<String, Object> getFromMonitor(String name) {
         Map<String, JsonNode> nodeMap = HttpClientUtil.getMonitor(name, env.getProperty("appver.monurl"));
         if (nodeMap.size() == 0) {
@@ -149,6 +194,13 @@ public class AppPkgConvertor {
         return monMap;
     }
 
+    /**
+     * create AppPackage object.
+     * @param originPkg origin pkg.
+     * @param arch arch.
+     * @param ver ver.
+     * @return new AppPackage object.
+     */
     private AppPackage createNewAppPkg(AppPackage originPkg, String arch, String ver) {
         AppPackage pkg = new AppPackage();
         BeanUtils.copyProperties(originPkg, pkg);
@@ -162,6 +214,12 @@ public class AppPkgConvertor {
         return pkg;
     }
 
+    /**
+     * create AppPackage object by arches and vers.
+     * @param originPkg origin pkg.
+     * @param monMap monmap.
+     * @return list of AppPackage object.
+     */
     private List<AppPackage> splitByMonMap(AppPackage originPkg, Map<String, Object> monMap) {
         List<String> arches = (List<String>) monMap.get("arch");
         if (arches == null) {
@@ -183,6 +241,11 @@ public class AppPkgConvertor {
         return appList;
     }
 
+    /**
+     * tell the latest version of each pkg.
+     * @param appList list pf pkg.
+     * @return the latest version.
+     */
     private String getLatestOsPerName(List<AppPackage> appList) {
         if (appList.size() == 0) {
             return "";
@@ -194,18 +257,20 @@ public class AppPkgConvertor {
             if (latest.compareTo(curOsSupport) < 0) {
                 latest = curOsSupport;
             }
-            
         }
         return latest;
     }
 
+    /**
+     * set the latestossupport of pkg.
+     * @param appList list of AppPackage object.
+     */
     private void setLatestOsSupport(List<AppPackage> appList) {
         if (appList.size() == 0) {
             return;
         }
 
         String latestSupp = getLatestOsPerName(appList);
-        
         for (AppPackage pkg : appList) {
             if (latestSupp.equals(pkg.getOsSupport())) {
                 pkg.setLatestOsSupport("true");
@@ -215,6 +280,11 @@ public class AppPkgConvertor {
         }
     }
 
+    /**
+     * create list of AppPackage object by map.
+     * @param map map.
+     * @return list of AppPackage object.
+     */
     public List<AppPackage> mapToPkgList(Map<String, Object> map) {
         AppPackage pkg = initSet(map);
         setCategory(map, pkg);
