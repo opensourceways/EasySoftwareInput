@@ -11,7 +11,6 @@ import java.sql.Timestamp;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-// TODO 修改表名
 @TableName("field_package")
 public class FieldDo {
     /**
@@ -61,6 +60,9 @@ public class FieldDo {
      */
     private String description;
 
+    /**
+     * updateAt of pkg.
+     */
     private Timestamp updateAt;
 
 }
