@@ -2,8 +2,6 @@ package com.easysoftwareinput.domain.rpmpackage.ability;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -12,60 +10,41 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.easysoftwareinput.application.rpmpackage.BatchService;
-import com.easysoftwareinput.application.rpmpackage.BatchServiceImpl;
-import com.easysoftwareinput.application.rpmpackage.HttpService;
-import com.easysoftwareinput.application.rpmpackage.RPMPackageService;
-import com.easysoftwareinput.common.components.UpstreamService;
 import com.easysoftwareinput.common.constant.MapConstant;
 import com.easysoftwareinput.common.entity.MessageCode;
 import com.easysoftwareinput.common.utils.UUidUtil;
-import com.easysoftwareinput.domain.rpmpackage.model.BasePackage;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackage;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackageDO;
-import com.easysoftwareinput.domain.rpmpackage.model.RPMSrcDO;
 import com.easysoftwareinput.infrastructure.BasePackageDO;
-import com.easysoftwareinput.infrastructure.mapper.RPMSrcDOMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.power.common.util.StringUtil;
-
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-// @Profile("rpmpkg")
 public class RPMPackageConverter {
+    /**
+     * env.
+     */
     @Autowired
-    Environment env;
+    private Environment env;
 
+    /**
+     * objectmapper.
+     */
     @Autowired
-    ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
-    @Autowired
-    HttpService httpService;
-
-    @Autowired
-    UpstreamService<RPMPackage> upstreamService;
-
-    @Autowired
-    BatchServiceImpl batchService;
-
-    @Autowired
-    RPMSrcDOMapper srcMapper;
-
+    /**
+     * convert rpm pkg to rpm data object.
+     * @param pkgList lsit of rpm pkg.
+     * @return list of rpm data objects.
+     */
     public List<RPMPackageDO> toDO(List<RPMPackage> pkgList) {
         List<RPMPackageDO> doList = new ArrayList<>();
         for (RPMPackage pkg : pkgList) {
@@ -74,6 +53,11 @@ public class RPMPackageConverter {
         return doList;
     }
 
+    /**
+     * convert rpm pkg to rpm data object.
+     * @param pkg pkg.
+     * @return rpm data object.
+     */
     public RPMPackageDO toDO(RPMPackage pkg) {
         RPMPackageDO pkgDO = new RPMPackageDO();
         BeanUtils.copyProperties(pkg, pkgDO);
@@ -87,6 +71,12 @@ public class RPMPackageConverter {
         return pkgDO;
     }
 
+    /**
+     * assemble downloadurl of pkg.
+     * @param pkg pkg.
+     * @param camelMap map.
+     * @param srcUrls map of src pkg and url.
+     */
     private void assembleDownloadUrl(RPMPackage pkg, Map<String, String> camelMap, Map<String, String> srcUrls) {
         String arch = camelMap.get("arch");
         String url = camelMap.get("baseUrl") + "/" + camelMap.get("locationHref");
@@ -101,15 +91,20 @@ public class RPMPackageConverter {
         pkg.setBinDownloadUrl(url);
 
         String src = camelMap.get("rpmSourcerpm");
-        if (StringUtils.isBlank(src) || (! srcUrls.containsKey(src))) {
+        if (StringUtils.isBlank(src) || (!srcUrls.containsKey(src))) {
             return;
         }
-
 
         pkg.setSrcDownloadUrl(srcUrls.get(src));
     }
 
-    
+    /**
+     * convert map to pkg.
+     * @param underLineMap map.
+     * @param srcUrls map of src pkg and url.
+     * @param maintainers maintianers.
+     * @return rpm pkg.
+     */
     public RPMPackage toEntity(Map<String, String> underLineMap, Map<String, String> srcUrls,
             Map<String, BasePackageDO> maintainers) {
         Map<String, String> camelMap = new HashMap<>();
@@ -159,7 +154,7 @@ public class RPMPackageConverter {
         Long cTime = Long.parseLong(camelMap.get("timeFile"));
         String fTime = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(cTime * 1000));
         pkg.setRpmUpdateAt(fTime);
-        
+
         double sSize = (double) Double.parseDouble(camelMap.get("sizePackage")) / 1024 / 1024;
 
         String fSize = String.format("%.2fMB", sSize);
@@ -170,14 +165,14 @@ public class RPMPackageConverter {
 
         pkg.setSrcRepo(camelMap.get("url"));
 
-        String formatS = String.format("1. 添加源\n```\ndnf config-manager --add-repo %s\n```\n2. 更新源索引\n" +
-                "```\ndnf clean all && dnf makecache\n```\n3. 安装 %s 软件包\n```\ndnf install %s\n```", 
+        String formatS = String.format("1. 添加源\n```\ndnf config-manager --add-repo %s\n```\n2. 更新源索引\n"
+                + "```\ndnf clean all && dnf makecache\n```\n3. 安装 %s 软件包\n```\ndnf install %s\n```",
                 camelMap.get("baseUrl"), pkg.getName(), pkg.getName());
-        
+
         pkg.setInstallation(formatS);
         pkg.setUpStream("");
         pkg.setVersion(camelMap.get("versionVer") + "-" + camelMap.get("versionRel"));
-    
+
         pkg.setSubPath("");
         try {
             String cBase = camelMap.get("baseUrl");
@@ -206,7 +201,7 @@ public class RPMPackageConverter {
             cSb.append(pkg.getArch());
             pkg.setPkgId(cSb.toString());
         } catch (Exception e) {
-            synchronized(RPMPackageConverter.class) {
+            synchronized (RPMPackageConverter.class) {
                 log.info("url error");
                 log.info(camelMap.toString());
             }
@@ -221,7 +216,6 @@ public class RPMPackageConverter {
             pkg.setMaintainerId(base.getMaintainerId());
             pkg.setMaintainerUpdateAt(base.getMaintainerUpdateAt());
         }
-        
 
         if (StringUtils.isBlank(pkg.getCategory())) {
             pkg.setCategory(MapConstant.APP_CATEGORY_MAP.get("others"));
