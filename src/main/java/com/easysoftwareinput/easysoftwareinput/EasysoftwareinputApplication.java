@@ -15,10 +15,12 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.baomidou.mybatisplus.autoconfigure.DdlApplicationRunner;
 import com.easysoftwareinput.application.apppackage.AppPackageService;
+import com.easysoftwareinput.application.appver.AppVerService;
 import com.easysoftwareinput.application.domainpackage.DomainPkgService;
 import com.easysoftwareinput.application.epkgpackage.EPKGPackageService;
+import com.easysoftwareinput.application.externalos.ExternalOsService;
 import com.easysoftwareinput.application.fieldpkg.FieldPkgService;
-import com.easysoftwareinput.application.rpmpackage.BatchServiceImpl;
+import com.easysoftwareinput.application.operationconfig.OperationConfigService;
 import com.easysoftwareinput.application.rpmpackage.RPMPackageService;
 
 
@@ -30,15 +32,16 @@ import com.easysoftwareinput.application.rpmpackage.RPMPackageService;
 @EnableTransactionManagement
 public class EasysoftwareinputApplication {
 
-    @Autowired
-    BatchServiceImpl batchService;
-
+    /**
+     * run the program.
+     * @param args args.
+     */
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(EasysoftwareinputApplication.class, args);
 
         // 1. 解析容器镜像
-        // AppPackageService appPackageService = (AppPackageService) context.getBean(AppPackageService.class);
-        // appPackageService.run();
+        AppPackageService appPackageService = (AppPackageService) context.getBean(AppPackageService.class);
+        appPackageService.run();
 
         // 2. 解析openEuler官网rpm软件包
         RPMPackageService rpmPackageService = (RPMPackageService) context.getBean(RPMPackageService.class);
@@ -49,30 +52,32 @@ public class EasysoftwareinputApplication {
         epkgPackageService.run();
 
         // 4. 解析operation_config
-        // OperationConfigService opCoService = (OperationConfigService) context.getBean(OperationConfigService.class);
-        // opCoService.run();
-        
+        OperationConfigService opCoService = (OperationConfigService) context.getBean(OperationConfigService.class);
+        opCoService.run();
+
         // 5. 解析  externalos
-        // ExternalOsService externalOsService = (ExternalOsService) context.getBean(ExternalOsService.class);
-        // externalOsService.run();
+        ExternalOsService externalOsService = (ExternalOsService) context.getBean(ExternalOsService.class);
+        externalOsService.run();
 
         // 6. domain数据表
-        // DomainPkgService domainPkgService = (DomainPkgService) context.getBean(DomainPkgService.class);
-        // domainPkgService.run();
+        DomainPkgService domainPkgService = (DomainPkgService) context.getBean(DomainPkgService.class);
+        domainPkgService.run();
 
         // 7. 解析上游兼容性
-        // AppVerService appVerService = (AppVerService) context.getBean(AppVerService.class);
-        // appVerService.run();
-
-        // 8. 解析oepkgs
-        // OeRpmService 
+        AppVerService appVerService = (AppVerService) context.getBean(AppVerService.class);
+        appVerService.run();
 
         // 9. 解析领域应用
-        // FieldPkgService fieldPkgService = (FieldPkgService) context.getBean(FieldPkgService.class);
-        // fieldPkgService.run();
+        FieldPkgService fieldPkgService = (FieldPkgService) context.getBean(FieldPkgService.class);
+        fieldPkgService.run();
     }
 
-	@Bean
+    /**
+     * slove the issue of mybatis with springboot3.
+     * @param ddlList ddlList.
+     * @return DdlApplicationRunner.
+     */
+    @Bean
     public DdlApplicationRunner ddlApplicationRunner(@Autowired(required = false) List ddlList) {
         return new DdlApplicationRunner(ddlList);
     }
