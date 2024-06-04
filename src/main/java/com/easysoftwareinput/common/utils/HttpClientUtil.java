@@ -166,7 +166,6 @@ public final class HttpClientUtil {
      * @return response.
      */
     public static String getHttpClient(String uri, String token, String userToken, String cookie) {
-        LOGGER.info("url: {}", uri);
         HttpClient httpClient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(uri);
 

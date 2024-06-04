@@ -11,6 +11,7 @@
 
 package com.easysoftwareinput.domain.apppackage.ability;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -96,6 +97,8 @@ public class AppPkgConvertor {
         pkg.setInstallation((String) map.get("install"));
         pkg.setType("IMAGE");
         pkg.setIconUrl(obsService.generateUrl(pkg.getName()));
+        pkg.setId(UUidUtil.getUUID32());
+        pkg.setUpdateAt(new Timestamp(System.currentTimeMillis()));
 
         List<String> simi = (List<String>) map.get("similar_packages");
         pkg.setSimilarPkgs(ObjectMapperUtil.writeValueAsString(simi));
@@ -213,6 +216,9 @@ public class AppPkgConvertor {
      * @return new AppPackage object.
      */
     private AppPackage createNewAppPkg(AppPackage originPkg, String arch, String ver) {
+        if (StringUtils.isBlank(arch) && StringUtils.isBlank(ver)) {
+            return null;
+        }
         AppPackage pkg = new AppPackage();
         BeanUtils.copyProperties(originPkg, pkg);
         Map<String, String> osAndVer = verService.splitVer(ver);
@@ -246,7 +252,10 @@ public class AppPkgConvertor {
 
         for (String arch : arches) {
             for (String ver : vers) {
-                appList.add(createNewAppPkg(originPkg, arch, ver));
+                AppPackage a = createNewAppPkg(originPkg, arch, ver);
+                if (a != null) {
+                    appList.add(a);
+                }
             }
         }
         return appList;
