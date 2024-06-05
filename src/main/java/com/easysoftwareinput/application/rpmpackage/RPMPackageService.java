@@ -218,7 +218,7 @@ public class RPMPackageService {
      * @return map of os.
      */
     private Map<String, String> parseFileName(String filePath) {
-        String[] pathSplits = filePath.split("\\\\");
+        String[] pathSplits = filePath.split(File.separator);
         String filename = pathSplits[pathSplits.length - 1];
         String[] nameSplits = filename.split("_a_");
 

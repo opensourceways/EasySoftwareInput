@@ -13,19 +13,105 @@ package com.easysoftwareinput.infrastructure.rpmpkg;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.easysoftwareinput.domain.rpmpackage.ability.RPMPackageConverter;
+import com.easysoftwareinput.domain.rpmpackage.model.RPMPackage;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackageDO;
 import com.easysoftwareinput.infrastructure.mapper.RPMPackageDOMapper;
 
 @Component
-public class RpmGatewayImpl {
+public class RpmGatewayImpl extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> {
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(RpmGatewayImpl.class);
+
+    /**
+     * converter.
+     */
+    @Autowired
+    private RPMPackageConverter converter;
     /**
      * mapper.
      */
     @Autowired
     private RPMPackageDOMapper mapper;
+
+    /**
+     * save all data to database.
+     * @param list lsit of pkg.
+     * @return boolean.
+     */
+    public boolean saveAll(List<RPMPackage> list) {
+        List<RPMPackageDO> dList = converter.toDO(list);
+        List<RPMPackageDO> existed = new ArrayList<>();
+        List<RPMPackageDO> unexisted = new ArrayList<>();
+        fillListById(dList, existed, unexisted);
+        return synSave(existed, unexisted);
+    }
+
+    /**
+     * get existed pkgids from table.
+     * @return set of pkgids.
+     */
+    public Set<String> getExistedIds() {
+        QueryWrapper<RPMPackageDO> wrapper = new QueryWrapper<>();
+        wrapper.select("distinct (pkg_id)");
+        List<RPMPackageDO> list = mapper.selectList(wrapper);
+        return list.stream().map(RPMPackageDO::getPkgId).collect(Collectors.toSet());
+    }
+
+    /**
+     * divide dList into existed and unexisted.
+     * @param dList dList.
+     * @param existed existed.
+     * @param unexisted unexisted.
+     */
+    public void fillListById(List<RPMPackageDO> dList, List<RPMPackageDO> existed, List<RPMPackageDO> unexisted) {
+        Set<String> existedPkgIdSet = getExistedIds();
+        for (RPMPackageDO d : dList) {
+            String pkgId = d.getPkgId();
+            if (existedPkgIdSet.contains(pkgId)) {
+                existed.add(d);
+            } else {
+                unexisted.add(d);
+            }
+        }
+    }
+
+    /**
+     * save the data.
+     * @param existed if existed, update the row.
+     * @param unexisted if unexisted, insert the row.
+     * @return boolean.
+     */
+    public synchronized boolean synSave(List<RPMPackageDO> existed, List<RPMPackageDO> unexisted) {
+        boolean inserted = false;
+        try {
+            inserted = saveBatch(unexisted, 1000);
+        } catch (Exception e) {
+            LOGGER.error("fail-to-write, e: {}", e.getMessage());
+        }
+
+        boolean updated = false;
+        try {
+            updated = updateBatchById(existed);
+        } catch (Exception e) {
+            LOGGER.error("fail-to-update, e: {}", e.getMessage());
+        }
+        if (inserted && updated) {
+            return true;
+        }
+        return false;
+    }
 
     /**
      * get distinct os from table.
