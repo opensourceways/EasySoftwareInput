@@ -61,7 +61,7 @@ public class DomainPkgDO {
     /**
      * pkgIds of pkg.
      */
-    @TableId(value = "pkg_id")
+    @TableId(value = "pkg_ids")
     private String pkgIds;
 
     /**
