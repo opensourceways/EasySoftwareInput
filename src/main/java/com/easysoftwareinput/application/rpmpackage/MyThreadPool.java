@@ -20,22 +20,15 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.easysoftwareinput.domain.rpmpackage.ability.RPMPackageConverter;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackage;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackageDO;
 import com.easysoftwareinput.infrastructure.BasePackageDO;
 import com.easysoftwareinput.infrastructure.mapper.RPMPackageDOMapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import com.easysoftwareinput.infrastructure.rpmpkg.RpmGatewayImpl;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -58,6 +51,12 @@ public class MyThreadPool extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> 
      */
     @Autowired
     private Environment env;
+
+    /**
+     * rpm gateway.
+     */
+    @Autowired
+    private RpmGatewayImpl gateway;
 
     /**
      * parse xml by mylti threads.
@@ -93,53 +92,7 @@ public class MyThreadPool extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> 
         log.info("finish-xml-parse, thread name: {}, list.size(): {}, time used: {}ms, fileIndex: {}",
                 Thread.currentThread().getName(), pkgList.size(), (System.currentTimeMillis() - s), count);
 
-        List<String> bodyList = filterPkg(pkgList);
-        post(bodyList, env.getProperty("rpm.post-url"));
-    }
-
-    /**
-     * post.
-     * @param bodyList pkg to be posted.
-     * @param postUrl url.
-     */
-    private void post(List<String> bodyList, String postUrl) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        RestTemplate rest = new RestTemplate();
-        long s = System.currentTimeMillis();
-        // int count = 0;
-        for (String body : bodyList) {
-            // count ++;
-            HttpEntity<String> request = new HttpEntity<>(body, headers);
-            try {
-            String res = rest.postForObject(postUrl, request, String.class);
-            } catch (Exception e) {
-                log.info("fail-to-mysql,res: {}, body: {}", e.getMessage(), body);
-            }
-        }
-        log.info("post time(ms): {}", System.currentTimeMillis() - s);
-    }
-
-    /**
-     * filter the pkgs.
-     * @param pkgList pkgs.
-     * @return list of string.
-     */
-    private List<String> filterPkg(List<RPMPackage> pkgList) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        List<String> bodyList = new ArrayList<>();
-        for (RPMPackage pkg : pkgList) {
-
-            String body = "";
-            try {
-                body = objectMapper.writeValueAsString(pkg);
-
-            } catch (JsonProcessingException e) {
-                log.info("can not transfer: {}", e);
-            }
-            bodyList.add(body);
-        }
-        return bodyList;
+        gateway.saveAll(pkgList);
     }
 
     /**
