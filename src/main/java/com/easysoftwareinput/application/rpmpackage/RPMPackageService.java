@@ -205,7 +205,7 @@ public class RPMPackageService {
             threadPool.parseXml(document, osMes, fileIndex, srcUrls, maintainers);
         }
 
-        while (executor.getQueueSize() > 0 && executor.getActiveCount() > 0) {
+        while (executor.getQueueSize() > 0 || executor.getActiveCount() > 0) {
             int temp = 0;
         }
 

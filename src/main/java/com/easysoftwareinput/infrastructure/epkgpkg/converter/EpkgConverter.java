@@ -11,17 +11,48 @@
 
 package com.easysoftwareinput.infrastructure.epkgpkg.converter;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
+import com.easysoftwareinput.common.utils.UUidUtil;
+import com.easysoftwareinput.domain.epkgpackage.model.EPKGPackage;
 import com.easysoftwareinput.infrastructure.epkgpkg.dataobject.EpkgDo;
 
 @Component
 public class EpkgConverter {
+    /**
+     * convert pkg to data object.
+     * @param epkg list of pkgs.
+     * @return list of data objects.
+     */
+    public List<EpkgDo> toDo(List<EPKGPackage> epkg) {
+        return epkg.stream().map(this::toDo).collect(Collectors.toList());
+    }
+
+    /**
+     * convert pkg to data object.
+     * @param pkg pkg.
+     * @return data object.
+     */
+    public EpkgDo toDo(EPKGPackage pkg) {
+        EpkgDo d = new EpkgDo();
+        BeanUtils.copyProperties(pkg, d);
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        d.setUpdateAt(currentTime);
+        d.setCreateAt(currentTime);
+
+        String id = UUidUtil.getUUID32();
+        d.setId(id);
+        return d;
+    }
+
     /**
      * convert list to value of map, key is os.
      * @param doMap map.
