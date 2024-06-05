@@ -146,16 +146,18 @@ public class EPKGPackageService {
         List<Element> pkgs = document.getRootElement().elements();
         Map<String, String> srcMap = initSrc(pkgs, osMes);
 
-        for (int i = 0; i < pkgs.size(); i++) {
+        int batchSize = 5_000;
+        for (int i = 0; i < pkgs.size(); i += batchSize) {
+            int end = Math.min(i + batchSize, pkgs.size());
+            List<Element> eList = pkgs.subList(i, end);
             while (executor.getQueueSize() > 2) {
                 int other = 0; // wait to avoid pushing too much pkg to threadpool queue.
             }
 
-            Element pkg = pkgs.get(i);
-            asyncService.executeAsync(pkg, osMes, i, postUrl, srcMap);
+            asyncService.executeAsync(eList, osMes, i, postUrl, srcMap);
         }
 
-        while (executor.getQueueSize() > 0 && executor.getActiveCount() > 0) {
+        while (executor.getQueueSize() > 0 || executor.getActiveCount() > 0) {
             int other = 0; // until all the thread work finished.
         }
 
