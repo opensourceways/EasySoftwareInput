@@ -82,7 +82,6 @@ public class AppGatewayImpl extends ServiceImpl<AppDoMapper, AppDo> {
     public List<AppDo> getDomain() {
         QueryWrapper<AppDo> wrapper = new QueryWrapper<>();
         wrapper.select("os, arch, name, app_ver, category, icon_url, pkg_id, description");
-        wrapper.groupBy("name");
         return mapper.selectList(wrapper);
     }
 

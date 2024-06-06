@@ -150,7 +150,6 @@ public class RpmGatewayImpl extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO
         QueryWrapper<RPMPackageDO> wrapper = new QueryWrapper<>();
         wrapper.in("category", List.of("AI", "大数据", "分布式存储", "数据库", "云服务", "HPC"));
         wrapper.select("os, arch, name, version, category, pkg_id, description");
-        wrapper.groupBy("name");
         return mapper.selectList(wrapper);
     }
 
