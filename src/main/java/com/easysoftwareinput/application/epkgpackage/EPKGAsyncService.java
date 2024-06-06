@@ -21,18 +21,13 @@ import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import com.easysoftwareinput.application.rpmpackage.PkgService;
 import com.easysoftwareinput.domain.epkgpackage.ability.EPKGPackageConverter;
 import com.easysoftwareinput.domain.epkgpackage.model.EPKGPackage;
 import com.easysoftwareinput.infrastructure.epkgpkg.EpkgGatewayImpl;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class EPKGAsyncService {
@@ -61,7 +56,7 @@ public class EPKGAsyncService {
 
     /**
      * execute parse epkg xml by multi thread.
-     * @param e epkg.
+     * @param eList list of pkg.
      * @param osMes os.
      * @param i file index.
      * @param postUrl posturl.
@@ -77,7 +72,7 @@ public class EPKGAsyncService {
             Map<String, String> res = pkgService.parsePkg(e, osMes);
 
             EPKGPackage ePkg = epkgPackageConverter.toEntity(res, srcMap);
-    
+
             // 不添加源码包
             if ("src".equals(ePkg.getArch())) {
                 continue;

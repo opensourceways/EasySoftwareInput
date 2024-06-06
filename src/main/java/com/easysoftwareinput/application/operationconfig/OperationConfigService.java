@@ -24,16 +24,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.yaml.snakeyaml.Yaml;
 
 import com.easysoftwareinput.application.epkgpackage.EPKGPackageService;
 import com.easysoftwareinput.common.entity.MessageCode;
-import com.easysoftwareinput.common.utils.HttpClientUtil;
-import com.easysoftwareinput.common.utils.ObjectMapperUtil;
 import com.easysoftwareinput.domain.operationconfig.ability.OpCoConverter;
 import com.easysoftwareinput.domain.operationconfig.model.OpCo;
+import com.easysoftwareinput.infrastructure.opco.OperationConfigGatewayImpl;
+
 import java.io.File;
 
 @Service
@@ -50,22 +51,10 @@ public class OperationConfigService {
     private String repoPath;
 
     /**
-     * post url.
+     * gateway.
      */
-    @Value("${operation-config.url}")
-    private String postUrl;
-
-    /**
-     * url used to truncate table.
-     */
-    @Value("${operation-config.truncate-url}")
-    private String truncateUrl;
-
-    /**
-     * url used to deleting keys.
-     */
-    @Value("${operation-config.redis-deletekey-url}")
-    private String deleteKeyUrl;
+    @Autowired
+    private OperationConfigGatewayImpl gateway;
 
     /**
      * run the grogram.
@@ -82,10 +71,7 @@ public class OperationConfigService {
         Map<String, List<String>> recommends = praseCategoryRecommend(map);
         List<OpCo> opCos = OpCoConverter.toEntity(rote, recommends);
 
-        HttpClientUtil.getRequest(truncateUrl);
-        post(opCos, postUrl);
-        resetRedis();
-
+        gateway.updateAll(opCos);
         LOGGER.info("Finished operation_config");
     }
 
@@ -127,25 +113,6 @@ public class OperationConfigService {
     }
 
     /**
-     * reset the redis.
-     */
-    private void resetRedis() {
-        HttpClientUtil.getRequest(deleteKeyUrl);
-    }
-
-    /**
-     * post.
-     * @param opCos list to be posted.
-     * @param url url.
-     */
-    private void post(List<OpCo> opCos, String url) {
-        for (OpCo opCo : opCos) {
-            String body = ObjectMapperUtil.writeValueAsString(opCo);
-            HttpClientUtil.postApp(url, body);
-        }
-    }
-
-    /**
      * parse recommend.
      * @param map map from yaml file.
      * @return map of category and recommend.s
@@ -171,7 +138,7 @@ public class OperationConfigService {
     }
 
     /**
-     * parse rote.
+     * get the sort of category, such as : 云服务,数据库.
      * @param map map of yaml file.
      * @return list of sort.
      */
