@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import com.easysoftwareinput.common.utils.HttpClientUtil;
 import com.easysoftwareinput.common.utils.ObjectMapperUtil;
 import com.easysoftwareinput.domain.appver.AppVersion;
+import com.easysoftwareinput.infrastructure.appver.AppVerGatewayImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,12 @@ public class AppVerService {
      */
     @Autowired
     private Environment env;
+
+    /**
+     * gateway.
+     */
+    @Autowired
+    private AppVerGatewayImpl gateway;
 
     /**
      * get iamges.
@@ -256,29 +263,14 @@ public class AppVerService {
     }
 
     /**
-     * post to url.
-     * @param verList list to be posted.
-     * @param postUrl posturl.
-     */
-    private void post(List<AppVersion> verList, String postUrl) {
-        for (int idx = 0; idx < verList.size(); idx++) {
-            AppVersion ver = verList.get(idx);
-            String body = ObjectMapperUtil.writeValueAsString(ver);
-            String re = HttpClientUtil.postHttpClient(postUrl, body);
-            log.info("body: {}, res: {}", body, re);
-        }
-    }
-
-    /**
      * run program.
      */
     public void run() {
         String appUrl = env.getProperty("appver.appurl");
         String monUrl = env.getProperty("appver.monurl");
-        String postUrl = env.getProperty("appver.posturl");
 
         Set<String> names = getAppList(appUrl);
         List<AppVersion> verList = generateAppVerList(names, monUrl);
-        post(verList, postUrl);
+        gateway.saveAll(verList);
     }
 }
