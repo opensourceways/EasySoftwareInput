@@ -14,8 +14,12 @@ package com.easysoftwareinput.domain.operationconfig.ability;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.BeanUtils;
 
 import com.easysoftwareinput.domain.operationconfig.model.OpCo;
+import com.easysoftwareinput.infrastructure.opco.dataobject.OpCoDo;
 
 public final class OpCoConverter {
     // Private constructor to prevent instantiation of the utility class
@@ -59,5 +63,25 @@ public final class OpCoConverter {
             res = recommends.get(key);
         }
         return res;
+    }
+
+    /**
+     * convert Opco to data object.
+     * @param c Opco obejct.
+     * @return data object.
+     */
+    public static OpCoDo toDo(OpCo c) {
+        OpCoDo d = new OpCoDo();
+        BeanUtils.copyProperties(c, d);
+        return d;
+    }
+
+    /**
+     * convert Opco to data object.
+     * @param list list of Opco obejct.
+     * @return data object.
+     */
+    public static List<OpCoDo> toDo(List<OpCo> list) {
+        return list.stream().map(OpCoConverter::toDo).collect(Collectors.toList());
     }
 }
