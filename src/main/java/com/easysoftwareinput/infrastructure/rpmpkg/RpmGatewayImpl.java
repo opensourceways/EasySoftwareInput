@@ -120,7 +120,6 @@ public class RpmGatewayImpl extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO
     public List<String> getOs() {
         QueryWrapper<RPMPackageDO> wrapper = new QueryWrapper<>();
         wrapper.select("distinct os");
-        wrapper.eq("sub_path", "everythingx86_64");
         List<RPMPackageDO> doList = mapper.selectList(wrapper);
         List<String> osList = new ArrayList<>();
         for (RPMPackageDO pkg : doList) {
@@ -137,8 +136,11 @@ public class RpmGatewayImpl extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO
     public List<RPMPackageDO> getPkg(String os) {
         QueryWrapper<RPMPackageDO> wrapper = new QueryWrapper<>();
         wrapper.select("os, arch, name, version, category, pkg_id, description");
-        wrapper.eq("sub_path", "everythingx86_64");
         wrapper.eq("os", os);
+        wrapper.and(i -> i.notLike("sub_path", "update"));
+        wrapper.and(i -> i.likeRight("sub_path", "EPOL").or()
+                .likeRight("sub_path", "everything").or()
+                .likeRight("sub_path", "OS"));
         return mapper.selectList(wrapper);
     }
 

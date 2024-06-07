@@ -12,10 +12,16 @@
 package com.easysoftwareinput.infrastructure.fieldpkg;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.easysoftwareinput.domain.fieldpkg.model.Field;
 import com.easysoftwareinput.infrastructure.fieldpkg.converter.FieldConverter;
@@ -25,6 +31,17 @@ import com.easysoftwareinput.infrastructure.mapper.FieldDoMapper;
 @Component
 public class FieldGatewayImpl extends ServiceImpl<FieldDoMapper, FieldDo> {
     /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(FieldGatewayImpl.class);
+
+    /**
+     * mapper.
+     */
+    @Autowired
+    private FieldDoMapper mapper;
+
+    /**
      * converter.
      */
     @Autowired
@@ -33,10 +50,53 @@ public class FieldGatewayImpl extends ServiceImpl<FieldDoMapper, FieldDo> {
     /**
      * save all the pkg.
      * @param fList list of pkg.
+     * @param existedPkgIds existed pkgs.
      * @return boolean.
      */
-    public boolean saveAll(List<Field> fList) {
+    public boolean saveAll(List<Field> fList, Set<String> existedPkgIds) {
         List<FieldDo> dList = converter.toDo(fList);
-        return saveOrUpdateBatch(dList, 1000);
+
+        Map<Boolean, List<FieldDo>> map = dList.stream().collect(Collectors.partitioningBy(
+                d -> existedPkgIds.contains(d.getPkgIds())));
+        List<FieldDo> existed = map.get(true);
+        List<FieldDo> unexisted = map.get(false);
+        return save(existed, unexisted);
+    }
+
+    /**
+     * if existed, update; if unexisted, insert.
+     * @param existed existed.
+     * @param unexisted unexisted.
+     * @return boolean.
+     */
+    public boolean save(List<FieldDo> existed, List<FieldDo> unexisted) {
+        boolean inserted = false;
+        try {
+            inserted = saveBatch(unexisted, 1000);
+        } catch (Exception e) {
+            LOGGER.error("fail-to-write, e: {}", e.getMessage());
+        }
+
+        boolean updated = false;
+        try {
+            updated = updateBatchById(existed);
+        } catch (Exception e) {
+            LOGGER.error("fail-to-update, e: {}", e.getMessage());
+        }
+        if (inserted && updated) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * get pkg ids from table.
+     * @return set of ids.
+     */
+    public Set<String> getPkgIds() {
+        QueryWrapper<FieldDo> wrapper = new QueryWrapper<>();
+        wrapper.select("distinct (pkg_ids)");
+        List<FieldDo> dList = mapper.selectList(wrapper);
+        return dList.stream().map(FieldDo::getPkgIds).collect(Collectors.toSet());
     }
 }
