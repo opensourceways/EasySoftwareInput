@@ -12,12 +12,6 @@ import com.easysoftwareinput.infrastructure.appver.dataobject.AppVersionDo;
 
 @Component
 public final class AppVersionConverter {
-    // Private constructor to prevent instantiation of the utility class
-    private AppVersionConverter() {
-        // private constructor to hide the implicit public one
-        throw new AssertionError("ClientUtil class cannot be instantiated.");
-    }
-
     /**
      * convert pkg to data object.
      * @param list list of pkgs.
