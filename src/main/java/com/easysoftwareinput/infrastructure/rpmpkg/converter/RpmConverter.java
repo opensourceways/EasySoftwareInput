@@ -12,14 +12,23 @@
 package com.easysoftwareinput.infrastructure.rpmpkg.converter;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Component;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackageDO;
 
 @Component
 public class RpmConverter {
+    /**
+     * pick order.
+     */
+    private static final List<String> ORDER = new ArrayList<>() { { add("aarch64"); add("x86_64");
+            add("riscv64"); add("loongarch64"); } };
+
     /**
      * convert list to value of map, key is os.
      * @param doMap map.
@@ -82,29 +91,26 @@ public class RpmConverter {
      * @return pkg.
      */
     private  RPMPackageDO getLatest(List<RPMPackageDO> list) {
-        Integer size = list.size();
+        int size = list.size();
         if (size == 0) {
             return null;
         } else if (size == 1) {
             return list.get(0);
         } else {
-            return pickLatest(list);
+            return pickLatestFromList(list);
         }
     }
 
     /**
-     * get latest pkg from list.
+     * get latest pkg from list. 排序规则：1. 取最新版本 2. 如果版本相同，aarch64>x86_64>other
      * @param list list of pkg.
      * @return pkg.
      */
-    private  RPMPackageDO pickLatest(List<RPMPackageDO> list) {
-        String ver = list.get(0).getVersion();
-        RPMPackageDO winner = null;
-        for (RPMPackageDO pkg : list) {
-            if (pkg.getVersion().compareTo(ver) > 0) {
-                winner = pkg;
-            }
-        }
-        return winner;
+    private  RPMPackageDO pickLatestFromList(List<RPMPackageDO> list) {
+        List<RPMPackageDO> sort = list.stream().sorted(
+                Comparator.comparing(RPMPackageDO::getVersion, Comparator.reverseOrder())
+                .thenComparing(pkg -> ORDER.indexOf(pkg.getArch()), Comparator.reverseOrder())
+        ).collect(Collectors.toList());
+        return sort.get(0);
     }
 }

@@ -28,7 +28,8 @@ public class AppConverter {
     /**
      * pick order.
      */
-    private static final List<String> ORDER = new ArrayList<>() { { add("x86_64"); add("aarch64"); } };
+    private static final List<String> ORDER = new ArrayList<>() { { add("aarch64"); add("x86_64");
+            add("riscv64"); add("loongarch64"); } };
 
     /**
      * convert app pkg to app data object.

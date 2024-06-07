@@ -264,13 +264,15 @@ public class FieldPkgService {
      * run the program.
      */
     public void run() {
+        Set<String> existedPkgs = fieldGateway.getPkgIds();
+
         Map<String, Map<String, RPMPackageDO>> rpm = getRPMList();
         Map<String, Map<String, EpkgDo>> epkg = getEpkgList();
         Map<String, Map<String, AppDo>> app = getAppList();
 
         List<Field> fList = mapToField(rpm, epkg, app);
 
-        fieldGateway.saveAll(fList);
+        fieldGateway.saveAll(fList, existedPkgs);
 
         log.info(null);
     }

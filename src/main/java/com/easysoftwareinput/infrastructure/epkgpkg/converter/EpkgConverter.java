@@ -13,6 +13,7 @@ package com.easysoftwareinput.infrastructure.epkgpkg.converter;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,12 @@ import com.easysoftwareinput.infrastructure.epkgpkg.dataobject.EpkgDo;
 
 @Component
 public class EpkgConverter {
+    /**
+     * pick order.
+     */
+    private static final List<String> ORDER = new ArrayList<>() { { add("aarch64"); add("x86_64");
+            add("riscv64"); add("loongarch64"); } };
+
     /**
      * convert pkg to data object.
      * @param epkg list of pkgs.
@@ -68,7 +75,7 @@ public class EpkgConverter {
 
         List<EpkgDo> filterList = filterDuplicate(doList);
 
-        for (EpkgDo pkg : doList) {
+        for (EpkgDo pkg : filterList) {
             String name = pkg.getName();
             curMap.put(name, pkg);
         }
@@ -115,13 +122,13 @@ public class EpkgConverter {
      * @return the latest pkg.
      */
     private  EpkgDo getLatest(List<EpkgDo> list) {
-        Integer size = list.size();
+        int size = list.size();
         if (size == 0) {
             return null;
         } else if (size == 1) {
             return list.get(0);
         } else {
-            return pickLatest(list);
+            return pickLatestFromList(list);
         }
     }
 
@@ -130,14 +137,11 @@ public class EpkgConverter {
      * @param list list of pkg.
      * @return the latest pkg.
      */
-    private  EpkgDo pickLatest(List<EpkgDo> list) {
-        String ver = list.get(0).getVersion();
-        EpkgDo winner = null;
-        for (EpkgDo pkg : list) {
-            if (pkg.getVersion().compareTo(ver) > 0) {
-                winner = pkg;
-            }
-        }
-        return winner;
+    private EpkgDo pickLatestFromList(List<EpkgDo> list) {
+        List<EpkgDo> sort = list.stream().sorted(
+                Comparator.comparing(EpkgDo::getVersion, Comparator.reverseOrder())
+                .thenComparing(pkg -> ORDER.indexOf(pkg.getArch()), Comparator.reverseOrder())
+        ).collect(Collectors.toList());
+        return sort.get(0);
     }
 }
