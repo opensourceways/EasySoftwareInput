@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
@@ -32,12 +33,24 @@ import org.springframework.stereotype.Service;
 
 import com.easysoftwareinput.common.entity.MessageCode;
 import com.easysoftwareinput.infrastructure.BasePackageDO;
+import com.easysoftwareinput.infrastructure.rpmpkg.RpmGatewayImpl;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class RPMPackageService {
+    /**
+     * valid data.
+     */
+    @Autowired
+    private RpmGatewayImpl gateway;
+
+    /**
+     * data updated.
+     */
+    private static AtomicLong count = new AtomicLong(0L);
+
     /**
      * env.
      */
@@ -171,6 +184,7 @@ public class RPMPackageService {
      */
     public void run() {
         List<String> files = listSubMenus(env.getProperty("rpm.dir"));
+        long startTime = System.currentTimeMillis();
 
         // 获取源码包链接
         Map<String, String> srcUrls = new HashMap<>();
@@ -202,14 +216,25 @@ public class RPMPackageService {
                 int temp = 0;
             }
 
-            threadPool.parseXml(document, osMes, fileIndex, srcUrls, maintainers);
+            threadPool.parseXml(document, osMes, fileIndex, srcUrls, maintainers, count);
         }
 
         while (executor.getQueueSize() > 0 || executor.getActiveCount() > 0) {
             int temp = 0;
         }
 
-        log.info("finish-rpm-package");
+        log.info("finish-rpm-write");
+        validData(startTime, count.get());
+        log.info("fnish-rpm-validate");
+    }
+
+    private void validData(long startTime, long row) {
+        long tableRow = gateway.getChangedRow(startTime);
+        if (tableRow == row) {
+            log.info("no error in storing data. need to be stored: {}, stored: {}", row, tableRow);
+        } else {
+            log.error("error in storing data. need to be stored: {}, stored: {}", row, tableRow);
+        }
     }
 
     /**

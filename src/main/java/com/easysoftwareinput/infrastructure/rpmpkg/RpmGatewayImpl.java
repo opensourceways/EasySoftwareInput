@@ -11,6 +11,7 @@
 
 package com.easysoftwareinput.infrastructure.rpmpkg;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -126,6 +127,19 @@ public class RpmGatewayImpl extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO
             osList.add(pkg.getOs());
         }
         return osList;
+    }
+
+    /**
+     * get length of data row from table.
+     * @param startTime startTime.
+     * @return length of data.
+     */
+    public long getChangedRow(long startTime) {
+        SimpleDateFormat format =  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String time = format.format(startTime);
+        QueryWrapper<RPMPackageDO> wrapper = new QueryWrapper<>();
+        wrapper.ge("update_at", time);
+        return mapper.selectCount(wrapper);
     }
 
     /**
