@@ -16,6 +16,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,10 +67,11 @@ public class MyThreadPool extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> 
      * @param count file index.
      * @param srcUrls map of src pkgs.
      * @param maintainers maintainers.
+     * @param atomicLong length of data to be stored.
      */
     @Async("asyncServiceExecutor")
     public void parseXml(Document xml, Map<String, String> osMes, int count, Map<String, String> srcUrls,
-            Map<String, BasePackageDO> maintainers) {
+            Map<String, BasePackageDO> maintainers, AtomicLong atomicLong) {
         List<Element> pkgs = xml.getRootElement().elements();
 
         long s = System.currentTimeMillis();
@@ -93,6 +96,7 @@ public class MyThreadPool extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> 
                 Thread.currentThread().getName(), pkgList.size(), (System.currentTimeMillis() - s), count);
 
         gateway.saveAll(pkgList);
+        atomicLong.addAndGet(pkgList.size());
     }
 
     /**
