@@ -31,7 +31,7 @@ public final class AppVersionConverter {
         BeanUtils.copyProperties(v, d);
         d.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         d.setUpdateAt(new Timestamp(System.currentTimeMillis()));
-        d.setId(v.getName() + v.getOpeneulerVersion() + v.getEulerOsVersion());
+        d.setId(v.getName() + v.getOpeneulerVersion() + v.getEulerOsVersion() + v.getType());
         return d;
     }
 }

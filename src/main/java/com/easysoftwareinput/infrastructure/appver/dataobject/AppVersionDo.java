@@ -70,4 +70,9 @@ public class AppVersionDo {
      */
     @TableId("id")
     private String id;
+
+    /**
+     * type.
+     */
+    private String type;
 }
