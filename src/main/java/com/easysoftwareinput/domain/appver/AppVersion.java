@@ -59,4 +59,9 @@ public class AppVersion {
      * version of openEuler os.
      */
     private String eulerOsVersion;
+
+    /**
+     * type.
+     */
+    private String type;
 }

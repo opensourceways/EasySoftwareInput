@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,11 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class AppVerService {
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(AppVerService.class);
+
     /**
      * env.
      */
@@ -73,7 +80,7 @@ public class AppVerService {
      * @param monUrl monurl.
      * @return a map.
      */
-    private Map<String, JsonNode> getItems(String name, String monUrl) {
+    public Map<String, JsonNode> getItems(String name, String monUrl) {
         name = name.replaceAll(" ", "%20");
         String url = String.format(monUrl, name);
         String response = HttpClientUtil.getHttpClient(url, null, null, null);
@@ -101,7 +108,7 @@ public class AppVerService {
      * set status of AppVerison.
      * @param appVer appVer.
      */
-    private void setStatus(AppVersion appVer) {
+    public void setStatus(AppVersion appVer) {
         if (StringUtils.isBlank(appVer.getOpeneulerVersion())) {
             appVer.setStatus("MISSING");
         } else if (appVer.getOpeneulerVersion().equals(appVer.getUpstreamVersion())) {
@@ -194,11 +201,11 @@ public class AppVerService {
     }
 
     /**
-     * fill appList with op.
-     * @param appList apList to be updated.
+     * fill app with op.
+     * @param app apList to be updated.
      * @param up up.
      */
-    private void fillWithUp(List<AppVersion> appList, JsonNode up) {
+    public void fillWithUp(AppVersion app, JsonNode up) {
         if (up == null) {
             return;
         }
@@ -207,26 +214,22 @@ public class AppVerService {
         upVer = upVer.replaceAll("_", ".");
         String upHome = up.get("homepage").asText();
 
-        for (AppVersion app : appList) {
-            app.setUpstreamVersion(upVer);
-            app.setUpHomepage(upHome);
-        }
+        app.setUpstreamVersion(upVer);
+        app.setUpHomepage(upHome);
     }
 
     /**
      * fill appList with ci.
-     * @param appList applist to be updated.
+     * @param app applist to be updated.
      * @param ci ci.
      */
-    private void fillWithCi(List<AppVersion> appList, JsonNode ci) {
+    public void fillWithCi(AppVersion app, JsonNode ci) {
         if (ci == null) {
             return;
         }
 
         String ciVer = ci.get("version").asText();
-        for (AppVersion app : appList) {
-            app.setCiVersion(ciVer);
-        }
+        app.setCiVersion(ciVer);
     }
 
     /**
@@ -236,12 +239,12 @@ public class AppVerService {
      * @param name name of pkg.
      */
     private void fillUp(List<AppVersion> appList, Map<String, JsonNode> items, String name) {
-        fillWithUp(appList, items.get("app_up"));
-        fillWithCi(appList, items.get("app_ci_openeuler"));
-
-        for (AppVersion app : appList) {
-            setStatus(app);
-            app.setName(name);
+        for (AppVersion a : appList) {
+            fillWithUp(a, items.get("app_up"));
+            fillWithCi(a, items.get("app_ci_openeuler"));
+            setStatus(a);
+            a.setName(name);
+            a.setType("image");
         }
     }
 
@@ -272,5 +275,6 @@ public class AppVerService {
         Set<String> names = getAppList(appUrl);
         List<AppVersion> verList = generateAppVerList(names, monUrl);
         gateway.saveAll(verList);
+        LOGGER.info("finish-app-ver");
     }
 }
