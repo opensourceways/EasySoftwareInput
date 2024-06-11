@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import com.baomidou.mybatisplus.autoconfigure.DdlApplicationRunner;
 import com.easysoftwareinput.application.apppackage.AppPackageService;
 import com.easysoftwareinput.application.appver.AppVerService;
+import com.easysoftwareinput.application.appver.RpmVerService;
 import com.easysoftwareinput.application.domainpackage.DomainPkgService;
 import com.easysoftwareinput.application.epkgpackage.EPKGPackageService;
 import com.easysoftwareinput.application.externalos.ExternalOsService;
@@ -42,7 +43,6 @@ import com.easysoftwareinput.application.rpmpackage.RPMPackageService;
 @MapperScan("com.easysoftwareinput.infrastructure.mapper")
 @EnableTransactionManagement
 public class EasysoftwareinputApplication {
-
     /**
      * run the program.
      * @param args args.
@@ -57,6 +57,7 @@ public class EasysoftwareinputApplication {
         // 2. 解析openEuler官网rpm软件包
         RPMPackageService rpmPackageService = (RPMPackageService) context.getBean(RPMPackageService.class);
         rpmPackageService.run();
+        // System.exit(0);
 
         // 3. 解析epkg软件包
         EPKGPackageService epkgPackageService = (EPKGPackageService) context.getBean(EPKGPackageService.class);
@@ -77,6 +78,8 @@ public class EasysoftwareinputApplication {
         // 7. 解析上游兼容性
         AppVerService appVerService = (AppVerService) context.getBean(AppVerService.class);
         appVerService.run();
+        RpmVerService rpmVerService = (RpmVerService) context.getBean(RpmVerService.class);
+        rpmVerService.run();
 
         // 9. 解析领域应用
         FieldPkgService fieldPkgService = (FieldPkgService) context.getBean(FieldPkgService.class);
