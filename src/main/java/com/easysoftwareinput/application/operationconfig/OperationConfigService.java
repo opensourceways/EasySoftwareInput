@@ -12,10 +12,11 @@
 package com.easysoftwareinput.application.operationconfig;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -124,6 +125,7 @@ public class OperationConfigService {
             cateMap = (Map<String, Map<String, List<String>>>) map.get("categorys");
         } catch (Exception e) {
             LOGGER.info("Failed to parse category");
+            return Collections.emptyMap();
         }
 
         for (Map.Entry<String, Map<String, List<String>>> entry : cateMap.entrySet()) {
@@ -160,14 +162,13 @@ public class OperationConfigService {
     private Map<String, Object> parseYaml(String yamlPath) {
         Yaml yaml = new Yaml();
 
-        InputStream inputStream = null;
-        Map<String, Object> map = new HashMap<>();
-        try {
-            inputStream = new FileInputStream(yamlPath);
+        Map<String, Object> map;
+        try (InputStream inputStream = new FileInputStream(yamlPath)) {
             map = yaml.load(inputStream);
-        } catch (FileNotFoundException e) {
+            return map;
+        } catch (IOException e) {
             LOGGER.error(MessageCode.EC0009.getMsgEn(), yamlPath);
+            return Collections.emptyMap();
         }
-        return map;
     }
 }

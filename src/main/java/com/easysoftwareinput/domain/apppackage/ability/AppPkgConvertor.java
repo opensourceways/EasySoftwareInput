@@ -68,9 +68,9 @@ public class AppPkgConvertor {
      */
     public AppPackage toEntity(Map<String, String> underLineMap) {
         Map<String, String> camelMap = new HashMap<>();
-        for (String underLineKey: underLineMap.keySet()) {
-            String camelKey = StringUtil.underlineToCamel(underLineKey);
-            camelMap.put(camelKey, underLineMap.get(underLineKey));
+        for (Map.Entry<String, String> entry: underLineMap.entrySet()) {
+            String key = StringUtil.underlineToCamel(entry.getKey());
+            camelMap.put(key, entry.getValue());
         }
 
         String json = ObjectMapperUtil.writeValueAsString(camelMap);
@@ -190,7 +190,7 @@ public class AppPkgConvertor {
      */
     private Map<String, Object> getFromMonitor(String name) {
         Map<String, JsonNode> nodeMap = HttpClientUtil.getMonitor(name, env.getProperty("appver.monurl"));
-        if (nodeMap.size() == 0) {
+        if (nodeMap == null || nodeMap.size() == 0) {
             return Collections.emptyMap();
         }
 

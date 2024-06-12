@@ -16,13 +16,11 @@ import java.sql.Timestamp;
 
 import com.easysoftwareinput.domain.rpmpackage.model.BasePackage;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
 public class AppPackage extends BasePackage {
     /**
      * uuid.
@@ -164,4 +162,52 @@ public class AppPackage extends BasePackage {
      * latestOsSupport of pkg.
      */
     private String latestOsSupport;
+
+    /**
+     * get the updated time of pkg.
+     * @return Timestamp.
+     */
+    public Timestamp getUpdateAt() {
+        if (this.updateAt == null) {
+            return null;
+        }
+        return (Timestamp) this.updateAt.clone();
+    }
+
+    /**
+     * get the created time of pkg.
+     * @return Timestamp.
+     */
+    public Timestamp getCreateAt() {
+        if (this.createAt == null) {
+            return null;
+        }
+        return (Timestamp) this.createAt.clone();
+    }
+
+    /**
+     * set created time of pkg.
+     *
+     * @param createAt created time of pkg.
+     */
+    public void setCreateAt(Timestamp createAt) {
+        if (this.createAt != null) {
+            this.createAt = (Timestamp) createAt.clone();
+        } else {
+            this.createAt = null;
+        }
+    }
+
+    /**
+     * set updated time of pkg..
+     *
+     * @param updateAt updated time of pkg.
+     */
+    public void setUpdateAt(Timestamp updateAt) {
+        if (this.updateAt != null) {
+            this.updateAt = (Timestamp) updateAt.clone();
+        } else {
+            this.updateAt = null;
+        }
+    }
 }

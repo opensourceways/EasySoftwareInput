@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
@@ -124,6 +125,9 @@ public class RPMPackageService {
             return Collections.emptyList();
         }
         File[] xmlFiles = fDir.listFiles();
+        if (xmlFiles == null || xmlFiles.length == 0) {
+            return Collections.emptyList();
+        }
 
         return validFiles(xmlFiles, rpmDir);
     }
@@ -171,6 +175,10 @@ public class RPMPackageService {
      */
     public void run() {
         List<String> files = listSubMenus(env.getProperty("rpm.dir"));
+        if (files == null || files.size() == 0) {
+            log.error("no files in dir: {}", env.getProperty("rpm.dir"));
+            return;
+        }
 
         // 获取源码包链接
         Map<String, String> srcUrls = new HashMap<>();
@@ -218,7 +226,7 @@ public class RPMPackageService {
      * @return map of os.
      */
     private Map<String, String> parseFileName(String filePath) {
-        String[] pathSplits = filePath.split(File.separator);
+        String[] pathSplits = filePath.split(Pattern.quote(File.separator));
         String filename = pathSplits[pathSplits.length - 1];
         String[] nameSplits = filename.split("_a_");
 
@@ -248,6 +256,9 @@ public class RPMPackageService {
     private String assembleBaseUrl(String[] nameSplits) {
         StringBuilder baseUrl = new StringBuilder();
         List<String> archive1 = (List<String>) env.getProperty("rpm.archive1.name", List.class);
+        if (archive1 == null || archive1.size() == 0) {
+            return "";
+        }
         if (archive1.contains(nameSplits[0])) {
             baseUrl.append(env.getProperty("rpm.archive1.url"));
         } else {

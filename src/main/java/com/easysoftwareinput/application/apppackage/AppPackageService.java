@@ -88,8 +88,12 @@ public class AppPackageService {
             return Collections.emptyList();
         }
 
-        List<File> pkgList = new ArrayList<>();
         File[] pkgs = folder.listFiles();
+        if (pkgs == null || pkgs.length == 0) {
+            return Collections.emptyList();
+        }
+
+        List<File> pkgList = new ArrayList<>();
         for (File pkg : pkgs) {
             pkgList.add(pkg);
         }
@@ -196,6 +200,10 @@ public class AppPackageService {
      */
     public void run() {
         String repoPath = env.getProperty("app.path");
+        if (StringUtils.isBlank(repoPath)) {
+            LOGGER.error("no env: app.path");
+            return;
+        }
         gitPull(repoPath);
         handleEachApp(repoPath);
         LOGGER.info("finish-update-application");

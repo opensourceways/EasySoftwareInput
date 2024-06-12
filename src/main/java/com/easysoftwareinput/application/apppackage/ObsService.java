@@ -57,7 +57,7 @@ public class ObsService {
     /**
      * obsclient.
      */
-    private static ObsClient obsClient;
+    private ObsClient obsClient;
 
     /**
      * init of obsclient.
