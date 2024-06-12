@@ -83,8 +83,8 @@ public class PkgService {
         List<Map<String, String>> conflicts = parseArray(format, "conflicts");
         List<Map<String, String>> files = parseFiles(format);
 
-        res.put("requires", ObjectMapperUtil.writeValueAsString(provides));
-        res.put("provides", ObjectMapperUtil.writeValueAsString(requires));
+        res.put("provides", ObjectMapperUtil.writeValueAsString(provides));
+        res.put("requires", ObjectMapperUtil.writeValueAsString(requires));
         res.put("conflicts", ObjectMapperUtil.writeValueAsString(conflicts));
         res.put("files", ObjectMapperUtil.writeValueAsString(files));
     }
