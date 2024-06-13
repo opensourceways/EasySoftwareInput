@@ -13,16 +13,14 @@ package com.easysoftwareinput.infrastructure.epkgpkg.dataobject;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.sql.Timestamp;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+@Getter
+@Setter
 @TableName("epkg_pkg")
 public class EpkgDo {
     /**
@@ -212,4 +210,42 @@ public class EpkgDo {
      * License.
      */
     private String license;
+
+    /**
+     * get updated time of pkg.
+     * @return updated time of pkg.
+     */
+    public Timestamp getUpdateAt() {
+        if (this.updateAt == null) {
+            return null;
+        }
+        return (Timestamp) this.updateAt.clone();
+    }
+
+    /**
+     * get created time of pkg.
+     * @return created time of pkg.
+     */
+    public Timestamp getCreateAt() {
+        if (this.createAt == null) {
+            return null;
+        }
+        return (Timestamp) this.createAt.clone();
+    }
+
+    /**
+     * set updated time of pkg.
+     * @param stamp updated time of pkg.
+     */
+    public void setUpdateAt(Timestamp stamp) {
+        this.updateAt = (Timestamp) stamp.clone();
+    }
+
+    /**
+     * set updated time of pkg.
+     * @param stamp updated time of pkg.
+     */
+    public void setCreateAt(Timestamp stamp) {
+        this.createAt = (Timestamp) stamp.clone();
+    }
 }

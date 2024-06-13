@@ -5,9 +5,11 @@ import java.sql.Timestamp;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @TableName("application_version")
 public class AppVersionDo {
     /**
@@ -75,4 +77,42 @@ public class AppVersionDo {
      * type.
      */
     private String type;
+
+    /**
+     * get updated time of pkg.
+     * @return updated time of pkg.
+     */
+    public Timestamp getUpdateAt() {
+        if (this.updateAt == null) {
+            return null;
+        }
+        return (Timestamp) this.updateAt.clone();
+    }
+
+    /**
+     * get created time of pkg.
+     * @return created time of pkg.
+     */
+    public Timestamp getCreatedAt() {
+        if (this.createdAt == null) {
+            return null;
+        }
+        return (Timestamp) this.createdAt.clone();
+    }
+
+    /**
+     * set updated time of pkg.
+     * @param stamp updated time of pkg.
+     */
+    public void setUpdateAt(Timestamp stamp) {
+        this.updateAt = (Timestamp) stamp.clone();
+    }
+
+    /**
+     * set updated time of pkg.
+     * @param stamp updated time of pkg.
+     */
+    public void setCreatedAt(Timestamp stamp) {
+        this.createdAt = (Timestamp) stamp.clone();
+    }
 }
