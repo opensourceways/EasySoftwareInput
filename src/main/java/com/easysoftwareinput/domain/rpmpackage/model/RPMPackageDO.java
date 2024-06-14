@@ -197,6 +197,11 @@ public class RPMPackageDO {
     private String subPath;
 
     /**
+     * license.
+     */
+    private String license;
+
+        /**
      * get updated time of pkg.
      * @return updated time of pkg.
      */

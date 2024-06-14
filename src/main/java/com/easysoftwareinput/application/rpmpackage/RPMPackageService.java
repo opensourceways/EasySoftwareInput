@@ -18,6 +18,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang3.StringUtils;
@@ -35,10 +37,14 @@ import com.easysoftwareinput.common.entity.MessageCode;
 import com.easysoftwareinput.infrastructure.BasePackageDO;
 import com.easysoftwareinput.infrastructure.rpmpkg.RpmGatewayImpl;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
+@Getter
+@Setter
 public class RPMPackageService {
     /**
      * valid data.
@@ -86,6 +92,16 @@ public class RPMPackageService {
      * xml file parser.
      */
     private static SAXReader reader = new SAXReader();
+
+    /**
+     * start time of current service.
+     */
+    private long startTime;
+
+    /**
+     * changed row of table.
+     */
+    private long rows;
 
     /**
      * valid the files.
@@ -183,8 +199,15 @@ public class RPMPackageService {
      * run the program.
      */
     public void run() {
-        List<String> files = listSubMenus(env.getProperty("rpm.dir"));
-        long startTime = System.currentTimeMillis();
+        String rpmDir = env.getProperty("rpm.dir");
+        if (StringUtils.isBlank(rpmDir)) {
+            log.error("no env: rpm.dir");
+            return;
+        }
+
+        List<String> files = listSubMenus(rpmDir);
+
+        this.setStartTime(System.currentTimeMillis());
 
         // 获取源码包链接
         Map<String, String> srcUrls = new HashMap<>();
@@ -199,9 +222,12 @@ public class RPMPackageService {
             srcUrls.putAll(srcMap);
         }
 
+        // 已经在数据表中的软件包
+        Set<String> existedPkgIdSet = gateway.getExistedIds();
+
         // 获取maintainer信息
         Map<String, BasePackageDO> maintainers = batchService.getNames();
-
+        List<CompletableFuture<Void>> finishedList = new ArrayList<>();
         // 正式处理
         for (int fileIndex = 0; fileIndex < files.size(); fileIndex++) {
             String filePath = files.get(fileIndex);
@@ -216,24 +242,39 @@ public class RPMPackageService {
                 int temp = 0;
             }
 
-            threadPool.parseXml(document, osMes, fileIndex, srcUrls, maintainers, count);
+            CompletableFuture<Void> finished = threadPool.parseXml(document, osMes, fileIndex, srcUrls, maintainers,
+                    count, existedPkgIdSet);
+            finishedList.add(finished);
         }
 
-        while (executor.getQueueSize() > 0 || executor.getActiveCount() > 0) {
-            int temp = 0;
+        for (CompletableFuture<Void> f : finishedList) {
+            try {
+                f.get();
+            } catch (Exception e) {
+                log.error("fail-to-execute-async, e: {}", e.getMessage());
+            }
         }
 
         log.info("finish-rpm-write");
-        validData(startTime, count.get());
+        this.setRows(count.get());
+        System.out.println(getRows());
+        validData();
         log.info("fnish-rpm-validate");
     }
 
-    private void validData(long startTime, long row) {
-        long tableRow = gateway.getChangedRow(startTime);
+    /**
+     * valid the stored data.
+     * @return true if all the data stored.
+     */
+    public boolean validData() {
+        long tableRow = gateway.getChangedRow(this.getStartTime());
+        long row = getRows();
         if (tableRow == row) {
             log.info("no error in storing data. need to be stored: {}, stored: {}", row, tableRow);
+            return true;
         } else {
             log.error("error in storing data. need to be stored: {}, stored: {}", row, tableRow);
+            return false;
         }
     }
 

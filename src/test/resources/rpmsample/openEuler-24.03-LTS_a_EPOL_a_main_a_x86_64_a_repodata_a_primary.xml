@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://linux.duke.edu/metadata/common" xmlns:rpm="http://linux.duke.edu/metadata/rpm" packages="4346">
+<package type="rpm">
+  <name>Catch2</name>
+  <arch>x86_64</arch>
+  <version epoch="0" ver="3.3.2" rel="1.oe2403"/>
+  <checksum type="sha256" pkgid="YES">6c46d151b5aeda5e556f860fdd58db1f9792253a90a370715302907182a81121</checksum>
+  <summary>Modern, C++-native, header-only, framework for unit-tests, TDD and BDD</summary>
+  <description>Catch stands for C++ Automated Test Cases in Headers and is a
+multi-paradigm automated test framework for C++ and Objective-C (and,
+maybe, C). It is implemented entirely in a set of header files, but
+is packaged up as a single header for extra convenience.</description>
+  <packager>http://openeuler.org</packager>
+  <url>https://github.com/catchorg/Catch2</url>
+  <time file="1716988028" build="1716967366"/>
+  <size package="360701" installed="1369527" archive="0"/>
+  <location href="Packages/Catch2-3.3.2-1.oe2403.x86_64.rpm"/>
+  <format>
+    <rpm:license>BSL-1.0</rpm:license>
+    <rpm:vendor></rpm:vendor>
+    <rpm:group>Unspecified</rpm:group>
+    <rpm:buildhost>dc-64g.compass-ci</rpm:buildhost>
+    <rpm:sourcerpm>Catch2-3.3.2-1.oe2403.src.rpm</rpm:sourcerpm>
+    <rpm:header-range start="768" end="5725"/>
+    <rpm:provides>
+      <rpm:entry name="Catch2" flags="EQ" epoch="0" ver="3.3.2" rel="1.oe2403"/>
+      <rpm:entry name="Catch2(x86-64)" flags="EQ" epoch="0" ver="3.3.2" rel="1.oe2403"/>
+      <rpm:entry name="libCatch2.so.3.3.2()(64bit)"/>
+      <rpm:entry name="libCatch2Main.so.3.3.2()(64bit)"/>
+    </rpm:provides>
+    <rpm:requires>
+      <rpm:entry name="libgcc_s.so.1()(64bit)"/>
+      <rpm:entry name="libgcc_s.so.1(GCC_3.0)(64bit)"/>
+      <rpm:entry name="libm.so.6()(64bit)"/>
+      <rpm:entry name="libm.so.6(GLIBC_2.2.5)(64bit)"/>
+      <rpm:entry name="libm.so.6(GLIBC_2.29)(64bit)"/>
+      <rpm:entry name="libstdc++.so.6()(64bit)"/>
+      <rpm:entry name="libstdc++.so.6(CXXABI_1.3)(64bit)"/>
+      <rpm:entry name="libstdc++.so.6(CXXABI_1.3.13)(64bit)"/>
+      <rpm:entry name="libstdc++.so.6(CXXABI_1.3.3)(64bit)"/>
+      <rpm:entry name="libstdc++.so.6(CXXABI_1.3.9)(64bit)"/>
+      <rpm:entry name="libstdc++.so.6(GLIBCXX_3.4)(64bit)"/>
+      <rpm:entry name="libstdc++.so.6(GLIBCXX_3.4.11)(64bit)"/>
+      <rpm:entry name="libstdc++.so.6(GLIBCXX_3.4.14)(64bit)"/>
+      <rpm:entry name="libstdc++.so.6(GLIBCXX_3.4.15)(64bit)"/>
+      <rpm:entry name="libstdc++.so.6(GLIBCXX_3.4.18)(64bit)"/>
+      <rpm:entry name="libstdc++.so.6(GLIBCXX_3.4.19)(64bit)"/>
+      <rpm:entry name="libstdc++.so.6(GLIBCXX_3.4.20)(64bit)"/>
+      <rpm:entry name="libstdc++.so.6(GLIBCXX_3.4.21)(64bit)"/>
+      <rpm:entry name="libstdc++.so.6(GLIBCXX_3.4.22)(64bit)"/>
+      <rpm:entry name="libstdc++.so.6(GLIBCXX_3.4.29)(64bit)"/>
+      <rpm:entry name="libstdc++.so.6(GLIBCXX_3.4.30)(64bit)"/>
+      <rpm:entry name="libstdc++.so.6(GLIBCXX_3.4.9)(64bit)"/>
+      <rpm:entry name="rtld(GNU_HASH)"/>
+      <rpm:entry name="libc.so.6(GLIBC_2.38)(64bit)"/>
+    </rpm:requires>
+    <file>/etc/ima/digest_lists.tlv/0-metadata_list-compact_tlv-Catch2-3.3.2-1.oe2403.x86_64</file>
+    <file>/etc/ima/digest_lists/0-metadata_list-compact-Catch2-3.3.2-1.oe2403.x86_64</file>
+  </format>
+</package>
+</metadata>
