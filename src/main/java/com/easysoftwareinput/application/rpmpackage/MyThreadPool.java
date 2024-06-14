@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.dom4j.Document;
@@ -68,10 +69,12 @@ public class MyThreadPool extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> 
      * @param srcUrls map of src pkgs.
      * @param maintainers maintainers.
      * @param atomicLong length of data to be stored.
+     * @param existedPkgIdSet existedPkgIdSet.
+     * @return CompletableFuture object to indicate the thread work finished.
      */
     @Async("asyncServiceExecutor")
-    public void parseXml(Document xml, Map<String, String> osMes, int count, Map<String, String> srcUrls,
-            Map<String, BasePackageDO> maintainers, AtomicLong atomicLong) {
+    public CompletableFuture<Void> parseXml(Document xml, Map<String, String> osMes, int count, Map<String, String>
+            srcUrls, Map<String, BasePackageDO> maintainers, AtomicLong atomicLong, Set<String> existedPkgIdSet) {
         List<Element> pkgs = xml.getRootElement().elements();
 
         long s = System.currentTimeMillis();
@@ -95,8 +98,9 @@ public class MyThreadPool extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> 
         log.info("finish-xml-parse, thread name: {}, list.size(): {}, time used: {}ms, fileIndex: {}",
                 Thread.currentThread().getName(), pkgList.size(), (System.currentTimeMillis() - s), count);
 
-        gateway.saveAll(pkgList);
+        gateway.saveAll(pkgList, existedPkgIdSet);
         atomicLong.addAndGet(pkgList.size());
+        return CompletableFuture.completedFuture(null);
     }
 
     /**
