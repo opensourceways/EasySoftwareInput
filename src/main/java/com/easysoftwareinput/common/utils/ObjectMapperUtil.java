@@ -26,6 +26,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -160,6 +162,22 @@ public final class ObjectMapperUtil {
      */
     public static <T> Map<String, T> jsonToMap(Object obj) {
         Map<String, T> res = objectMapper.convertValue(obj, new TypeReference<Map<String, T>>() { });
+        return res;
+    }
+
+    /**
+     * convert string to map.
+     * @param <T> generic type.
+     * @param str string.
+     * @return map.
+     */
+    public static <T> Map<String, T> strToMap(String str) {
+        Map<String, T> res;
+        try {
+            res = objectMapper.readValue(str, new TypeReference<HashMap<String, T>>() { });
+        } catch (Exception e) {
+            res = Collections.emptyMap();
+        }
         return res;
     }
 }

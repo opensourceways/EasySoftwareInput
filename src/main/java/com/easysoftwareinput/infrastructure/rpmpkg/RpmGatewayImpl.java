@@ -14,6 +14,7 @@ package com.easysoftwareinput.infrastructure.rpmpkg;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -49,13 +50,16 @@ public class RpmGatewayImpl extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO
     /**
      * save all data to database.
      * @param list lsit of pkg.
+     * @param existedPkgIdSet existedPkgIdSet.
      * @return boolean.
      */
-    public boolean saveAll(List<RPMPackage> list) {
+    public boolean saveAll(List<RPMPackage> list, Set<String> existedPkgIdSet) {
         List<RPMPackageDO> dList = converter.toDO(list);
-        List<RPMPackageDO> existed = new ArrayList<>();
-        List<RPMPackageDO> unexisted = new ArrayList<>();
-        fillListById(dList, existed, unexisted);
+
+        Map<Boolean, List<RPMPackageDO>> map = dList.stream().collect(Collectors.partitioningBy(
+                d -> existedPkgIdSet.contains(d.getPkgId())));
+        List<RPMPackageDO> existed = map.get(true);
+        List<RPMPackageDO> unexisted = map.get(false);
         return synSave(existed, unexisted);
     }
 
@@ -68,24 +72,6 @@ public class RpmGatewayImpl extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO
         wrapper.select("distinct (pkg_id)");
         List<RPMPackageDO> list = mapper.selectList(wrapper);
         return list.stream().map(RPMPackageDO::getPkgId).collect(Collectors.toSet());
-    }
-
-    /**
-     * divide dList into existed and unexisted.
-     * @param dList dList.
-     * @param existed existed.
-     * @param unexisted unexisted.
-     */
-    public void fillListById(List<RPMPackageDO> dList, List<RPMPackageDO> existed, List<RPMPackageDO> unexisted) {
-        Set<String> existedPkgIdSet = getExistedIds();
-        for (RPMPackageDO d : dList) {
-            String pkgId = d.getPkgId();
-            if (existedPkgIdSet.contains(pkgId)) {
-                existed.add(d);
-            } else {
-                unexisted.add(d);
-            }
-        }
     }
 
     /**
