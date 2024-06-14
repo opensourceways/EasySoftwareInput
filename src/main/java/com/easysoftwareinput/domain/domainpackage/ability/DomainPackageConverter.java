@@ -20,9 +20,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -33,10 +34,22 @@ import com.easysoftwareinput.infrastructure.domainpackage.DomainPkgDO;
 @Service
 public class DomainPackageConverter {
     /**
-     * env.
+     * logger.
      */
-    @Autowired
-    private Environment env;
+    private static final Logger LOGGER = LoggerFactory.getLogger(DomainPackageConverter.class);
+
+    /**
+     * url of domain.
+     */
+    @Value("${domain.url}")
+    private String domainUrl;
+
+    /**
+     * icon of domain.
+     */
+    @Value("${domain.icon}")
+    private String domainIconUrl;
+
 
     /**
      * convert list of maps to list of pkgs.
@@ -86,14 +99,18 @@ public class DomainPackageConverter {
         String imageId = pkgIds.get("IMAGE");
         String rpmId = pkgIds.get("RPM");
 
+        if (StringUtils.isBlank(domainUrl)) {
+            LOGGER.error("no env: domain.url");
+            return;
+        }
         Map<String, String> rpmRes = new HashMap<>();
         if (StringUtils.isNotBlank(rpmId)) {
-            rpmRes = getPkgRes("rpmpkg?pkgId=", rpmId);
+            rpmRes = getPkgRes(domainUrl, "rpmpkg?pkgId=", rpmId);
         }
 
         Map<String, String> appRes = new HashMap<>();
         if (StringUtils.isNotBlank(imageId)) {
-            appRes = getPkgRes("apppkg?pkgId=", imageId);
+            appRes = getPkgRes(domainUrl, "apppkg?pkgId=", imageId);
         }
 
         fillPkg(pkg, rpmRes, appRes);
@@ -108,9 +125,11 @@ public class DomainPackageConverter {
      */
     private void fillPkg(DomainPackage pkg, Map<String, String> rpmRes, Map<String, String> appRes) {
         // iconUrl
+        if (StringUtils.isBlank(domainIconUrl)) {
+            LOGGER.error("no env: domain.icon");
+        }
         String appIconUrl = appRes.get("iconUrl");
-        String defaultIconUrl = env.getProperty("domain.icon");
-        String iconUrl = StringUtils.isNotBlank(appIconUrl) ? appIconUrl : defaultIconUrl;
+        String iconUrl = StringUtils.isNotBlank(appIconUrl) ? appIconUrl : domainIconUrl;
         pkg.setIconUrl(iconUrl);
 
         // arch
@@ -144,17 +163,28 @@ public class DomainPackageConverter {
 
     /**
      * get pkg from url.
+     * @param url url.
      * @param prefix prefix indicates uri.
      * @param id pkgid.
      * @return pkg.
      */
-    private Map<String, String> getPkgRes(String prefix, String id) {
-        String url = env.getProperty("domain.url");
+    private Map<String, String> getPkgRes(String url, String prefix, String id) {
         RestTemplate restTemplate = new RestTemplate();
-        Map<String, Object> res = restTemplate.getForObject(url + prefix + id, Map.class);
+        String rUrl = String.join(url, prefix, id);
+        Map<String, Object> res = restTemplate.getForObject(rUrl, Map.class);
+        if (res == null || res.size() == 0) {
+            LOGGER.info("no res from url: {}", rUrl);
+            return Collections.emptyMap();
+        }
+
         Map<String, Object> data = (Map<String, Object>) res.get("data");
+        if (data == null || data.size() == 0) {
+            LOGGER.info("no `data` from url: {}", rUrl);
+            return Collections.emptyMap();
+        }
         List<Map<String, String>> list = (List<Map<String, String>>) data.get("list");
-        if (list.size() == 0) {
+        if (list == null || list.size() == 0) {
+            LOGGER.info("no `list` from url: {}", rUrl);
             return Collections.emptyMap();
         }
         return list.get(0);

@@ -65,12 +65,20 @@ public class RpmVerService {
      * run the program.
      */
     public void run() {
-        List<String> pkgList = readFileByLine(env.getProperty("appver.rpm-txt"));
+        String rpmTxt = env.getProperty("appver.rpm-txt");
+        String monUrl = env.getProperty("appver.monurl");
+        String rpmEulerUrl = env.getProperty("appver.rpm-euler");
+        if (rpmTxt == null || monUrl == null || rpmEulerUrl == null) {
+            LOGGER.error("no env");
+            return;
+        }
+
+        List<String> pkgList = readFileByLine(rpmTxt);
         Set<String> pkgs = validPkgs(pkgList);
 
         List<AppVersion> vList = new ArrayList<>();
         for (String name : pkgs) {
-            AppVersion v = handleEachPkg(name);
+            AppVersion v = handleEachPkg(name, monUrl, rpmEulerUrl);
             if (!validEmptyPkg(v)) {
                 vList.add(v);
             }
@@ -98,11 +106,13 @@ public class RpmVerService {
     /**
      * Generate AppVersion for each pkg.
      * @param name pkg name.
+     * @param monUrl monnitor url.
+     * @param rpmEulerUrl rpm euler url.
      * @return AppVersion.
      */
-    private AppVersion handleEachPkg(String name) {
-        Map<String, JsonNode> items = appService.getItems(name, env.getProperty("appver.monurl"));
-        Map<String, String> euler = getEulerVersion(name, env.getProperty("appver.rpm-euler"));
+    private AppVersion handleEachPkg(String name, String monUrl, String rpmEulerUrl) {
+        Map<String, JsonNode> items = appService.getItems(name, monUrl);
+        Map<String, String> euler = getEulerVersion(name, rpmEulerUrl);
 
         AppVersion v = new AppVersion();
         v.setName(name);

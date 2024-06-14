@@ -29,6 +29,7 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -87,6 +88,30 @@ public class RPMPackageService {
      */
     @Autowired
     private BatchServiceImpl batchService;
+
+    /**
+     * list of os in archive1.
+     */
+    @Value("${rpm.archive1.name}")
+    private List<String> archive1;
+
+    /**
+     * url of archive1.
+     */
+    @Value("${rpm.archive1.url}")
+    private String arUrl1;
+
+    /**
+     * url of archive2.
+     */
+    @Value("${rpm.archive2.url}")
+    private String arUrl2;
+
+     /**
+     * dir of rpm.
+     */
+    @Value("${rpm.dir}")
+    private String rpmDir;
 
     /**
      * xml file parser.
@@ -153,6 +178,10 @@ public class RPMPackageService {
             return Collections.emptyList();
         }
         File[] xmlFiles = fDir.listFiles();
+        if (xmlFiles == null || xmlFiles.length == 0) {
+            log.error(MessageCode.EC00016.getMsgEn());
+            return Collections.emptyList();
+        }
 
         return validFiles(xmlFiles, rpmDir);
     }
@@ -199,9 +228,9 @@ public class RPMPackageService {
      * run the program.
      */
     public void run() {
-        String rpmDir = env.getProperty("rpm.dir");
-        if (StringUtils.isBlank(rpmDir)) {
-            log.error("no env: rpm.dir");
+        if (archive1 == null || archive1.size() == 0
+                || StringUtils.isBlank(arUrl1) || StringUtils.isBlank(arUrl2) || StringUtils.isBlank(rpmDir)) {
+            log.error("no env");
             return;
         }
 
@@ -257,7 +286,6 @@ public class RPMPackageService {
 
         log.info("finish-rpm-write");
         this.setRows(count.get());
-        System.out.println(getRows());
         validData();
         log.info("fnish-rpm-validate");
     }
@@ -313,11 +341,11 @@ public class RPMPackageService {
      */
     private String assembleBaseUrl(String[] nameSplits) {
         StringBuilder baseUrl = new StringBuilder();
-        List<String> archive1 = (List<String>) env.getProperty("rpm.archive1.name", List.class);
+
         if (archive1.contains(nameSplits[0])) {
-            baseUrl.append(env.getProperty("rpm.archive1.url"));
+            baseUrl.append(arUrl1);
         } else {
-            baseUrl.append(env.getProperty("rpm.archive2.url"));
+            baseUrl.append(arUrl2);
         }
         for (int i = 0; i < nameSplits.length - 1; i++) {
             baseUrl.append("/");
