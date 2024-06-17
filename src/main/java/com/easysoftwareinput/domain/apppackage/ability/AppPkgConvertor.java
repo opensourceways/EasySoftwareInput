@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -37,6 +39,10 @@ import com.power.common.util.StringUtil;
 
 @Component
 public class AppPkgConvertor {
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(AppPkgConvertor.class);
     /**
      * env.
      */
@@ -189,8 +195,14 @@ public class AppPkgConvertor {
      * @return map.
      */
     private Map<String, Object> getFromMonitor(String name) {
-        Map<String, JsonNode> nodeMap = HttpClientUtil.getMonitor(name, env.getProperty("appver.monurl"));
-        if (nodeMap.size() == 0) {
+        String monUrl = env.getProperty("appver.monurl");
+        if (monUrl == null) {
+            LOGGER.error("no env: appver.monurl");
+            return Collections.emptyMap();
+        }
+        Map<String, JsonNode> nodeMap = HttpClientUtil.getMonitor(name, monUrl);
+        if (nodeMap == null || nodeMap.size() == 0) {
+            LOGGER.info("no res from monitor service");
             return Collections.emptyMap();
         }
 

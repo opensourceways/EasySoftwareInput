@@ -14,7 +14,6 @@ package com.easysoftwareinput.domain.rpmpackage.ability;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +22,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import com.easysoftwareinput.common.constant.MapConstant;
 import com.easysoftwareinput.common.entity.MessageCode;
@@ -40,10 +39,22 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RPMPackageConverter {
     /**
-     * env.
+     * list of os in archive1.
      */
-    @Autowired
-    private Environment env;
+    @Value("${rpm.official}")
+    private String official;
+
+    /**
+     * url of archive1.
+     */
+    @Value("${rpm.archive1.url}")
+    private String arUrl1;
+
+    /**
+     * url of archive2.
+     */
+    @Value("${rpm.archive2.url}")
+    private String arUrl2;
 
     /**
      * objectmapper.
@@ -110,6 +121,38 @@ public class RPMPackageConverter {
     }
 
     /**
+     * set repo and repoType of pkg.
+     * @param pkg pkg.
+     * @param camelMap camelMap.
+     */
+    public void setPkgRepoAndRepoType(RPMPackage pkg, Map<String, String> camelMap) {
+        if (StringUtils.isBlank(official)) {
+            log.error("no env: rpm.official");
+            return;
+        }
+
+        try {
+            pkg.setRepo(objectMapper.writeValueAsString(Map.ofEntries(
+                Map.entry("type", "openEuler官方仓库"),
+                Map.entry("url", official)
+            )));
+        } catch (JsonProcessingException e) {
+            log.error(MessageCode.EC00014.getMsgEn(), e);
+            pkg.setRepo("");
+        }
+
+        try {
+            pkg.setRepoType(objectMapper.writeValueAsString(Map.ofEntries(
+                Map.entry("type", camelMap.get("osType")),
+                Map.entry("url", official + pkg.getName())
+            )));
+        } catch (JsonProcessingException e) {
+            log.error("", e);
+            pkg.setRepoType("");
+        }
+    }
+
+    /**
      * convert map to pkg.
      * @param underLineMap map.
      * @param srcUrls map of src pkg and url.
@@ -119,9 +162,9 @@ public class RPMPackageConverter {
     public RPMPackage toEntity(Map<String, String> underLineMap, Map<String, String> srcUrls,
             Map<String, BasePackageDO> maintainers) {
         Map<String, String> camelMap = new HashMap<>();
-        for (String underLineKey: underLineMap.keySet()) {
-            String camelKey = StringUtil.underlineToCamel(underLineKey);
-            camelMap.put(camelKey, underLineMap.get(underLineKey));
+        for (Map.Entry<String, String> entry : underLineMap.entrySet()) {
+            String camelKey = StringUtil.underlineToCamel(entry.getKey());
+            camelMap.put(camelKey, entry.getValue());
         }
 
         RPMPackage pkg = new RPMPackage();
@@ -142,25 +185,7 @@ public class RPMPackageConverter {
         // 版本支持情况
         pkg.setOsSupport(camelMap.get("osName") + "-" + camelMap.get("osVer"));
 
-        pkg.setRepo("");
-        try {
-            pkg.setRepo(objectMapper.writeValueAsString(Map.ofEntries(
-                Map.entry("type", "openEuler官方仓库"),
-                Map.entry("url", env.getProperty("rpm.official"))
-            )));
-        } catch (JsonProcessingException e) {
-            log.error(MessageCode.EC00014.getMsgEn(), e);
-        }
-
-        pkg.setRepoType("");
-        try {
-            pkg.setRepoType(objectMapper.writeValueAsString(Map.ofEntries(
-                Map.entry("type", camelMap.get("osType")),
-                Map.entry("url", env.getProperty("rpm.official") + pkg.getName())
-            )));
-        } catch (JsonProcessingException e) {
-            log.error("", e);
-        }
+        setPkgRepoAndRepoType(pkg, camelMap);
 
         Long cTime = Long.parseLong(camelMap.get("timeFile"));
         String fTime = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(cTime * 1000));
@@ -176,47 +201,16 @@ public class RPMPackageConverter {
 
         pkg.setSrcRepo(camelMap.get("url"));
 
-        String formatS = String.format("1. 添加源\n```\ndnf config-manager --add-repo %s\n```\n2. 更新源索引\n"
-                + "```\ndnf clean all && dnf makecache\n```\n3. 安装 %s 软件包\n```\ndnf install %s\n```",
+        String formatS = String.format("1. 添加源%n```%ndnf config-manager --add-repo %s%n```%n2. 更新源索引%n"
+                + "```%ndnf clean all && dnf makecache%n```%n3. 安装 %s 软件包%n```%ndnf install %s%n```",
                 camelMap.get("baseUrl"), pkg.getName(), pkg.getName());
 
         pkg.setInstallation(formatS);
         pkg.setUpStream("");
         pkg.setVersion(camelMap.get("versionVer") + "-" + camelMap.get("versionRel"));
 
-        pkg.setSubPath("");
-        try {
-            String cBase = camelMap.get("baseUrl");
-            String[] cSplits = null;
-            if (cBase.contains(env.getProperty("rpm.archive1.url"))) {
-                cSplits = cBase.split("cn");
-            } else if (cBase.contains(env.getProperty("rpm.archive2.url"))) {
-                cSplits = cBase.split("org");
-            }
-
-            String[] urlSplit = cSplits[1].split("/");
-            String[] urls = Arrays.stream(urlSplit).filter(s -> StringUtils.isNotBlank(s)).toArray(String[]::new);
-            StringBuilder subPathSB = new StringBuilder();
-            for (int i = 1; i < urls.length; i++) {
-                subPathSB.append(urls[i]);
-            }
-            String subPath = subPathSB.toString();
-            pkg.setSubPath(subPath);
-
-
-            StringBuilder cSb = new StringBuilder();
-            cSb.append(pkg.getOs());
-            cSb.append(pkg.getSubPath());
-            cSb.append(pkg.getName());
-            cSb.append(pkg.getVersion());
-            cSb.append(pkg.getArch());
-            pkg.setPkgId(cSb.toString());
-        } catch (Exception e) {
-            synchronized (RPMPackageConverter.class) {
-                log.info("url error");
-                log.info(camelMap.toString());
-            }
-        }
+        setPkgSubPath(pkg, camelMap);
+        setPkgPkgId(pkg);
 
         if (maintainers.containsKey(pkg.getName())) {
             BasePackageDO base = maintainers.get(pkg.getName());
@@ -232,5 +226,51 @@ public class RPMPackageConverter {
             pkg.setCategory(MapConstant.APP_CATEGORY_MAP.get("others"));
         }
         return pkg;
+    }
+
+    /**
+     * set pkgId of pkg.
+     * @param pkg pkg.
+     */
+    public void setPkgPkgId(RPMPackage pkg) {
+        String pkgId = String.join(pkg.getOs(), pkg.getSubPath(), pkg.getName(), pkg.getVersion(), pkg.getArch());
+        pkg.setPkgId(pkgId);
+    }
+
+    /**
+     * set subPath of pkg.
+     * @param pkg pkg.
+     * @param camelMap map.
+     */
+    public void setPkgSubPath(RPMPackage pkg, Map<String, String> camelMap) {
+        String cBase = camelMap.get("baseUrl");
+        if (StringUtils.isBlank(cBase)) {
+            log.error("no baseurl");
+            return;
+        }
+
+        String[] cSplits;
+        if (StringUtils.isBlank(arUrl1) || StringUtils.isBlank(arUrl2)) {
+            log.error("no env: rpm.archvie1.url, rpm.archive2.url");
+            return;
+        }
+        if (cBase.contains(arUrl1)) {
+            cSplits = cBase.split("cn");
+        } else if (cBase.contains(arUrl2)) {
+            cSplits = cBase.split("org");
+        } else {
+            log.error("unrecognized url: {}", cBase);
+            return;
+        }
+
+        String subPath;
+        if (cSplits.length >= 2) {
+            subPath = cSplits[1];
+        } else {
+            subPath = "";
+        }
+        subPath = subPath.replaceAll("/", "");
+
+        pkg.setSubPath(subPath);
     }
 }

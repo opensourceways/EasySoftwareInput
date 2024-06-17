@@ -16,6 +16,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,11 +120,12 @@ public class OperationConfigService {
      */
     private Map<String, List<String>> praseCategoryRecommend(Map<String, Object> map) {
         Map<String, List<String>> res = new HashMap<>();
-        Map<String, Map<String, List<String>>> cateMap = null;
+        Map<String, Map<String, List<String>>> cateMap;
         try {
             cateMap = (Map<String, Map<String, List<String>>>) map.get("categorys");
         } catch (Exception e) {
             LOGGER.info("Failed to parse category");
+            return Collections.emptyMap();
         }
 
         for (Map.Entry<String, Map<String, List<String>>> entry : cateMap.entrySet()) {
