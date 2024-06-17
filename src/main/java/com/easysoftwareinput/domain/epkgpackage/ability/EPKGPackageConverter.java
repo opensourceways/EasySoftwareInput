@@ -76,10 +76,11 @@ public class EPKGPackageConverter {
      */
     private Map<String, String> changeMap(Map<String, String> underLineMap) {
         Map<String, String> camelMap = new HashMap<>();
-        for (String underLineKey: underLineMap.keySet()) {
-            String camelKey = StringUtil.underlineToCamel(underLineKey);
-            camelMap.put(camelKey, underLineMap.get(underLineKey));
+        for (Map.Entry<String, String> entry : underLineMap.entrySet()) {
+            String camelKey = StringUtil.underlineToCamel(entry.getKey());
+            camelMap.put(camelKey, entry.getValue());
         }
+
         return camelMap;
     }
 
@@ -167,8 +168,8 @@ public class EPKGPackageConverter {
 
         pkg.setSrcRepo(camelMap.get("url"));
 
-        String formatS = String.format("1. 添加源\n```\nepkg config-manager --add-repo %s\n```\n2. 更新源索引\n"
-                + "```\nepkg clean all && epkg makecache\n```\n3. 安装 %s 软件包\n```\nepkg install %s\n```",
+        String formatS = String.format("1. 添加源%n```%nepkg config-manager --add-repo %s%n```%n2. 更新源索引%n"
+                + "```%nepkg clean all && epkg makecache%n```%n3. 安装 %s 软件包%n```%nepkg install %s%n```",
                 camelMap.get("baseUrl"), pkg.getName(), pkg.getName());
 
         pkg.setInstallation(formatS);

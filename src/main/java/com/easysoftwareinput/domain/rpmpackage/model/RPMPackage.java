@@ -11,13 +11,17 @@
 
 package com.easysoftwareinput.domain.rpmpackage.model;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@SuppressFBWarnings("EQ_DOESNT_OVERRIDE_EQUALS")
 public class RPMPackage extends BasePackage {
     /**
      * id of pkg.

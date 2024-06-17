@@ -14,6 +14,7 @@ package com.easysoftwareinput.application.appver;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -78,29 +79,12 @@ public class RpmVerService {
 
         List<AppVersion> vList = new ArrayList<>();
         for (String name : pkgs) {
-            AppVersion v = handleEachPkg(name, monUrl, rpmEulerUrl);
-            if (!validEmptyPkg(v)) {
-                vList.add(v);
-            }
+            AppVersion v = handleEachPkg(name);
+            vList.add(v);
         }
 
-        gateway.saveAll(vList);
+        gateway.saveAll(appService.filter(vList));
         LOGGER.info("finish-rpm-version");
-    }
-
-    /**
-     * whether the AppVersion is empty or not.
-     * @param v AppVersion.
-     * @return boolean.
-     */
-    public boolean validEmptyPkg(AppVersion v) {
-        if (StringUtils.isBlank(v.getUpstreamVersion()) && StringUtils.isBlank(v.getUpHomepage())
-                && StringUtils.isBlank(v.getCiVersion())
-                && StringUtils.isBlank(v.getEulerOsVersion()) && StringUtils.isBlank(v.getOpeneulerVersion())
-                && StringUtils.isBlank(v.getEulerHomepage())) {
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -141,7 +125,26 @@ public class RpmVerService {
     public void fillWithEuler(AppVersion v, Map<String, String> euler) {
         v.setEulerOsVersion(euler.get("os"));
         v.setOpeneulerVersion(euler.get("ver"));
+        setEulerVersion(v, euler.get("ver"));
         v.setEulerHomepage(""); // none
+    }
+
+    /**
+     * set OpeneulerVersion of pkg.
+     * @param v pkg.
+     * @param ver openEulerverison.
+     */
+    public void setEulerVersion(AppVersion v, String ver) {
+        if (StringUtils.isBlank(ver)) {
+            return;
+        }
+
+        String[] splits = ver.split("-");
+        if (splits == null || splits.length == 0) {
+            return;
+        }
+
+        v.setOpeneulerVersion(splits[0]);
     }
 
     /**
@@ -188,7 +191,7 @@ public class RpmVerService {
      */
     public List<String> readFileByLine(String fileName) {
         List<String> res = new ArrayList<>();
-        try (BufferedReader r = new BufferedReader(new FileReader(fileName))) {
+        try (BufferedReader r = new BufferedReader(new FileReader(fileName, StandardCharsets.UTF_8))) {
             String line;
             while ((line = r.readLine()) != null) {
                 res.add(StringUtils.trimToEmpty(line));

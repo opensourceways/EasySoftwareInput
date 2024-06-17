@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
@@ -312,7 +313,8 @@ public class RPMPackageService {
      * @return map of os.
      */
     private Map<String, String> parseFileName(String filePath) {
-        String[] pathSplits = filePath.split(File.separator);
+
+        String[] pathSplits = filePath.split(Pattern.quote(File.separator));
         String filename = pathSplits[pathSplits.length - 1];
         String[] nameSplits = filename.split("_a_");
 

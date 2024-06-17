@@ -12,6 +12,7 @@
 package com.easysoftwareinput.common.utils;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -120,7 +121,7 @@ public final class HttpClientUtil {
             connection.setRequestProperty("Content-Type", "application/json");
             connection.setDoOutput(true);
             OutputStream outputStream = connection.getOutputStream();
-            outputStream.write(body.getBytes());
+            outputStream.write(body.getBytes("UTF-8"));
             outputStream.close();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
@@ -197,14 +198,14 @@ public final class HttpClientUtil {
     public static String postHttpClient(String uri, String requestBody) {
         HttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(uri);
+        httpPost.setHeader("Content-Type", "application/json");
         try {
-            httpPost.setHeader("Content-Type", "application/json");
             StringEntity stringEntity = new StringEntity(requestBody);
             httpPost.setEntity(stringEntity);
             HttpResponse response = httpClient.execute(httpPost);
             String responseBody = EntityUtils.toString(response.getEntity());
             return responseBody;
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new RuntimeException(MessageCode.EC0001.getMsgEn());
         }
     }
