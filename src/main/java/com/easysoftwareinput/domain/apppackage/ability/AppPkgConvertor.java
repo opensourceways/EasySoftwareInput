@@ -68,9 +68,9 @@ public class AppPkgConvertor {
      */
     public AppPackage toEntity(Map<String, String> underLineMap) {
         Map<String, String> camelMap = new HashMap<>();
-        for (String underLineKey: underLineMap.keySet()) {
-            String camelKey = StringUtil.underlineToCamel(underLineKey);
-            camelMap.put(camelKey, underLineMap.get(underLineKey));
+        for (Map.Entry<String, String> entry : underLineMap.entrySet()) {
+            String camelKey = StringUtil.underlineToCamel(entry.getKey());
+            camelMap.put(camelKey, entry.getValue());
         }
 
         String json = ObjectMapperUtil.writeValueAsString(camelMap);

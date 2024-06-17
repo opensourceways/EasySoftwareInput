@@ -119,9 +119,7 @@ public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePacka
                     SAXReader reader = new SAXReader();
                     Document document = reader.read(filePath);
                     LOGGER.info("handling doc: " + file.getName());
-                    synchronized (objects) {
-                        objects.addAll(getPkgNameList(document));
-                    }
+                    objects.addAll(getPkgNameList(document));
                 } catch (IOException | DocumentException e) {
                     LOGGER.error(e.getMessage());
                 } finally {
@@ -176,9 +174,7 @@ public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePacka
                 BasePackageDO bpDO = new BasePackageDO();
                 BeanUtils.copyProperties(bp, bpDO);
 
-                synchronized (objects) {
-                    objects.add(bpDO);
-                }
+                objects.add(bpDO);
                 latch.countDown();
             });
         }

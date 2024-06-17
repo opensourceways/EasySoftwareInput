@@ -12,13 +12,18 @@
 package com.easysoftwareinput.domain.epkgpackage.model;
 
 import com.easysoftwareinput.domain.rpmpackage.model.BasePackage;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@SuppressFBWarnings("EQ_DOESNT_OVERRIDE_EQUALS")
 public class EPKGPackage extends BasePackage {
     /**
      * id of pkg.

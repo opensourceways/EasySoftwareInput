@@ -14,6 +14,7 @@ package com.easysoftwareinput.application.appver;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -178,7 +179,7 @@ public class RpmVerService {
      */
     public List<String> readFileByLine(String fileName) {
         List<String> res = new ArrayList<>();
-        try (BufferedReader r = new BufferedReader(new FileReader(fileName))) {
+        try (BufferedReader r = new BufferedReader(new FileReader(fileName, StandardCharsets.UTF_8))) {
             String line;
             while ((line = r.readLine()) != null) {
                 res.add(StringUtils.trimToEmpty(line));

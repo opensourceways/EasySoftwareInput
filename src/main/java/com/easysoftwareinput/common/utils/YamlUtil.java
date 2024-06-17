@@ -12,10 +12,10 @@
 package com.easysoftwareinput.common.utils;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -45,13 +45,12 @@ public final class YamlUtil {
     public static Map<String, Object> parseYaml(String yamlPath) {
         Yaml yaml = new Yaml();
 
-        InputStream inputStream = null;
-        Map<String, Object> map = new HashMap<>();
-        try {
-            inputStream = new FileInputStream(yamlPath);
+        Map<String, Object> map;
+        try (InputStream inputStream = new FileInputStream(yamlPath)) {
             map = yaml.load(inputStream);
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             LOGGER.error(MessageCode.EC0009.getMsgEn(), yamlPath);
+            map = Collections.emptyMap();
         }
         return map;
     }

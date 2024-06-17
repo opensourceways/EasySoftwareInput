@@ -12,7 +12,7 @@
 package com.easysoftwareinput.application.operationconfig;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -34,7 +34,6 @@ import com.easysoftwareinput.common.entity.MessageCode;
 import com.easysoftwareinput.domain.operationconfig.ability.OpCoConverter;
 import com.easysoftwareinput.domain.operationconfig.model.OpCo;
 import com.easysoftwareinput.infrastructure.opco.OperationConfigGatewayImpl;
-
 import java.io.File;
 
 @Service
@@ -160,13 +159,12 @@ public class OperationConfigService {
     private Map<String, Object> parseYaml(String yamlPath) {
         Yaml yaml = new Yaml();
 
-        InputStream inputStream = null;
-        Map<String, Object> map = new HashMap<>();
-        try {
-            inputStream = new FileInputStream(yamlPath);
+        Map<String, Object> map;
+        try (InputStream inputStream = new FileInputStream(yamlPath)) {
             map = yaml.load(inputStream);
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             LOGGER.error(MessageCode.EC0009.getMsgEn(), yamlPath);
+            map = Collections.emptyMap();
         }
         return map;
     }
