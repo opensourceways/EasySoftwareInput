@@ -85,11 +85,17 @@ public class AppPackageService {
     private List<File> getSubMenus(String repoPath) {
         File folder = new File(repoPath);
         if (!folder.exists() || (!folder.isDirectory())) {
+            LOGGER.error("no path: {}", repoPath);
             return Collections.emptyList();
         }
 
         List<File> pkgList = new ArrayList<>();
         File[] pkgs = folder.listFiles();
+        if (pkgs == null || pkgs.length == 0) {
+            LOGGER.error("no files in dir: {}", repoPath);
+            return Collections.emptyList();
+        }
+
         for (File pkg : pkgs) {
             pkgList.add(pkg);
         }
@@ -196,6 +202,11 @@ public class AppPackageService {
      */
     public void run() {
         String repoPath = env.getProperty("app.path");
+        if (StringUtils.isBlank(repoPath)) {
+            LOGGER.error("no env: app.path");
+            return;
+        }
+
         gitPull(repoPath);
         handleEachApp(repoPath);
         LOGGER.info("finish-update-application");

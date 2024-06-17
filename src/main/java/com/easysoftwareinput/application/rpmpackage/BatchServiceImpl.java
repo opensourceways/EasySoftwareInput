@@ -82,6 +82,10 @@ public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePacka
         }
 
         File[] xmlFiles = fDir.listFiles();
+        if (xmlFiles == null || xmlFiles.length == 0) {
+            LOGGER.error("no files in dir: {}", rpmDir);
+            return;
+        }
         Set<String> pkgSet = getPkgNameListMuti(xmlFiles);
         LOGGER.info("All pkg num: {}", pkgSet.size());
         dealByBatch(pkgSet);
