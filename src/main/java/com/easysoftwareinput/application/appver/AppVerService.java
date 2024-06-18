@@ -210,12 +210,71 @@ public class AppVerService {
             return;
         }
 
-        String upVer = up.get("version").asText();
-        upVer = upVer.replaceAll("_", ".");
         String upHome = up.get("homepage").asText();
-
-        app.setUpstreamVersion(upVer);
         app.setUpHomepage(upHome);
+        setPkgUpStreamVersion(app, up.get("version"));
+    }
+
+    /**
+     * set upstreamversion of pkg.
+     * @param app pkg.
+     * @param v jsonnode.
+     */
+    public void setPkgUpStreamVersion(AppVersion app, JsonNode v) {
+        if (v == null) {
+            return;
+        }
+
+        String upVer = v.asText();
+        if (StringUtils.isBlank(upVer)) {
+            return;
+        }
+
+        upVer = upVer.replaceAll("_", ".");
+        String[] splits = upVer.split("-");
+        if (splits == null || splits.length == 0) {
+            return;
+        } else if (splits.length == 1) {
+            app.setUpstreamVersion(splits[0]);
+        } else {
+            app.setUpstreamVersion(pickPiece(splits));
+        }
+    }
+
+    /**
+     * pick the best string from string array.
+     * @param splits string array.
+     * @return the best string.
+     */
+    public String pickPiece(String[] splits) {
+        int max = -1;
+        String winner = "";
+        for (String s : splits) {
+            int count = calculateString(s);
+            if (count > max) {
+                max = count;
+                winner = s;
+            }
+        }
+        return winner;
+    }
+
+    /**
+     * calculate the number of digit or `.` in the string.
+     * @param s string.
+     * @return the number.
+     */
+    public int calculateString(String s) {
+        if (StringUtils.isBlank(s)) {
+            return 0;
+        }
+        int count = 0;
+        for (int i = 0; i < s.length(); i++) {
+            if (Character.isDigit(s.charAt(i)) || '.' == s.charAt(i)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     /**
@@ -266,6 +325,41 @@ public class AppVerService {
     }
 
     /**
+     * whether the AppVersion is empty or not.
+     * @param v AppVersion.
+     * @return boolean.
+     */
+    public boolean validEmptyPkg(AppVersion v) {
+        if (StringUtils.isBlank(v.getUpstreamVersion()) && StringUtils.isBlank(v.getUpHomepage())
+                && StringUtils.isBlank(v.getCiVersion())
+                && StringUtils.isBlank(v.getEulerOsVersion()) && StringUtils.isBlank(v.getOpeneulerVersion())
+                && StringUtils.isBlank(v.getEulerHomepage())) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * filter the pkg.
+     * @param originList origin pkg.
+     * @return filtered pkg.
+     */
+    public List<AppVersion> filter(List<AppVersion> originList) {
+        List<AppVersion> vList = new ArrayList<>();
+        for (AppVersion v : originList) {
+            if (validEmptyPkg(v)) {
+                continue;
+            }
+
+            if (StringUtils.isBlank(v.getUpstreamVersion())) {
+                continue;
+            }
+            vList.add(v);
+        }
+        return vList;
+    }
+
+    /**
      * run program.
      */
     public void run() {
@@ -274,6 +368,7 @@ public class AppVerService {
 
         Set<String> names = getAppList(appUrl);
         List<AppVersion> verList = generateAppVerList(names, monUrl);
+        filter(verList);
         gateway.saveAll(verList);
         LOGGER.info("finish-app-ver");
     }

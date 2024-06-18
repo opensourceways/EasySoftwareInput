@@ -16,11 +16,13 @@ import java.sql.Timestamp;
 
 import com.easysoftwareinput.domain.rpmpackage.model.BasePackage;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@SuppressFBWarnings("EQ_DOESNT_OVERRIDE_EQUALS")
 public class AppPackage extends BasePackage {
     /**
      * uuid.

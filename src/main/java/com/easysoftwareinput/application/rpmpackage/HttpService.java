@@ -54,14 +54,11 @@ public class HttpService {
      */
     public boolean validUrl(String url) {
         RestTemplate restTemplate = new RestTemplate();
-        while (true) {
-            String result = "";
-            try {
-                result = restTemplate.getForObject(url, String.class);
-                return true;
-            } catch (Exception e) {
-                return false;
-            }
+        try {
+            restTemplate.getForObject(url, String.class);
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 
