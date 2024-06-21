@@ -57,7 +57,6 @@ public class EasysoftwareinputApplication {
         // 2. 解析openEuler官网rpm软件包
         RPMPackageService rpmPackageService = (RPMPackageService) context.getBean(RPMPackageService.class);
         rpmPackageService.run();
-        // System.exit(0);
 
         // 3. 解析epkg软件包
         EPKGPackageService epkgPackageService = (EPKGPackageService) context.getBean(EPKGPackageService.class);
