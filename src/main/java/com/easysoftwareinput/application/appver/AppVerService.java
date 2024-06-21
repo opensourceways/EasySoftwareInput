@@ -109,6 +109,10 @@ public class AppVerService {
      * @param appVer appVer.
      */
     public void setStatus(AppVersion appVer) {
+        if (appVer == null) {
+            return;
+        }
+
         if (StringUtils.isBlank(appVer.getOpeneulerVersion())) {
             appVer.setStatus("MISSING");
         } else if (appVer.getOpeneulerVersion().equals(appVer.getUpstreamVersion())) {

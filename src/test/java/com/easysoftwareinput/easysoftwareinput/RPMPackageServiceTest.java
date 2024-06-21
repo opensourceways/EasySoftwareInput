@@ -42,7 +42,6 @@ public class RPMPackageServiceTest {
         assertTrue(service.validData());
         
         List<RPMPackageDO> d = mapper.selectList(null);
-        System.out.println(d.size());
         assertPkg(d.get(0));
     }
 

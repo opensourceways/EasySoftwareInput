@@ -79,7 +79,7 @@ public class RpmVerService {
 
         List<AppVersion> vList = new ArrayList<>();
         for (String name : pkgs) {
-            AppVersion v = handleEachPkg(name);
+            AppVersion v = handleEachPkg(name, monUrl, rpmEulerUrl);
             vList.add(v);
         }
 
@@ -101,8 +101,8 @@ public class RpmVerService {
         AppVersion v = new AppVersion();
         v.setName(name);
         v.setType("rpm");
-        fillWithUpCi(v, items);
         fillWithEuler(v, euler);
+        fillWithUpCi(v, items);
         return v;
     }
 
