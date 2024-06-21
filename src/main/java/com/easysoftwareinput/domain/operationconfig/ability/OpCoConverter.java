@@ -35,7 +35,6 @@ public final class OpCoConverter {
      * @return list of OperationConfig object.
      */
     public static List<OpCo> toEntity(List<String> rote, Map<String, List<String>> recommends) {
-        System.out.println();
         List<OpCo> res = new ArrayList<>();
         for (int i = 0; i < rote.size(); i++) {
             OpCo opCo = new OpCo();
