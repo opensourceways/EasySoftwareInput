@@ -3,7 +3,6 @@ package com.easysoftwareinput.easysoftwareinput;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;
 
-
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.MyBatisSystemException;
@@ -12,27 +11,27 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 
-import com.easysoftwareinput.application.rpmpackage.RPMPackageService;
-import com.easysoftwareinput.infrastructure.mapper.RPMPackageDOMapper;
-import com.easysoftwareinput.infrastructure.rpmpkg.RpmGatewayImpl;
+import com.easysoftwareinput.application.oepkg.OepkgService;
+import com.easysoftwareinput.infrastructure.mapper.OepkgDOMapper;
+import com.easysoftwareinput.infrastructure.oepkg.OepkgGatewayImpl;
 
 @SpringBootTest
-public class RPMPackageServiceExceptionTest {
+public class OepkgServiceExceptionTest {
     @Autowired
-    RPMPackageDOMapper mapper;
+    OepkgDOMapper mapper;
 
     @Autowired
-    RPMPackageService service;
+    OepkgService service;
 
     @MockBean
-    RpmGatewayImpl gateway;
+    OepkgGatewayImpl gateway;
 
     @Test
     public void test_drop_connection() {
         Exception e = new MyBatisSystemException(
                 new PersistenceException(
                 new CannotGetJdbcConnectionException("Failed to obtain JDBC Connection")));
-        when(gateway.getChangedRow(service.getStartTime())).thenThrow(e);
+        when(gateway.getChangedRow(System.currentTimeMillis())).thenThrow(e);
 
         mapper.delete(null);
         service.run();

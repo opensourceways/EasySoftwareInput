@@ -2,10 +2,6 @@ package com.easysoftwareinput.easysoftwareinput;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
-
-import java.sql.SQLNonTransientConnectionException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,9 +15,6 @@ import com.easysoftwareinput.common.utils.ObjectMapperUtil;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackageDO;
 import com.easysoftwareinput.infrastructure.mapper.RPMPackageDOMapper;
 import com.easysoftwareinput.infrastructure.rpmpkg.RpmGatewayImpl;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
