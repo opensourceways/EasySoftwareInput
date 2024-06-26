@@ -11,18 +11,37 @@
 
 package com.easysoftwareinput.application.rpmpackage;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.dom4j.Attribute;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
 import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import com.easysoftwareinput.common.utils.ObjectMapperUtil;
+import com.easysoftwareinput.domain.oepkg.model.OsMes;
 
 @Service
 public class PkgService {
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(PkgService.class);
+
+    /**
+     * xml file parser.
+     */
+    private SAXReader reader = new SAXReader();
 
     /**
      * init the pkg.
@@ -106,12 +125,60 @@ public class PkgService {
     }
 
     /**
+     * init the pkg.
+     * @param osMes os.
+     * @return map of os.
+     */
+    private Map<String, String> initMap(OsMes osMes) {
+        Map<String, String> res = new HashMap<>();
+        res.put("os_name", osMes.getOsName());
+        res.put("os_ver", osMes.getOsVer());
+        res.put("os_type", osMes.getOsType());
+        res.put("base_url", osMes.getBaseUrl());
+        return res;
+    }
+
+    /**
+     * parse src pkgs.
+     * @param pkg pkg.
+     * @param osMes os.
+     * @return map of src pkg name and url.
+     */
+    public Map<String, String> parseSrc(Element pkg, OsMes osMes) {
+        Map<String, String> res = initMap(osMes);
+        Element format = pkg.element("format");
+        Element s = format.element("sourcerpm");
+        res.put("rpm_sourcerpm", s.getTextTrim());
+        setAttribute(pkg, res);
+        setText(pkg, res);
+        return res;
+    }
+
+    /**
      * parse each pkg.
      * @param pkg pkg.
      * @param osMes os.
      * @return map.
      */
     public Map<String, String> parsePkg(Element pkg, Map<String, String> osMes) {
+        Map<String, String> res = initMap(osMes);
+        setText(pkg, res);
+        setAttribute(pkg, res);
+
+        Element format = pkg.element("format");
+        setFormat(format, res);
+        setFormatArray(format, res);
+
+        return res;
+    }
+
+    /**
+     * parse each pkg.
+     * @param pkg pkg.
+     * @param osMes os.
+     * @return map.
+     */
+    public Map<String, String> parsePkg(Element pkg, OsMes osMes) {
         Map<String, String> res = initMap(osMes);
         setText(pkg, res);
         setAttribute(pkg, res);
@@ -195,5 +262,33 @@ public class PkgService {
             res.add(map);
         }
         return res;
+    }
+
+    /**
+     * parse xml elements.
+     * @param filePath file.
+     * @return list of elements.
+     */
+    public List<Element> parseElements(String filePath) {
+        if (filePath == null) {
+            return Collections.emptyList();
+        }
+
+        Document d = null;
+        try (InputStream in = new FileInputStream(filePath)) {
+            d = reader.read(in);
+        } catch (IOException | DocumentException e) {
+            LOGGER.error("can not parse xml by inpustream");
+        }
+        if (d == null) {
+            return Collections.emptyList();
+        }
+
+        Element e = d.getRootElement();
+        if (e == null) {
+            LOGGER.error("can not getRootElement, file: {}", filePath);
+            return Collections.emptyList();
+        }
+        return e.elements();
     }
 }
