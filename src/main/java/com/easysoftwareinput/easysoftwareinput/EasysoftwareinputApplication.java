@@ -34,7 +34,7 @@ import com.easysoftwareinput.application.externalos.ExternalOsService;
 import com.easysoftwareinput.application.fieldpkg.FieldPkgService;
 import com.easysoftwareinput.application.operationconfig.OperationConfigService;
 import com.easysoftwareinput.application.rpmpackage.RPMPackageService;
-
+import com.easysoftwareinput.application.oepkg.OepkgService;
 
 @EnableAsync
 @EnableRetry
@@ -83,6 +83,10 @@ public class EasysoftwareinputApplication {
         // 9. 解析领域应用
         FieldPkgService fieldPkgService = (FieldPkgService) context.getBean(FieldPkgService.class);
         fieldPkgService.run();
+
+        // 10 解析 oepkg
+        OepkgService oepkgService = (OepkgService) context.getBean(OepkgService.class);
+        oepkgService.run();
     }
 
     /**
