@@ -28,6 +28,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.easysoftwareinput.domain.oepkg.model.OePkg;
 import com.easysoftwareinput.domain.oepkg.model.OePkgEntity;
 import com.easysoftwareinput.domain.oepkg.model.ThreadPkgEntity;
+import com.easysoftwareinput.infrastructure.archnum.OsArchNumDO;
+import com.easysoftwareinput.infrastructure.archnum.converter.ArchNumConverter;
 import com.easysoftwareinput.infrastructure.mapper.OepkgDOMapper;
 import com.easysoftwareinput.infrastructure.oepkg.converter.OepkgConverter;
 import com.easysoftwareinput.infrastructure.oepkg.dataobject.OepkgDO;
@@ -49,6 +51,12 @@ public class OepkgGatewayImpl extends ServiceImpl<OepkgDOMapper, OepkgDO> {
      */
     @Autowired
     private OepkgConverter converter;
+
+    /**
+     * ArchNumConverter.
+     */
+    @Autowired
+    private ArchNumConverter archNumConverter;
 
     /**
      * save all data to database.
@@ -180,5 +188,16 @@ public class OepkgGatewayImpl extends ServiceImpl<OepkgDOMapper, OepkgDO> {
             return list.get(0);
         }
         return new OepkgDO();
+    }
+
+    /**
+     * get the pkgs group by os and arch.
+     * @return list of OsArchNumDO.
+     */
+    public List<OsArchNumDO> getOsArchNum() {
+        List<OepkgDO> list = lambdaQuery()
+                .select(OepkgDO::getOs, OepkgDO::getArch, OepkgDO::getCount)
+                .groupBy(OepkgDO::getOs, OepkgDO::getArch).list();
+        return archNumConverter.ofList(list, "OEPKG");
     }
 }

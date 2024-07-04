@@ -11,8 +11,12 @@
 
 package com.easysoftwareinput.domain.rpmpackage.model;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.easysoftwareinput.infrastructure.rpmpkg.IDataObject;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,7 +26,7 @@ import java.sql.Timestamp;
 @Getter
 @Setter
 @TableName("rpm_pkg_base")
-public class RPMPackageDO {
+public class RPMPackageDO implements IDataObject {
     /**
      * Serializable class with a defined serial version UID.
      */
@@ -201,7 +205,13 @@ public class RPMPackageDO {
      */
     private String license;
 
-        /**
+    /**
+     * number of selected pkgs.
+     */
+    @TableField(value = "count(*)", insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
+    private Integer count;
+
+    /**
      * get updated time of pkg.
      * @return updated time of pkg.
      */

@@ -24,6 +24,8 @@ import org.springframework.stereotype.Component;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.easysoftwareinput.domain.fieldpkg.model.Field;
+import com.easysoftwareinput.infrastructure.archnum.OsArchNumDO;
+import com.easysoftwareinput.infrastructure.archnum.converter.ArchNumConverter;
 import com.easysoftwareinput.infrastructure.fieldpkg.converter.FieldConverter;
 import com.easysoftwareinput.infrastructure.fieldpkg.dataobject.FieldDo;
 import com.easysoftwareinput.infrastructure.mapper.FieldDoMapper;
@@ -46,6 +48,12 @@ public class FieldGatewayImpl extends ServiceImpl<FieldDoMapper, FieldDo> {
      */
     @Autowired
     private FieldConverter converter;
+
+    /**
+     * ArchNumConverter.
+     */
+    @Autowired
+    private ArchNumConverter archNumConverter;
 
     /**
      * save all the pkg.
@@ -98,5 +106,16 @@ public class FieldGatewayImpl extends ServiceImpl<FieldDoMapper, FieldDo> {
         wrapper.select("distinct (pkg_ids)");
         List<FieldDo> dList = mapper.selectList(wrapper);
         return dList.stream().map(FieldDo::getPkgIds).collect(Collectors.toSet());
+    }
+
+    /**
+     * get the pkgs group by os and arch.
+     * @return list of OsArchNumDO.
+     */
+    public List<OsArchNumDO> getOsArchNum() {
+        List<FieldDo> list = lambdaQuery()
+                .select(FieldDo::getOs, FieldDo::getArch, FieldDo::getCount)
+                .groupBy(FieldDo::getOs, FieldDo::getArch).list();
+        return archNumConverter.ofList(list, "FIELD");
     }
 }
