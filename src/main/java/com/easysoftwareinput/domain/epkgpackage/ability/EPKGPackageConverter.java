@@ -168,8 +168,8 @@ public class EPKGPackageConverter {
 
         pkg.setSrcRepo(camelMap.get("url"));
 
-        String formatS = String.format("- 添加源%n```%nepkg config-manager --add-repo %s%n```%n- 更新源索引%n"
-                + "```%nepkg clean all && epkg makecache%n```%n- 安装 %s 软件包%n```%nepkg install %s%n```",
+        String formatS = String.format("- 添加源%n ```%n dnf config-manager --add-repo %s%n```%n%n- 更新源索引%n%n"
+                + " ```%n dnf clean all && dnf makecache%n```%n%n- 安装 %s 软件包%n%n ```%n dnf install %s%n```",
                 camelMap.get("baseUrl"), pkg.getName(), pkg.getName());
 
         pkg.setInstallation(formatS);
