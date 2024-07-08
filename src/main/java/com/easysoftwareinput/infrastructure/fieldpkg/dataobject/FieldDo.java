@@ -11,8 +11,12 @@
 
 package com.easysoftwareinput.infrastructure.fieldpkg.dataobject;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.easysoftwareinput.infrastructure.rpmpkg.IDataObject;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,7 +26,7 @@ import java.sql.Timestamp;
 @Getter
 @Setter
 @TableName("field_package")
-public class FieldDo {
+public class FieldDo implements IDataObject {
     /**
      * Serializable class with a defined serial version UID.
      */
@@ -74,6 +78,12 @@ public class FieldDo {
      * updateAt of pkg.
      */
     private Timestamp updateAt;
+
+    /**
+     * number of selected pkgs.
+     */
+    @TableField(value = "count(*)", insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
+    private Integer count;
 
     /**
      * get updated time of pkg.

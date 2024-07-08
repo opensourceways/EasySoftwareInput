@@ -25,6 +25,8 @@ import org.springframework.stereotype.Component;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.easysoftwareinput.domain.epkgpackage.model.EPKGPackage;
+import com.easysoftwareinput.infrastructure.archnum.OsArchNumDO;
+import com.easysoftwareinput.infrastructure.archnum.converter.ArchNumConverter;
 import com.easysoftwareinput.infrastructure.epkgpkg.converter.EpkgConverter;
 import com.easysoftwareinput.infrastructure.epkgpkg.dataobject.EpkgDo;
 import com.easysoftwareinput.infrastructure.mapper.EpkgDoMapper;
@@ -41,6 +43,12 @@ public class EpkgGatewayImpl extends ServiceImpl<EpkgDoMapper, EpkgDo> {
      */
     @Autowired
     private EpkgDoMapper mapper;
+
+    /**
+     * ArchNumConverter.
+     */
+    @Autowired
+    private ArchNumConverter archNumConverter;
 
     /**
      * converter.
@@ -155,5 +163,16 @@ public class EpkgGatewayImpl extends ServiceImpl<EpkgDoMapper, EpkgDo> {
             return list.get(0);
         }
         return new EpkgDo();
+    }
+
+    /**
+     * get the pkgs group by os and arch.
+     * @return list of OsArchNumDO.
+     */
+    public List<OsArchNumDO> getOsArchNum() {
+        List<EpkgDo> list = lambdaQuery()
+                .select(EpkgDo::getOs, EpkgDo::getArch, EpkgDo::getCount)
+                .groupBy(EpkgDo::getOs, EpkgDo::getArch).list();
+        return archNumConverter.ofList(list, "EPKG");
     }
 }
