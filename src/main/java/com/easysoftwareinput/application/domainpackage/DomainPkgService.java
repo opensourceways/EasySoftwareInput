@@ -11,30 +11,30 @@
 
 package com.easysoftwareinput.application.domainpackage;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.BeanUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-import com.easysoftwareinput.domain.domainpackage.model.DomainPackage;
-import com.easysoftwareinput.domain.rpmpackage.model.RPMPackageDO;
-import com.easysoftwareinput.infrastructure.apppkg.AppGatewayImpl;
-import com.easysoftwareinput.infrastructure.apppkg.dataobject.AppDo;
+
+import com.easysoftwareinput.domain.domainpackage.ability.DomainPackageConverter;
+import com.easysoftwareinput.domain.domainpackage.model.DomainPkgContext;
+import com.easysoftwareinput.infrastructure.domainpackage.DomainPkgDO;
 import com.easysoftwareinput.infrastructure.domainpackage.DomainPkgGatewayImpl;
-import com.easysoftwareinput.infrastructure.epkgpkg.EpkgGatewayImpl;
-import com.easysoftwareinput.infrastructure.epkgpkg.dataobject.EpkgDo;
-import com.easysoftwareinput.infrastructure.rpmpkg.RpmGatewayImpl;
+import com.easysoftwareinput.infrastructure.fieldpkg.FieldGatewayImpl;
+import com.easysoftwareinput.infrastructure.fieldpkg.dataobject.FieldDo;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class DomainPkgService {
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(DomainPkgService.class);
+
     /**
      * domain pkg gateway.
      */
@@ -42,142 +42,67 @@ public class DomainPkgService {
     private DomainPkgGatewayImpl gateway;
 
     /**
-     * app pkg gateway.
+     * field gateway.
      */
     @Autowired
-    private AppGatewayImpl appGateway;
+    private FieldGatewayImpl fieldGateway;
 
     /**
-     * rpm pkg gateway.
+     * converter.
      */
     @Autowired
-    private RpmGatewayImpl rpmGateway;
+    private DomainPackageConverter converter;
 
     /**
-     * epkg pkg gateway.
+     * context.
      */
-    @Autowired
-    private EpkgGatewayImpl epkgGateway;
+    private DomainPkgContext context;
 
     /**
-     * env.
+     * init the DomainPkgContext.
+     * @return DomainPkgContext.
      */
-    @Autowired
-    private Environment env;
+    public DomainPkgContext initContext() {
+        DomainPkgContext context = new DomainPkgContext();
+        context.setStartTime(System.currentTimeMillis());
+        context.setExistedPkgIds(gateway.getExistedPkgIds());
 
-    /**
-     * generate domain pkg by app pkg.
-     * @param domainMap domainMap to be updated.
-     * @param appList applist.
-     */
-    private void mergeApp(Map<String, DomainPackage> domainMap, List<AppDo> appList) {
-        for (AppDo app : appList) {
-            String name = app.getName();
-            DomainPackage domain = domainMap.get(name);
-            if (domain == null) {
-                domain = new DomainPackage();
-                domainMap.put(name, domain);
-            }
+        List<FieldDo> fList = fieldGateway.getMainPage();
+        List<DomainPkgDO> dList = converter.ofFieldDO(fList);
 
-            BeanUtils.copyProperties(app, domain);
-            domain.getTags().add("IMAGE");
-            domain.getPkgIds().put("IMAGE", app.getPkgId());
+        if (dList == null) {
+            dList = Collections.emptyList();
         }
+        context.setPkgList(dList);
+        context.setCount(dList.size());
+        return context;
     }
 
     /**
-     * generate domain pkg by rpm pkg.
-     * @param domainMap domainMap to be updated.
-     * @param rpmList  rpmlist.
+     * valid the data.
+     * @return if no error, return true, esle false.
      */
-    private void mergeRpm(Map<String, DomainPackage> domainMap, List<RPMPackageDO> rpmList) {
-        for (RPMPackageDO rpm : rpmList) {
-            String name = rpm.getName();
-            DomainPackage domain = domainMap.get(name);
-            if (domain == null) {
-                domain = new DomainPackage();
-                domainMap.put(name, domain);
-            }
-
-            BeanUtils.copyProperties(rpm, domain);
-            domain.getTags().add("RPM");
-            domain.getPkgIds().put("RPM", rpm.getPkgId());
+    public boolean validData() {
+        long tableRow = gateway.getChangedRow(this.context.getStartTime());
+        long updatedRow = context.getCount();
+        if (tableRow == updatedRow) {
+            LOGGER.info("no error in storing data. need to be stored: {}, stored: {}", updatedRow, tableRow);
+            return true;
+        } else {
+            LOGGER.error("error in storing data. need to be stored: {}, stored: {}", updatedRow, tableRow);
+            return false;
         }
-    }
-
-    /**
-     * search tags of each domain pkg.
-     * @param domainMap domainMap to be updated.
-     */
-    private void extendsId(Map<String, DomainPackage> domainMap) {
-        for (Map.Entry<String, DomainPackage> entry : domainMap.entrySet()) {
-            String name = entry.getKey();
-            DomainPackage domain = entry.getValue();
-            Set<String> tags = domain.getTags();
-            Map<String, String> pkgIds = domain.getPkgIds();
-
-            AppDo app = appGateway.queryPkgIdByName(name);
-            if (StringUtils.isNotBlank(app.getPkgId())) {
-                tags.add("IMAGE");
-                pkgIds.put("IMAGE", app.getPkgId());
-            }
-
-            RPMPackageDO rpm = rpmGateway.queryPkgIdByName(name);
-            if (StringUtils.isNotBlank(rpm.getPkgId())) {
-                tags.add("RPM");
-                pkgIds.put("RPM", rpm.getPkgId());
-            }
-
-            EpkgDo epkg = epkgGateway.queryPkgIdByName(name);
-            if (StringUtils.isNotBlank(epkg.getPkgId())) {
-                tags.add("EPKG");
-                pkgIds.put("EPKG", epkg.getPkgId());
-            }
-        }
-    }
-
-    /**
-     * set iconUrl of domain pkg.
-     * @param domainMap domainMap.
-     */
-    private void setIconUrls(Map<String, DomainPackage> domainMap) {
-        String defaltIconUrl = env.getProperty("domain.icon");
-        for (DomainPackage domain : domainMap.values()) {
-            if (StringUtils.isBlank(domain.getIconUrl())) {
-                domain.setIconUrl(defaltIconUrl);
-            }
-        }
-    }
-
-    /**
-     * generate domain list by app list and rpm list.
-     * @param appList applist.
-     * @param rpmList rpmlist.
-     * @return domain list.
-     */
-    private List<DomainPackage> toDomainList(List<AppDo> appList, List<RPMPackageDO> rpmList) {
-        Map<String, DomainPackage> domainMap = new HashMap<>();
-
-        mergeRpm(domainMap, rpmList);
-        mergeApp(domainMap, appList);
-
-        extendsId(domainMap);
-
-        setIconUrls(domainMap);
-
-        return new ArrayList<DomainPackage>(domainMap.values());
     }
 
     /**
      * run the grogram.
      */
     public void run() {
-        List<AppDo> appList = appGateway.getDomain();
-        List<RPMPackageDO> rpmList = rpmGateway.getDomain();
-        List<DomainPackage> domainList = toDomainList(appList, rpmList);
+        this.context = initContext();
 
-        gateway.saveAll(domainList);
+        gateway.saveAll(this.context);
 
+        validData();
         log.info("finish-write-domain-pkg");
     }
 
