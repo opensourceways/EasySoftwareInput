@@ -11,6 +11,7 @@
 
 package com.easysoftwareinput.domain.domainpackage.ability;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,6 +31,7 @@ import org.springframework.web.client.RestTemplate;
 import com.easysoftwareinput.common.utils.ObjectMapperUtil;
 import com.easysoftwareinput.domain.domainpackage.model.DomainPackage;
 import com.easysoftwareinput.infrastructure.domainpackage.DomainPkgDO;
+import com.easysoftwareinput.infrastructure.fieldpkg.dataobject.FieldDo;
 
 @Service
 public class DomainPackageConverter {
@@ -223,6 +225,9 @@ public class DomainPackageConverter {
         BeanUtils.copyProperties(pkg, pkgDO);
         pkgDO.setPkgIds(ObjectMapperUtil.writeValueAsString(pkg.getPkgIds()));
         pkgDO.setTags(ObjectMapperUtil.writeValueAsString(pkg.getTags()));
+
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        pkgDO.setUpdateAt(currentTime);
         return pkgDO;
     }
 
@@ -237,5 +242,32 @@ public class DomainPackageConverter {
             oList.add(toEntity(pkg));
         }
         return oList;
+    }
+
+    /**
+     * convert FieldDo to DomainPackage.
+     * @param fList list of FieldDo.
+     * @return list of DomainPackage.
+     */
+    public List<DomainPkgDO> ofFieldDO(List<FieldDo> fList) {
+        if (fList == null || fList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return fList.stream().map(this::ofFieldDO).collect(Collectors.toList());
+    }
+
+    /**
+     * convert FieldDo to DomainPackage.
+     * @param f FieldDo.
+     * @return DomainPackage.
+     */
+    public DomainPkgDO ofFieldDO(FieldDo f) {
+        if (f == null) {
+            return null;
+        }
+        DomainPkgDO d = new DomainPkgDO();
+        BeanUtils.copyProperties(f, d);
+        d.setUpdateAt(new Timestamp(System.currentTimeMillis()));
+        return d;
     }
 }
