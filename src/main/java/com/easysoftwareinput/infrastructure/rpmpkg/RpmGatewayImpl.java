@@ -27,6 +27,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.easysoftwareinput.domain.rpmpackage.ability.RPMPackageConverter;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackage;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackageDO;
+import com.easysoftwareinput.infrastructure.archnum.OsArchNumDO;
+import com.easysoftwareinput.infrastructure.archnum.converter.ArchNumConverter;
 import com.easysoftwareinput.infrastructure.mapper.RPMPackageDOMapper;
 
 @Component
@@ -41,6 +43,13 @@ public class RpmGatewayImpl extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO
      */
     @Autowired
     private RPMPackageConverter converter;
+
+    /**
+     * ArchNumConverter.
+     */
+    @Autowired
+    private ArchNumConverter archNumConverter;
+
     /**
      * mapper.
      */
@@ -170,5 +179,16 @@ public class RpmGatewayImpl extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO
             return list.get(0);
         }
         return new RPMPackageDO();
+    }
+
+    /**
+     * get the pkgs group by os and arch.
+     * @return list of OsArchNumDO.
+     */
+    public List<OsArchNumDO> getOsArchNum() {
+        List<RPMPackageDO> list = lambdaQuery()
+                .select(RPMPackageDO::getOs, RPMPackageDO::getArch, RPMPackageDO::getCount)
+                .groupBy(RPMPackageDO::getOs, RPMPackageDO::getArch).list();
+        return archNumConverter.ofList(list, "RPM");
     }
 }

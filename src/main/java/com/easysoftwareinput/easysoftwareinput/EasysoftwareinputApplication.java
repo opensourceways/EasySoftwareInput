@@ -28,6 +28,7 @@ import com.baomidou.mybatisplus.autoconfigure.DdlApplicationRunner;
 import com.easysoftwareinput.application.apppackage.AppPackageService;
 import com.easysoftwareinput.application.appver.AppVerService;
 import com.easysoftwareinput.application.appver.RpmVerService;
+import com.easysoftwareinput.application.archnum.ArchNumService;
 import com.easysoftwareinput.application.domainpackage.DomainPkgService;
 import com.easysoftwareinput.application.epkgpackage.EPKGPackageService;
 import com.easysoftwareinput.application.externalos.ExternalOsService;
@@ -87,6 +88,10 @@ public class EasysoftwareinputApplication {
         // 10 解析 oepkg
         OepkgService oepkgService = (OepkgService) context.getBean(OepkgService.class);
         oepkgService.run();
+
+        // 11 解析arch_num数据表，将rpm, oepkg, epkg, field, image五张表的按os和arch聚合后的软件包的数量
+        ArchNumService archNumService = (ArchNumService) context.getBean(ArchNumService.class);
+        archNumService.run();
     }
 
     /**

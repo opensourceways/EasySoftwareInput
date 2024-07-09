@@ -3,15 +3,19 @@ package com.easysoftwareinput.infrastructure.oepkg.dataobject;
 import java.io.Serial;
 import java.sql.Timestamp;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.easysoftwareinput.infrastructure.rpmpkg.IDataObject;
+
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-@TableName("oepkg2")
-public class OepkgDO {
+@TableName("oepkg")
+public class OepkgDO implements IDataObject {
     /**
      * Serializable class with a defined serial version UID.
      */
@@ -190,7 +194,13 @@ public class OepkgDO {
      */
     private String license;
 
-        /**
+    /**
+     * number of selected pkgs.
+     */
+    @TableField(value = "count(*)", insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
+    private Integer count;
+
+    /**
      * get updated time of pkg.
      * @return updated time of pkg.
      */

@@ -22,6 +22,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.easysoftwareinput.domain.apppackage.model.AppPackage;
 import com.easysoftwareinput.infrastructure.apppkg.converter.AppConverter;
 import com.easysoftwareinput.infrastructure.apppkg.dataobject.AppDo;
+import com.easysoftwareinput.infrastructure.archnum.OsArchNumDO;
+import com.easysoftwareinput.infrastructure.archnum.converter.ArchNumConverter;
 import com.easysoftwareinput.infrastructure.mapper.AppDoMapper;
 
 @Component
@@ -37,6 +39,12 @@ public class AppGatewayImpl extends ServiceImpl<AppDoMapper, AppDo> {
      */
     @Autowired
     private AppConverter converter;
+
+    /**
+     * ArchNumConverter.
+     */
+    @Autowired
+    private ArchNumConverter archNumConverter;
 
     /**
      * save all pkg.
@@ -100,5 +108,16 @@ public class AppGatewayImpl extends ServiceImpl<AppDoMapper, AppDo> {
             return list.get(0);
         }
         return new AppDo();
+    }
+
+    /**
+     * get the pkgs group by os and arch.
+     * @return list of OsArchNumDO.
+     */
+    public List<OsArchNumDO> getOsArchNum() {
+        List<AppDo> list = lambdaQuery()
+                .select(AppDo::getOs, AppDo::getArch, AppDo::getCount)
+                .groupBy(AppDo::getOs, AppDo::getArch).list();
+        return archNumConverter.ofList(list, "IMAGE");
     }
 }
