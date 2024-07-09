@@ -18,6 +18,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -201,8 +203,8 @@ public class RPMPackageConverter {
 
         pkg.setSrcRepo(camelMap.get("url"));
 
-        String formatS = String.format("- 添加源%n```%ndnf config-manager --add-repo %s%n```%n- 更新源索引%n"
-                + "```%ndnf clean all && dnf makecache%n```%n- 安装 %s 软件包%n```%ndnf install %s%n```",
+        String formatS = String.format("- 添加源%n ```%n dnf config-manager --add-repo %s%n```%n%n- 更新源索引%n%n"
+                + " ```%n dnf clean all && dnf makecache%n```%n%n- 安装 %s 软件包%n%n ```%n dnf install %s%n```",
                 camelMap.get("baseUrl"), pkg.getName(), pkg.getName());
 
         pkg.setInstallation(formatS);
@@ -233,7 +235,7 @@ public class RPMPackageConverter {
      * @param pkg pkg.
      */
     public void setPkgPkgId(RPMPackage pkg) {
-        String pkgId = String.join(pkg.getOs(), pkg.getSubPath(), pkg.getName(), pkg.getVersion(), pkg.getArch());
+        String pkgId = pkg.getOs() + pkg.getSubPath() + pkg.getName() + pkg.getVersion() + pkg.getArch();
         pkg.setPkgId(pkgId);
     }
 
@@ -269,8 +271,15 @@ public class RPMPackageConverter {
         } else {
             subPath = "";
         }
-        subPath = subPath.replaceAll("/", "");
 
-        pkg.setSubPath(subPath);
+        String[] suSplits = subPath.split("/");
+        String exactSubPath;
+        if (suSplits.length >= 2) {
+            List<String> list = Stream.of(suSplits).filter(StringUtils::isNotBlank).collect(Collectors.toList());
+            exactSubPath = StringUtils.join(list.subList(1, list.size()), "");
+        } else {
+            exactSubPath = "";
+        }
+        pkg.setSubPath(exactSubPath);
     }
 }
