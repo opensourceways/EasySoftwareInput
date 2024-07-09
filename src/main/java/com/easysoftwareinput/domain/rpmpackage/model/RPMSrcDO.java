@@ -221,7 +221,9 @@ public class RPMSrcDO {
      * @param stamp updated time of pkg.
      */
     public void setUpdateAt(Timestamp stamp) {
-        this.updateAt = (Timestamp) stamp.clone();
+        if (stamp != null) {
+            this.updateAt = (Timestamp) stamp.clone();
+        }
     }
 
     /**
@@ -229,6 +231,8 @@ public class RPMSrcDO {
      * @param stamp updated time of pkg.
      */
     public void setCreateAt(Timestamp stamp) {
-        this.createAt = (Timestamp) stamp.clone();
+        if (stamp != null) {
+            this.createAt = (Timestamp) stamp.clone();
+        }
     }
 }

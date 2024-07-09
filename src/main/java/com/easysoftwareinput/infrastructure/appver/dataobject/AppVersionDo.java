@@ -105,7 +105,9 @@ public class AppVersionDo {
      * @param stamp updated time of pkg.
      */
     public void setUpdateAt(Timestamp stamp) {
-        this.updateAt = (Timestamp) stamp.clone();
+        if (stamp != null) {
+            this.updateAt = (Timestamp) stamp.clone();
+        }
     }
 
     /**
@@ -113,6 +115,8 @@ public class AppVersionDo {
      * @param stamp updated time of pkg.
      */
     public void setCreatedAt(Timestamp stamp) {
-        this.createdAt = (Timestamp) stamp.clone();
+        if (stamp != null) {
+            this.createdAt = (Timestamp) stamp.clone();
+        }
     }
 }
