@@ -11,6 +11,7 @@
 
 package com.easysoftwareinput.infrastructure.fieldpkg;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.easysoftwareinput.common.constant.MapConstant;
 import com.easysoftwareinput.domain.fieldpkg.model.Field;
 import com.easysoftwareinput.infrastructure.archnum.OsArchNumDO;
 import com.easysoftwareinput.infrastructure.archnum.converter.ArchNumConverter;
@@ -106,6 +108,38 @@ public class FieldGatewayImpl extends ServiceImpl<FieldDoMapper, FieldDo> {
         wrapper.select("distinct (pkg_ids)");
         List<FieldDo> dList = mapper.selectList(wrapper);
         return dList.stream().map(FieldDo::getPkgIds).collect(Collectors.toSet());
+    }
+
+    /**
+     * get list of FieldDo for mainpage.
+     * @return list of FieldDo.
+     */
+    public List<FieldDo> getMainPage() {
+        String unCate = MapConstant.CATEGORY_MAP.get("Other");
+        List<FieldDo> dList = lambdaQuery().like(FieldDo::getTags, "image")
+                .or(i -> i.like(FieldDo::getTags, "rpm")
+                .and(f -> f.ne(FieldDo::getCategory, unCate))).list();
+        Map<String, List<FieldDo>> dMap = dList.stream().collect(Collectors.groupingBy(FieldDo::getName));
+        Map<String, FieldDo> fMap = dMap.entrySet().stream().collect(
+            Collectors.toMap(Map.Entry::getKey, e -> this.pickNewestOs(e.getValue()))
+        );
+        return fMap.values().stream().collect(Collectors.toList());
+    }
+
+    /**
+     * pick the FieldDo with newest os.
+     * @param dList origin list.
+     * @return FieldDo.
+     */
+    public FieldDo pickNewestOs(List<FieldDo> dList) {
+        if (dList == null || dList.isEmpty()) {
+            return null;
+        }
+
+        List<FieldDo> sList = dList.stream().sorted(
+            Comparator.comparing(FieldDo::getOs, Comparator.reverseOrder())
+        ).collect(Collectors.toList());
+        return sList.get(0);
     }
 
     /**

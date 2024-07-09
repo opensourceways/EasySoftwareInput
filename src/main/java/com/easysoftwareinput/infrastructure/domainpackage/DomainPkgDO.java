@@ -11,16 +11,16 @@
 
 package com.easysoftwareinput.infrastructure.domainpackage;
 
+import java.sql.Timestamp;
+
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+@Getter
+@Setter
 @TableName("domain_package")
 public class DomainPkgDO {
     /**
@@ -68,4 +68,30 @@ public class DomainPkgDO {
      * description of pkg.
      */
     private String description;
+
+    /**
+     * update time in table.
+     */
+    private Timestamp updateAt;
+
+    /**
+     * get updated time of pkg.
+     * @return updated time of pkg.
+     */
+    public Timestamp getUpdateAt() {
+        if (this.updateAt == null) {
+            return null;
+        }
+        return (Timestamp) this.updateAt.clone();
+    }
+
+    /**
+     * set updated time of pkg.
+     * @param stamp updated time of pkg.
+     */
+    public void setUpdateAt(Timestamp stamp) {
+        if (stamp != null) {
+            this.updateAt = (Timestamp) stamp.clone();
+        }
+    }
 }
