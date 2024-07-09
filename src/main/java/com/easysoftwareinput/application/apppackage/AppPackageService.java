@@ -20,16 +20,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jgit.api.Git;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import com.easysoftwareinput.common.utils.YamlUtil;
 import com.easysoftwareinput.domain.apppackage.ability.AppPkgConvertor;
 import com.easysoftwareinput.domain.apppackage.model.AppPackage;
+import com.easysoftwareinput.domain.git.GitConfig;
 import com.easysoftwareinput.infrastructure.apppkg.AppGatewayImpl;
 
 @Service
@@ -40,10 +39,10 @@ public class AppPackageService {
     private static final Logger LOGGER = LoggerFactory.getLogger(AppPackageService.class);
 
     /**
-     * env.
+     * git config.
      */
     @Autowired
-    private Environment env;
+    private GitConfig gitConfig;
 
     /**
      * obs.
@@ -64,18 +63,11 @@ public class AppPackageService {
     private AppGatewayImpl appGateway;
 
     /**
-     * git pull.
-     * @param repoPath repoPath.
+     * git service.
      */
-    public void gitPull(String repoPath) {
-        try {
-            Git git = Git.open(new File(repoPath));
-            git.pull().call();
-            git.close();
-        } catch (Exception e) {
-            LOGGER.error("git pull exception", e);
-        }
-    }
+    @Autowired
+    private GitService gitService;
+
 
     /**
      * get sub menus of repoPath.
@@ -197,18 +189,13 @@ public class AppPackageService {
         }
     }
 
+
     /**
      * run the program.
      */
     public void run() {
-        String repoPath = env.getProperty("app.path");
-        if (StringUtils.isBlank(repoPath)) {
-            LOGGER.error("no env: app.path");
-            return;
-        }
-
-        gitPull(repoPath);
-        handleEachApp(repoPath);
+        gitService.cloneOrPull();
+        handleEachApp(gitConfig.getLocalPath());
         LOGGER.info("finish-update-application");
     }
 
