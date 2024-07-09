@@ -101,6 +101,8 @@ public class FieldDo implements IDataObject {
      * @param stamp updated time of pkg.
      */
     public void setUpdateAt(Timestamp stamp) {
-        this.updateAt = (Timestamp) stamp.clone();
+        if (stamp != null) {
+            this.updateAt = (Timestamp) stamp.clone();
+        }
     }
 }

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +66,22 @@ public final class FileUtil {
             }
         }
         return fileList;
+    }
+
+    /**
+     * if the repo does not exist, mkdir.
+     * @param repo repo.
+     */
+    public static void mkdirIfUnexist(File repo) {
+        if (repo.exists() && repo.isDirectory()) {
+            return;
+        }
+
+        try {
+            FileUtils.mkdirs(repo, true);
+        } catch (IOException e) {
+            LOGGER.error("fail to create dir: {}", repo.toString());
+        }
     }
 
     /**

@@ -25,17 +25,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.baomidou.mybatisplus.autoconfigure.DdlApplicationRunner;
-import com.easysoftwareinput.application.apppackage.AppPackageService;
-import com.easysoftwareinput.application.appver.AppVerService;
-import com.easysoftwareinput.application.appver.RpmVerService;
-import com.easysoftwareinput.application.archnum.ArchNumService;
-import com.easysoftwareinput.application.domainpackage.DomainPkgService;
-import com.easysoftwareinput.application.epkgpackage.EPKGPackageService;
-import com.easysoftwareinput.application.externalos.ExternalOsService;
-import com.easysoftwareinput.application.fieldpkg.FieldPkgService;
-import com.easysoftwareinput.application.operationconfig.OperationConfigService;
-import com.easysoftwareinput.application.rpmpackage.RPMPackageService;
-import com.easysoftwareinput.application.oepkg.OepkgService;
 
 @EnableAsync
 @EnableRetry
@@ -51,47 +40,9 @@ public class EasysoftwareinputApplication {
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(EasysoftwareinputApplication.class, args);
 
-        // 1. 解析容器镜像
-        AppPackageService appPackageService = (AppPackageService) context.getBean(AppPackageService.class);
-        appPackageService.run();
-
-        // 2. 解析openEuler官网rpm软件包
-        RPMPackageService rpmPackageService = (RPMPackageService) context.getBean(RPMPackageService.class);
-        rpmPackageService.run();
-
-        // 3. 解析epkg软件包
-        EPKGPackageService epkgPackageService = (EPKGPackageService) context.getBean(EPKGPackageService.class);
-        epkgPackageService.run();
-
-        // 4. 解析operation_config
-        OperationConfigService opCoService = (OperationConfigService) context.getBean(OperationConfigService.class);
-        opCoService.run();
-
-        // 5. 解析  externalos
-        ExternalOsService externalOsService = (ExternalOsService) context.getBean(ExternalOsService.class);
-        externalOsService.run();
-
-        // 6. domain数据表
-        DomainPkgService domainPkgService = (DomainPkgService) context.getBean(DomainPkgService.class);
-        domainPkgService.run();
-
-        // 7. 解析上游兼容性
-        AppVerService appVerService = (AppVerService) context.getBean(AppVerService.class);
-        appVerService.run();
-        RpmVerService rpmVerService = (RpmVerService) context.getBean(RpmVerService.class);
-        rpmVerService.run();
-
-        // 9. 解析领域应用
-        FieldPkgService fieldPkgService = (FieldPkgService) context.getBean(FieldPkgService.class);
-        fieldPkgService.run();
-
-        // 10 解析 oepkg
-        OepkgService oepkgService = (OepkgService) context.getBean(OepkgService.class);
-        oepkgService.run();
-
-        // 11 解析arch_num数据表，将rpm, oepkg, epkg, field, image五张表的按os和arch聚合后的软件包的数量
-        ArchNumService archNumService = (ArchNumService) context.getBean(ArchNumService.class);
-        archNumService.run();
+        TaskWithArgs task = (TaskWithArgs) context.getBean(TaskWithArgs.class);
+        task.execArgs();
+        System.exit(0);
     }
 
     /**

@@ -38,7 +38,7 @@ ENV WORKSPACE=/home/easysoftware
 
 WORKDIR ${WORKSPACE}
 
-COPY --chown=easysoftware --from=Builder /EasySoftware/target/easysoftware-0.0.1-SNAPSHOT.jar ${WORKSPACE}/target/easysoftware-0.0.1-SNAPSHOT.jar
+COPY --chown=easysoftware --from=Builder /EasySoftware/target/easysoftwareinput-0.0.1-SNAPSHOT.jar ${WORKSPACE}/target/easysoftwareinput-0.0.1-SNAPSHOT.jar
 
 RUN echo "umask 027" >> /home/easysoftware/.bashrc \
     && echo "umask 027" >> /root/.bashrc \
@@ -95,4 +95,4 @@ ENV LANG="C.UTF-8"
 
 USER easysoftware
 
-CMD java -jar ${WORKSPACE}/target/easysoftwareinput-0.0.1-SNAPSHOT.jar --spring.config.location=${APPLICATION_PATH}
+CMD java -jar ${WORKSPACE}/target/easysoftwareinput-0.0.1-SNAPSHOT.jar --spring.config.location=${APPLICATION_PATH} --iservice=${ISERVICE}
