@@ -70,6 +70,11 @@ public class DomainPkgDO {
     private String description;
 
     /**
+     * maintainers.
+     */
+    private String maintainers;
+
+    /**
      * update time in table.
      */
     private Timestamp updateAt;
