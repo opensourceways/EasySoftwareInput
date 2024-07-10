@@ -48,6 +48,7 @@ public class FieldConverter {
         BeanUtils.copyProperties(f, d);
         d.setTags(ObjectMapperUtil.writeValueAsString(f.getTags()));
         d.setPkgIds(ObjectMapperUtil.writeValueAsString(f.getPkgIds()));
+        d.setMaintainers(ObjectMapperUtil.writeValueAsString(f.getMaintianers()));
         d.setUpdateAt(new Timestamp(System.currentTimeMillis()));
         return d;
     }
