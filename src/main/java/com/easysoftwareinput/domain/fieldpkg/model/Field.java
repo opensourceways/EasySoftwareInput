@@ -68,10 +68,16 @@ public class Field {
     private String description;
 
     /**
+     * maintainers.
+     */
+    private Map<String, String> maintianers;
+
+    /**
      * init tags and pkgids.
      */
     public Field() {
         this.tags = new HashSet<>();
         this.pkgIds = new HashMap<>();
+        this.maintianers = new HashMap<>();
     }
 }
