@@ -116,7 +116,10 @@ public class FieldGatewayImpl extends ServiceImpl<FieldDoMapper, FieldDo> {
      */
     public List<FieldDo> getMainPage() {
         String unCate = MapConstant.CATEGORY_MAP.get("Other");
-        List<FieldDo> dList = lambdaQuery().like(FieldDo::getTags, "image")
+        List<FieldDo> dList = lambdaQuery()
+                .select(FieldDo::getPkgIds, FieldDo::getOs, FieldDo::getArch, FieldDo::getName, FieldDo::getVersion,
+                        FieldDo::getCategory, FieldDo::getIconUrl, FieldDo::getTags, FieldDo::getDescription)
+                .like(FieldDo::getTags, "image")
                 .or(i -> i.like(FieldDo::getTags, "rpm")
                 .and(f -> f.ne(FieldDo::getCategory, unCate))).list();
         Map<String, List<FieldDo>> dMap = dList.stream().collect(Collectors.groupingBy(FieldDo::getName));
