@@ -143,7 +143,7 @@ public class EpkgGatewayImpl extends ServiceImpl<EpkgDoMapper, EpkgDo> {
      */
     public List<EpkgDo> getPkg(String os) {
         QueryWrapper<EpkgDo> wrapper = new QueryWrapper<>();
-        wrapper.select("os, arch, name, version, category, pkg_id, description");
+        wrapper.select("os, arch, name, version, category, pkg_id, description, maintainer_id");
         wrapper.eq("os", os);
         return mapper.selectList(wrapper);
     }

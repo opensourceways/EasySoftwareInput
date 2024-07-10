@@ -17,6 +17,7 @@ import com.easysoftwareinput.application.apppackage.AppPackageService;
 import com.easysoftwareinput.application.appver.AppVerService;
 import com.easysoftwareinput.application.appver.RpmVerService;
 import com.easysoftwareinput.application.domainpackage.DomainPkgService;
+import com.easysoftwareinput.application.fieldpkg.FieldPkgService;
 
 
 @Component
@@ -91,6 +92,9 @@ public class TaskWithArgs {
         } else if ("DOMAIN".equals(service)) {
             DomainPkgService domain = (DomainPkgService) context.getBean(DomainPkgService.class);
             domain.run();
+        } else if ("FIELD".equals(service)) {
+            FieldPkgService field = (FieldPkgService) context.getBean(FieldPkgService.class);
+            field.run();
         } else {
             LOGGER.info("unrecognized service: {}", service);
         }

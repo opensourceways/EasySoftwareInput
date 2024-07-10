@@ -80,6 +80,11 @@ public class FieldDo implements IDataObject {
     private Timestamp updateAt;
 
     /**
+     * maintainers.
+     */
+    private String maintainers;
+
+    /**
      * number of selected pkgs.
      */
     @TableField(value = "count(*)", insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)

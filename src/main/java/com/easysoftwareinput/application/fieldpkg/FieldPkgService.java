@@ -172,6 +172,11 @@ public class FieldPkgService {
             BeanUtils.copyProperties(pkg, field);
             field.getPkgIds().put("RPM", pkg.getPkgId());
             field.getTags().add("RPM");
+
+            String maintainer = pkg.getMaintainerId();
+            if (!StringUtils.isBlank(maintainer)) {
+                field.getMaintianers().put("RPM", maintainer);
+            }
         }
     }
 
@@ -188,6 +193,11 @@ public class FieldPkgService {
             BeanUtils.copyProperties(pkg, field);
             field.getPkgIds().put("EPKG", pkg.getPkgId());
             field.getTags().add("EPKG");
+
+            String maintainer = pkg.getMaintainerId();
+            if (!StringUtils.isBlank(maintainer)) {
+                field.getMaintianers().put("EPKG", maintainer);
+            }
         }
     }
 
@@ -205,6 +215,11 @@ public class FieldPkgService {
             field.getPkgIds().put("IMAGE", pkg.getPkgId());
             field.getTags().add("IMAGE");
             field.setIconUrl(pkg.getIconUrl());
+
+            String maintainer = pkg.getMaintainerId();
+            if (!StringUtils.isBlank(maintainer)) {
+                field.getMaintianers().put("IMAGE", maintainer);
+            }
         }
     }
 
@@ -267,6 +282,7 @@ public class FieldPkgService {
         Set<String> existedPkgs = fieldGateway.getPkgIds();
 
         Map<String, Map<String, RPMPackageDO>> rpm = getRPMList();
+
         Map<String, Map<String, EpkgDo>> epkg = getEpkgList();
         Map<String, Map<String, AppDo>> app = getAppList();
 
@@ -274,6 +290,6 @@ public class FieldPkgService {
 
         fieldGateway.saveAll(fList, existedPkgs);
 
-        log.info(null);
+        log.info("finish field pkg");
     }
 }

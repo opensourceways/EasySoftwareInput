@@ -65,7 +65,6 @@ public class FieldGatewayImpl extends ServiceImpl<FieldDoMapper, FieldDo> {
      */
     public boolean saveAll(List<Field> fList, Set<String> existedPkgIds) {
         List<FieldDo> dList = converter.toDo(fList);
-
         Map<Boolean, List<FieldDo>> map = dList.stream().collect(Collectors.partitioningBy(
                 d -> existedPkgIds.contains(d.getPkgIds())));
         List<FieldDo> existed = map.get(true);

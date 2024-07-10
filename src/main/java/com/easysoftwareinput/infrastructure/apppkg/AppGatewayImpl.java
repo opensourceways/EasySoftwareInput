@@ -78,7 +78,7 @@ public class AppGatewayImpl extends ServiceImpl<AppDoMapper, AppDo> {
      */
     public List<AppDo> getPkg(String os) {
         QueryWrapper<AppDo> wrapper = new QueryWrapper<>();
-        wrapper.select("os, arch, name, app_ver, category, icon_url, pkg_id, description");
+        wrapper.select("os, arch, name, app_ver, category, icon_url, pkg_id, description, maintainer_id");
         wrapper.eq("os", os);
         return mapper.selectList(wrapper);
     }
