@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import com.easysoftwareinput.application.apppackage.AppPackageService;
 import com.easysoftwareinput.application.appver.AppVerService;
 import com.easysoftwareinput.application.appver.RpmVerService;
+import com.easysoftwareinput.application.domainpackage.DomainPkgService;
 
 
 @Component
@@ -64,19 +65,34 @@ public class TaskWithArgs {
             LOGGER.error("unrecognized args: iservice");
             return;
         }
-        if (services.contains("APP")) {
+
+        for (String service : services) {
+            execService(service);
+        }
+    }
+
+    /**
+     * exec service.
+     * @param service service.
+     */
+    public void execService(String service) {
+        if ("APP".equals(service)) {
             AppPackageService app = (AppPackageService) context.getBean(AppPackageService.class);
             app.run();
-        }
-
-        if (services.contains("APPVER")) {
+        } else if ("APPVER".equals(service)) {
             AppVerService appVerService = (AppVerService) context.getBean(AppVerService.class);
             appVerService.run();
-        }
-
-        if (services.contains("RPMVER")) {
+        } else if ("RPMVER".equals(service)) {
             RpmVerService rpmVerService = (RpmVerService) context.getBean(RpmVerService.class);
             rpmVerService.run();
+        } else if ("RPMVER".equals(service)) {
+            RpmVerService rpmVerService = (RpmVerService) context.getBean(RpmVerService.class);
+            rpmVerService.run();
+        } else if ("DOMAIN".equals(service)) {
+            DomainPkgService domain = (DomainPkgService) context.getBean(DomainPkgService.class);
+            domain.run();
+        } else {
+            LOGGER.info("unrecognized service: {}", service);
         }
     }
 }
