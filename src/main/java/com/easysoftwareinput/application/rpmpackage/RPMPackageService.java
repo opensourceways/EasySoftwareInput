@@ -219,7 +219,7 @@ public class RPMPackageService {
             }
 
             String name = href.split("/")[1];
-            String src = osMes.get("baseUrl") + href;
+            String src = osMes.get("baseUrl") + "/" + href;
             map.put(name, src);
         }
         return map;
