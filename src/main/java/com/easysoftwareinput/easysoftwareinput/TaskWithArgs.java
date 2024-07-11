@@ -18,6 +18,7 @@ import com.easysoftwareinput.application.appver.AppVerService;
 import com.easysoftwareinput.application.appver.RpmVerService;
 import com.easysoftwareinput.application.domainpackage.DomainPkgService;
 import com.easysoftwareinput.application.fieldpkg.FieldPkgService;
+import com.easysoftwareinput.application.rpmpackage.RPMPackageService;
 
 
 @Component
@@ -86,9 +87,9 @@ public class TaskWithArgs {
         } else if ("RPMVER".equals(service)) {
             RpmVerService rpmVerService = (RpmVerService) context.getBean(RpmVerService.class);
             rpmVerService.run();
-        } else if ("RPMVER".equals(service)) {
-            RpmVerService rpmVerService = (RpmVerService) context.getBean(RpmVerService.class);
-            rpmVerService.run();
+        } else if ("RPM".equals(service)) {
+            RPMPackageService rpm = (RPMPackageService) context.getBean(RPMPackageService.class);
+            rpm.run();
         } else if ("DOMAIN".equals(service)) {
             DomainPkgService domain = (DomainPkgService) context.getBean(DomainPkgService.class);
             domain.run();
