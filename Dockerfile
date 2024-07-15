@@ -86,7 +86,7 @@ RUN rm -rf /usr/bin/gdb* \
     && rm -rf /usr/share/gcc-10.3.1 \
 	&& yum remove gdb-gdbserver findutils passwd shadow -y \
     && yum clean all \
-    && chmod 500 -R /home/easysoftware
+    && chmod 700 -R /home/easysoftware
 
 ENV JAVA_HOME=${WORKSPACE}/jdk-17.0.11+9-jre
 ENV PATH=${JAVA_HOME}/bin:$PATH
