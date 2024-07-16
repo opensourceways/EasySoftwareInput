@@ -16,8 +16,13 @@ import org.springframework.stereotype.Component;
 import com.easysoftwareinput.application.apppackage.AppPackageService;
 import com.easysoftwareinput.application.appver.AppVerService;
 import com.easysoftwareinput.application.appver.RpmVerService;
+import com.easysoftwareinput.application.archnum.ArchNumService;
 import com.easysoftwareinput.application.domainpackage.DomainPkgService;
+import com.easysoftwareinput.application.epkgpackage.EPKGPackageService;
+import com.easysoftwareinput.application.externalos.ExternalOsService;
 import com.easysoftwareinput.application.fieldpkg.FieldPkgService;
+import com.easysoftwareinput.application.oepkg.OepkgService;
+import com.easysoftwareinput.application.operationconfig.OperationConfigService;
 import com.easysoftwareinput.application.rpmpackage.RPMPackageService;
 
 
@@ -96,6 +101,21 @@ public class TaskWithArgs {
         } else if ("FIELD".equals(service)) {
             FieldPkgService field = (FieldPkgService) context.getBean(FieldPkgService.class);
             field.run();
+        } else if ("EPKG".equals(service)) {
+            EPKGPackageService epkg = (EPKGPackageService) context.getBean(EPKGPackageService.class);
+            epkg.run();
+        } else if ("OEPKG".equals(service)) {
+            OepkgService oepkg = (OepkgService) context.getBean(OepkgService.class);
+            oepkg.run();
+        } else if ("ARCHNUM".equals(service)) {
+            ArchNumService arch = (ArchNumService) context.getBean(ArchNumService.class);
+            arch.run();
+        } else if ("OPERATIONCONFIG".equals(service)) {
+            OperationConfigService op = (OperationConfigService) context.getBean(OperationConfigService.class);
+            op.run();
+        } else if ("EXTERNALOS".equals(service)) {
+            ExternalOsService ex = (ExternalOsService) context.getBean(ExternalOsService.class);
+            ex.run();
         } else {
             LOGGER.info("unrecognized service: {}", service);
         }
