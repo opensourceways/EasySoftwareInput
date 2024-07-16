@@ -73,6 +73,9 @@ public class ObsService {
      * @param filePath file path to be stored.
      */
     public void putData(String ObjectKey, String filePath) {
+        if (filePath == null) {
+            return;
+        }
         PutObjectRequest request = new PutObjectRequest();
         request.setBucketName(obsBucketName);
         request.setObjectKey(ObjectKey);
