@@ -250,6 +250,10 @@ public class AppPkgConvertor {
      * @return list of AppPackage object.
      */
     private List<AppPackage> splitByMonMap(AppPackage originPkg, Map<String, Object> monMap) {
+        if (monMap.get("arch") == null || monMap.get("rawVer") == null) {
+            return List.of(originPkg);
+        }
+
         List<String> arches = (List<String>) monMap.get("arch");
         if (arches == null) {
             arches = List.of("");
@@ -286,6 +290,9 @@ public class AppPkgConvertor {
         String latest = appList.get(0).getOsSupport();
         for (AppPackage pkg : appList) {
             String curOsSupport = pkg.getOsSupport();
+            if (StringUtils.isBlank(curOsSupport)) {
+                continue;
+            }
             if (latest.compareTo(curOsSupport) < 0) {
                 latest = curOsSupport;
             }
@@ -303,6 +310,10 @@ public class AppPkgConvertor {
         }
 
         String latestSupp = getLatestOsPerName(appList);
+        if (StringUtils.isBlank(latestSupp)) {
+            return;
+        }
+
         for (AppPackage pkg : appList) {
             if (latestSupp.equals(pkg.getOsSupport())) {
                 pkg.setLatestOsSupport("true");
