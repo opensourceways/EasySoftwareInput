@@ -1,6 +1,5 @@
 package com.easysoftwareinput.application.apppackage;
 
-
 import java.io.File;
 
 import org.eclipse.jgit.api.Git;
@@ -9,6 +8,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.easysoftwareinput.common.utils.FileUtil;
@@ -27,6 +27,11 @@ public class GitService {
     @Autowired
     private GitConfig config;
 
+    /**
+     * path of repo.
+     */
+    @Value("${operation-config.path}")
+    private String operationConfigrepoPath;
 
     /**
      * clone or pull the repo.
@@ -47,7 +52,26 @@ public class GitService {
     }
 
     /**
+     * clone or pull the repo.
+     */
+    public void cloneOrPullConfig() {
+        File repo = new File(operationConfigrepoPath);
+        FileUtil.mkdirIfUnexist(repo);
+
+        File[] files = repo.listFiles((dir, name) -> ".git".equals(name));
+        if (files == null) {
+            return;
+        }
+        if (files.length == 0) {
+            cloneRepo();
+        } else {
+            pullRepo();
+        }
+    }
+
+    /**
      * get provider.
+     *
      * @return provider.
      */
     public UsernamePasswordCredentialsProvider getProvider() {
