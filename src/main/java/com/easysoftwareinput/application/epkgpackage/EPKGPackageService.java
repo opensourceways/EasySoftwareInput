@@ -24,11 +24,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+
+import com.easysoftwareinput.application.crawldown.EpkgCrawlDownService;
 import com.easysoftwareinput.application.rpmpackage.PkgService;
 import com.easysoftwareinput.common.entity.MessageCode;
+import com.easysoftwareinput.common.utils.FileUtil;
+import com.easysoftwareinput.domain.epkgpackage.model.EpkgConfig;
 
 @Service
 public class EPKGPackageService {
@@ -38,23 +41,16 @@ public class EPKGPackageService {
     private static final Logger LOGGER = LoggerFactory.getLogger(EPKGPackageService.class);
 
     /**
-     * file path of epkg.
-     */
-    @Value("${epkg.path}")
-    private String epkgPath;
-
-    /**
-     * post url.
-     */
-    @Value("${epkg.post.url}")
-    private String postUrl;
-
-    /**
-     * env.
+     * crawl service.
      */
     @Autowired
-    private Environment env;
+    private EpkgCrawlDownService crawlService;
 
+    /**
+     * config.
+     */
+    @Autowired
+    private EpkgConfig config;
     /**
      * pkg service.
      */
@@ -91,10 +87,10 @@ public class EPKGPackageService {
      */
     private Map<String, String> initMap() {
         return Map.ofEntries(
-            Map.entry("osName", env.getProperty("epkg.os-name")),
-            Map.entry("osVer", env.getProperty("epkg.os-ver")),
-            Map.entry("osType", env.getProperty("epkg.os-type")),
-            Map.entry("baseUrl", env.getProperty("epkg.base-url"))
+            Map.entry("osName", config.getOsName()),
+            Map.entry("osVer", config.getOsVer()),
+            Map.entry("osType", config.getOsType()),
+            Map.entry("baseUrl", config.getBaseUrl())
         );
     }
 
@@ -140,6 +136,11 @@ public class EPKGPackageService {
      * run the program.
      */
     public void run() {
+        crawlService.run();
+
+        List<String> files = FileUtil.listSubMenus(config.getDir());
+        String epkgPath = files.get(0);
+
         Map<String, String> osMes = initMap();
         Document document = parseDocument(epkgPath);
 
@@ -154,10 +155,10 @@ public class EPKGPackageService {
                 int other = 0; // wait to avoid pushing too much pkg to threadpool queue.
             }
 
-            asyncService.executeAsync(eList, osMes, i, postUrl, srcMap);
+            asyncService.executeAsync(eList, osMes, i, srcMap);
         }
 
-        while (executor.getQueueSize() > 0 || executor.getActiveCount() > 0) {
+        while (executor.getQueueSize() > 0 && executor.getActiveCount() > 0) {
             int other = 0; // until all the thread work finished.
         }
 
