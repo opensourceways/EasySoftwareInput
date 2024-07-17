@@ -47,7 +47,7 @@ public class OepkgCrawlDownService {
             return;
         }
 
-        // rpmCrawlService.exec(dir, list);
+        rpmCrawlService.exec(dir, list);
         reNameDir(dir);
         return;
     }
