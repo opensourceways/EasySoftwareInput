@@ -59,12 +59,10 @@ public class EPKGAsyncService {
      * @param eList list of pkg.
      * @param osMes os.
      * @param i file index.
-     * @param postUrl posturl.
      * @param srcMap src pkg name and url.
      */
     @Async("epkgasyncServiceExecutor")
-    public void executeAsync(List<Element> eList, Map<String, String> osMes, int i, String postUrl,
-            Map<String, String> srcMap) {
+    public void executeAsync(List<Element> eList, Map<String, String> osMes, int i, Map<String, String> srcMap) {
         List<EPKGPackage> pkgList = new ArrayList<>(eList.size());
         Set<String> pkgIds = new HashSet<>();
 
