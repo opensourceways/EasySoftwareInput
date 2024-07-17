@@ -14,6 +14,7 @@ package com.easysoftwareinput.common.utils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -112,8 +113,54 @@ public final class FileUtil {
      * @return strign array..
      */
     public static String[] parseFileName(String filePath) {
+        if (StringUtils.isBlank(filePath)) {
+            return new String[0];
+        }
         String[] pathSplits = filePath.split(Pattern.quote(File.separator));
         String filename = pathSplits[pathSplits.length - 1];
         return filename.split("_a_");
+    }
+
+    /**
+     * extract file name without extension.
+     * @param filePath filepath.
+     * @return list of file piece.
+     */
+    public static String[] extractFileNameWithoutExt(String filePath) {
+        if (StringUtils.isBlank(filePath)) {
+            return null;
+        }
+        String[] splits = FileUtil.parseFileName(filePath);
+        if (splits == null || splits.length == 0) {
+            return null;
+        }
+        return Arrays.copyOfRange(splits, 0, splits.length - 1);
+    }
+
+    /**
+     * delete files.
+     * @param files files.
+     * @return return true if delete all files.
+     */
+    public static boolean deleteFiles(List<String> files) {
+        if (files == null || files.isEmpty()) {
+            return true;
+        }
+        return files.stream().map(FileUtil::deleteFile).allMatch(
+            s -> Boolean.TRUE.equals(s)
+        );
+    }
+
+    /**
+     * delete file.
+     * @param file file name.
+     * @return boolean.
+     */
+    public static boolean deleteFile(String file) {
+        if (StringUtils.isBlank(file)) {
+            return true;
+        }
+        File myFile = new File(file);
+        return myFile.delete();
     }
 }
