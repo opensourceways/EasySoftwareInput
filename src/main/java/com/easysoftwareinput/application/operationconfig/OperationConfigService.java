@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.yaml.snakeyaml.Yaml;
 
-import com.easysoftwareinput.application.epkgpackage.EPKGPackageService;
+import com.easysoftwareinput.application.apppackage.GitService;
 import com.easysoftwareinput.common.entity.MessageCode;
 import com.easysoftwareinput.domain.operationconfig.ability.OpCoConverter;
 import com.easysoftwareinput.domain.operationconfig.model.OpCo;
@@ -42,7 +42,7 @@ public class OperationConfigService {
     /**
      * logger.
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(EPKGPackageService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OperationConfigService.class);
 
     /**
      * path of repo.
@@ -57,17 +57,24 @@ public class OperationConfigService {
     private OperationConfigGatewayImpl gateway;
 
     /**
+     * gitSvc.
+     */
+    @Autowired
+    private GitService gitSvc;
+
+    /**
      * run the grogram.
      */
     public void run() {
-        gitPull(repoPath);
+        LOGGER.info("wenjieversion -- testing start ---");
+        gitSvc.cloneOrPullConfig();
         String yamlPath = getYamlPath(repoPath);
         if (StringUtils.isBlank(yamlPath)) {
             return;
         }
 
         Map<String, Object> map = parseYaml(yamlPath);
-        List<String> rote =  parseRote(map);
+        List<String> rote = parseRote(map);
         Map<String, List<String>> recommends = praseCategoryRecommend(map);
         List<OpCo> opCos = OpCoConverter.toEntity(rote, recommends);
 
@@ -77,6 +84,7 @@ public class OperationConfigService {
 
     /**
      * get the yaml path of repo.
+     *
      * @param path path of repo.
      * @return path of yaml file.
      */
@@ -100,6 +108,7 @@ public class OperationConfigService {
 
     /**
      * git pull from the repo.
+     *
      * @param path path of repo.
      */
     private void gitPull(String path) {
@@ -114,6 +123,7 @@ public class OperationConfigService {
 
     /**
      * parse recommend.
+     *
      * @param map map from yaml file.
      * @return map of category and recommend.s
      */
@@ -140,6 +150,7 @@ public class OperationConfigService {
 
     /**
      * get the sort of category, such as : 云服务,数据库.
+     *
      * @param map map of yaml file.
      * @return list of sort.
      */
@@ -155,6 +166,7 @@ public class OperationConfigService {
 
     /**
      * convert yaml to map.
+     *
      * @param yamlPath path of yaml file.
      * @return map.
      */
