@@ -93,6 +93,14 @@ public class CrawlPkgService {
             return false;
         }
 
+        if (url.contains("Packages")) {
+            return false;
+        }
+
+        if (url.contains("repodata.old")) {
+            return false;
+        }
+
         return true;
     }
 

@@ -3,6 +3,7 @@ package com.easysoftwareinput.application.crawldown;
 import java.io.File;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -58,6 +59,19 @@ public class RpmCrawlDownService {
         }
 
         String dir = rpmConfig.getDir();
+        if (StringUtils.isBlank(dir)) {
+            return;
+        }
+
+        exec(dir, list);
+    }
+
+    /**
+     * exec the program.
+     * @param dir file dir.
+     * @param list list of RpmCrawlEntity.
+     */
+    public void exec(String dir, List<RpmCrawlEntity> list) {
         FileUtil.mkdirIfUnexist(new File(dir));
         for (RpmCrawlEntity entity : list) {
             entity.setDir(dir);

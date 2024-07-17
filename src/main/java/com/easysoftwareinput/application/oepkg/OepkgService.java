@@ -28,6 +28,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
+import com.easysoftwareinput.application.crawldown.OepkgCrawlDownService;
 import com.easysoftwareinput.application.rpmpackage.BatchServiceImpl;
 import com.easysoftwareinput.application.rpmpackage.PkgService;
 import com.easysoftwareinput.common.utils.FileUtil;
@@ -66,6 +67,12 @@ public class OepkgService {
      */
     @Autowired
     private Environment env;
+
+    /**
+     * crawl service.
+     */
+    @Autowired
+    private OepkgCrawlDownService crawlService;
 
     /**
      * service for thread task.
@@ -292,6 +299,8 @@ public class OepkgService {
      * @param dir dir of files.
      */
     public void task(String dir) {
+        crawlService.run();
+
         List<String> files = FileUtil.listSubMenus(dir);
         if (files == null || files.size() == 0) {
             return;
