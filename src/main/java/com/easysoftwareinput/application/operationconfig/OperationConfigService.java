@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jgit.api.Git;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,19 +65,19 @@ public class OperationConfigService {
      * run the grogram.
      */
     public void run() {
-        LOGGER.info("wenjieversion -- testing start ---");
         gitSvc.cloneOrPullConfig();
         String yamlPath = getYamlPath(repoPath);
         if (StringUtils.isBlank(yamlPath)) {
             return;
         }
-
         Map<String, Object> map = parseYaml(yamlPath);
         List<String> rote = parseRote(map);
+        Map<String, String> cateChanges = parseCategorysChange(map);
         Map<String, List<String>> recommends = praseCategoryRecommend(map);
         List<OpCo> opCos = OpCoConverter.toEntity(rote, recommends);
-
+        List<OpCo> opCofig = OpCoConverter.cateChangeToEntity(cateChanges);
         gateway.updateAll(opCos);
+        gateway.updateAll(opCofig);
         LOGGER.info("Finished operation_config");
     }
 
@@ -100,25 +99,10 @@ public class OperationConfigService {
 
         File fullFile = new File(fullPath);
         if (!fullFile.exists() || !fullFile.isFile()) {
-            LOGGER.error("{} does not have config.yaml", path);
+            LOGGER.error("{} does not have config.yaml", fullPath);
             return "";
         }
         return fullPath;
-    }
-
-    /**
-     * git pull from the repo.
-     *
-     * @param path path of repo.
-     */
-    private void gitPull(String path) {
-        try {
-            Git git = Git.open(new File(path));
-            git.pull().call();
-            git.close();
-        } catch (Exception e) {
-            LOGGER.error("git pull exception", e);
-        }
     }
 
     /**
@@ -158,6 +142,22 @@ public class OperationConfigService {
         List<String> res = new ArrayList<>();
         try {
             res = (List<String>) map.get("sort");
+        } catch (Exception e) {
+            LOGGER.info("Failed to parse rote");
+        }
+        return res;
+    }
+
+    /**
+     * get the categorys_change.
+     *
+     * @param map map of yaml file.
+     * @return list of category changes.
+     */
+    private Map<String, String> parseCategorysChange(Map<String, Object> map) {
+        Map<String, String> res = new HashMap<>();
+        try {
+            res = (Map<String, String>) map.get("categorys_change");
         } catch (Exception e) {
             LOGGER.info("Failed to parse rote");
         }
