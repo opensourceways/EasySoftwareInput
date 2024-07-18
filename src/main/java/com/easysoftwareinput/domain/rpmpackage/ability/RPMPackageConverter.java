@@ -14,6 +14,7 @@ package com.easysoftwareinput.domain.rpmpackage.ability;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -143,15 +144,37 @@ public class RPMPackageConverter {
             pkg.setRepo("");
         }
 
+        String name = getRepoName(pkg, camelMap);
+
         try {
             pkg.setRepoType(objectMapper.writeValueAsString(Map.ofEntries(
                 Map.entry("type", camelMap.get("osType")),
-                Map.entry("url", official + pkg.getName())
+                Map.entry("url", official + name)
             )));
         } catch (JsonProcessingException e) {
             log.error("", e);
             pkg.setRepoType("");
         }
+    }
+
+    /**
+     * get repo name.
+     * @param pkg pkg.
+     * @param camelMap map.
+     * @return name.
+     */
+    public String getRepoName(RPMPackage pkg, Map<String, String> camelMap) {
+        if ("src".equals(pkg.getName())) {
+            return pkg.getName();
+        }
+
+        String src = camelMap.get("rpmSourcerpm");
+        String[] splits = src.split("-");
+        if (splits == null || splits.length < 2) {
+            return pkg.getName();
+        }
+        String[] name = Arrays.copyOfRange(splits, 0, splits.length - 2);
+        return StringUtils.join(name, "-");
     }
 
     /**
