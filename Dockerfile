@@ -95,4 +95,4 @@ ENV LANG="C.UTF-8"
 
 USER easysoftware
 
-CMD java -jar ${WORKSPACE}/target/easysoftwareinput-0.0.1-SNAPSHOT.jar --spring.config.location=${APPLICATION_PATH} --iservice=${ISERVICE}
+CMD java -Xmx6144m -Xms1024m -jar ${WORKSPACE}/target/easysoftwareinput-0.0.1-SNAPSHOT.jar --spring.config.location=${APPLICATION_PATH} --iservice=${ISERVICE}
