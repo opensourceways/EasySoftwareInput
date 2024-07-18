@@ -29,8 +29,14 @@ public final class OpCoConverter {
     }
 
     /**
+     * global index.
+     */
+    private static Integer globalIndex = 0;
+
+    /**
      * convert map to list of OperationConfig object.
-     * @param rote rote.
+     *
+     * @param rote       rote.
      * @param recommends recommends.
      * @return list of OperationConfig object.
      */
@@ -41,6 +47,8 @@ public final class OpCoConverter {
             opCo.setOrderIndex(String.valueOf(i));
             opCo.setCategorys(rote.get(i));
             opCo.setType("domainPage");
+            opCo.setId(globalIndex);
+            globalIndex++;
             List<String> recom = getRecommends(recommends, rote.get(i));
             if (recom.size() > 0) {
                 opCo.setRecommend(String.join(", ", recom));
@@ -51,9 +59,35 @@ public final class OpCoConverter {
     }
 
     /**
+     * convert map to list of OperationConfig object.
+     *
+     * @param cateChange recommends.
+     * @return list of OperationConfig object.
+     */
+    public static List<OpCo> cateChangeToEntity(Map<String, String> cateChange) {
+        List<OpCo> res = new ArrayList<>();
+
+        for (Map.Entry<String, String> entry : cateChange.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            OpCo opCo = new OpCo();
+            opCo.setId(globalIndex);
+            globalIndex++;
+            opCo.setOrderIndex(String.valueOf(-1));
+            opCo.setCategorys(value);
+            opCo.setRecommend(key);
+            opCo.setType("category_change");
+            res.add(opCo);
+        }
+
+        return res;
+    }
+
+    /**
      * get list of String object by key from map.
+     *
      * @param recommends map.
-     * @param key key.
+     * @param key        key.
      * @return list of String object.
      */
     private static List<String> getRecommends(Map<String, List<String>> recommends, String key) {
@@ -66,6 +100,7 @@ public final class OpCoConverter {
 
     /**
      * convert Opco to data object.
+     *
      * @param c Opco obejct.
      * @return data object.
      */
@@ -77,6 +112,7 @@ public final class OpCoConverter {
 
     /**
      * convert Opco to data object.
+     *
      * @param list list of Opco obejct.
      * @return data object.
      */

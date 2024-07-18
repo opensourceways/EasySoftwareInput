@@ -24,6 +24,7 @@ public class OperationConfigGatewayImpl extends ServiceImpl<OpCoDoMapper, OpCoDo
 
     /**
      * update data.
+     *
      * @param list
      * @return boolean.
      */
@@ -38,6 +39,7 @@ public class OperationConfigGatewayImpl extends ServiceImpl<OpCoDoMapper, OpCoDo
 
     /**
      * delelte by type.
+     *
      * @param dList list of data object.
      */
     private void deleteByType(List<OpCoDo> dList) {
