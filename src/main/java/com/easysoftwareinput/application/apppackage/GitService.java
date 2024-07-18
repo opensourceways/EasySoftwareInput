@@ -57,15 +57,14 @@ public class GitService {
     public void cloneOrPullConfig() {
         File repo = new File(operationConfigrepoPath);
         FileUtil.mkdirIfUnexist(repo);
-
         File[] files = repo.listFiles((dir, name) -> ".git".equals(name));
         if (files == null) {
             return;
         }
         if (files.length == 0) {
-            cloneRepo();
+            cloneRepoConfig();
         } else {
-            pullRepo();
+            pullRepoConfig();
         }
     }
 
@@ -110,6 +109,41 @@ public class GitService {
             git.close();
         } catch (GitAPIException e) {
             LOGGER.error("fail to clone repo: {}", config.getLocalPath());
+        }
+    }
+
+    /**
+     * clone the repo.
+     */
+    public void cloneRepoConfig() {
+        UsernamePasswordCredentialsProvider provider = getProvider();
+        try (Git git = Git.cloneRepository()
+                .setURI("https://gitee.com/opensourceway/om-data.git")
+                .setDirectory(new File(operationConfigrepoPath))
+                .setCredentialsProvider(provider)
+                .setCloneSubmodules(true)
+                .setBranch(config.getBranch())
+                .call()) {
+            git.getRepository().close();
+            git.close();
+        } catch (GitAPIException e) {
+            LOGGER.error("fail to clone repo: {}", operationConfigrepoPath);
+        }
+    }
+
+    /**
+     * git pull the repo.
+     */
+    public void pullRepoConfig() {
+        UsernamePasswordCredentialsProvider provider = getProvider();
+        try {
+            Git git = Git.open(new File(operationConfigrepoPath));
+            git.pull()
+                    .setRemoteBranchName("master")
+                    .setCredentialsProvider(provider)
+                    .call();
+        } catch (Exception e) {
+            LOGGER.error("fail to git pull repo: {}, err: {}", operationConfigrepoPath, e.getMessage());
         }
     }
 

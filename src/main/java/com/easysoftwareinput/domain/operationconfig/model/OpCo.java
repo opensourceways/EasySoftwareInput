@@ -37,4 +37,9 @@ public class OpCo {
      * config type.
      */
     private String type;
+
+    /**
+     * config id.
+     */
+    private Integer id;
 }
