@@ -12,6 +12,7 @@
 package com.easysoftwareinput.domain.epkgpackage.ability;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -149,7 +150,7 @@ public class EPKGPackageConverter {
         try {
             pkg.setRepoType(objectMapper.writeValueAsString(Map.ofEntries(
                 Map.entry("type", camelMap.get("osType")),
-                Map.entry("url", env.getProperty("epkg.official") + pkg.getName())
+                Map.entry("url", env.getProperty("epkg.official") + getRepoName(pkg, camelMap))
             )));
         } catch (JsonProcessingException e) {
             LOGGER.error("", e);
@@ -201,5 +202,25 @@ public class EPKGPackageConverter {
         pkg.setPkgId(cSb.toString());
 
         return pkg;
+    }
+
+    /**
+     * get repo name.
+     * @param pkg pkg.
+     * @param camelMap map.
+     * @return name.
+     */
+    public String getRepoName(EPKGPackage pkg, Map<String, String> camelMap) {
+        if ("src".equals(pkg.getArch())) {
+            return pkg.getName();
+        }
+
+        String src = camelMap.get("rpmSourcerpm");
+        String[] splits = src.split("-");
+        if (splits == null || splits.length < 2) {
+            return pkg.getName();
+        }
+        String[] name = Arrays.copyOfRange(splits, 0, splits.length - 2);
+        return StringUtils.join(name, "-");
     }
 }

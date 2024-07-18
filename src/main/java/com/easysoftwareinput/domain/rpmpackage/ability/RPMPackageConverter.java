@@ -164,7 +164,7 @@ public class RPMPackageConverter {
      * @return name.
      */
     public String getRepoName(RPMPackage pkg, Map<String, String> camelMap) {
-        if ("src".equals(pkg.getName())) {
+        if ("src".equals(pkg.getArch())) {
             return pkg.getName();
         }
 
