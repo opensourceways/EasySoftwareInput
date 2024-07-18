@@ -35,6 +35,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
+import com.easysoftwareinput.application.crawldown.RpmCrawlDownService;
 import com.easysoftwareinput.common.entity.MessageCode;
 import com.easysoftwareinput.infrastructure.BasePackageDO;
 import com.easysoftwareinput.infrastructure.rpmpkg.RpmGatewayImpl;
@@ -89,6 +90,12 @@ public class RPMPackageService {
      */
     @Autowired
     private BatchServiceImpl batchService;
+
+    /**
+     * crawl service.
+     */
+    @Autowired
+    private RpmCrawlDownService crawlService;
 
     /**
      * list of os in archive1.
@@ -229,6 +236,8 @@ public class RPMPackageService {
      * run the program.
      */
     public void run() {
+        crawlService.run();
+
         if (archive1 == null || archive1.size() == 0
                 || StringUtils.isBlank(arUrl1) || StringUtils.isBlank(arUrl2) || StringUtils.isBlank(rpmDir)) {
             log.error("no env");
