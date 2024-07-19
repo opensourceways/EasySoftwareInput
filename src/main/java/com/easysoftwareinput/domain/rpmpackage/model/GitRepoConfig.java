@@ -7,27 +7,27 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Component
-@ConfigurationProperties(prefix = "rpm")
+@ConfigurationProperties(prefix = "git-repo")
 @Getter
 @Setter
-public class RpmConfig {
+public class GitRepoConfig {
     /**
-     * local path.
+     * org-template.
      */
-    private String dir;
+    private String orgTemplate;
 
     /**
-     * official domain.
+     * token.
      */
-    private String official;
+    private String token;
 
     /**
-     * remote gitee repo.
+     * per page.
      */
-    private String remoteRepo;
+    private String perPage;
 
     /**
-     * repo name.
+     * page interval.
      */
-    private String repoName;
+    private int pageInterval;
 }

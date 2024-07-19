@@ -37,6 +37,8 @@ import org.springframework.stereotype.Service;
 
 import com.easysoftwareinput.application.crawldown.RpmCrawlDownService;
 import com.easysoftwareinput.common.entity.MessageCode;
+import com.easysoftwareinput.domain.rpmpackage.model.RpmConfig;
+import com.easysoftwareinput.domain.rpmpackage.model.RpmContext;
 import com.easysoftwareinput.infrastructure.BasePackageDO;
 import com.easysoftwareinput.infrastructure.rpmpkg.RpmGatewayImpl;
 
@@ -54,6 +56,12 @@ public class RPMPackageService {
      */
     @Autowired
     private RpmGatewayImpl gateway;
+
+    /**
+     * repo service.
+     */
+    @Autowired
+    private GitRepoService gitRepoService;
 
     /**
      * data updated.
@@ -96,6 +104,12 @@ public class RPMPackageService {
      */
     @Autowired
     private RpmCrawlDownService crawlService;
+
+    /**
+     * config.
+     */
+    @Autowired
+    private RpmConfig config;
 
     /**
      * list of os in archive1.
@@ -236,7 +250,8 @@ public class RPMPackageService {
      * run the program.
      */
     public void run() {
-        crawlService.run();
+        Set<String> repoNames = gitRepoService.getOrgRepos(config.getRepoName());
+        // crawlService.run();
 
         if (archive1 == null || archive1.size() == 0
                 || StringUtils.isBlank(arUrl1) || StringUtils.isBlank(arUrl2) || StringUtils.isBlank(rpmDir)) {
@@ -281,8 +296,17 @@ public class RPMPackageService {
                 int temp = 0;
             }
 
-            CompletableFuture<Void> finished = threadPool.parseXml(document, osMes, fileIndex, srcUrls, maintainers,
-                    count, existedPkgIdSet);
+            RpmContext context = new RpmContext();
+            context.setDoc(document);
+            context.setOsMes(osMes);
+            context.setFileIndex(fileIndex);
+            context.setSrcUrls(srcUrls);
+            context.setMaintainers(maintainers);
+            context.setCount(count);
+            context.setExistedPkgIdSet(existedPkgIdSet);
+            context.setRepoNames(repoNames);
+
+            CompletableFuture<Void> finished = threadPool.parseXml(context);
             finishedList.add(finished);
         }
 
@@ -299,6 +323,7 @@ public class RPMPackageService {
         validData();
         log.info("fnish-rpm-validate");
     }
+
 
     /**
      * valid the stored data.
