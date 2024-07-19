@@ -14,7 +14,7 @@ import lombok.Setter;
 @Component
 @Setter
 @Getter
-@PropertySource(value = "crawl-rpm.yml", factory = MyPropertySourceFactory.class)
+@PropertySource(value = "classpath:crawl-rpm.yml", factory = MyPropertySourceFactory.class)
 @ConfigurationProperties(prefix = "rpm")
 public class RpmCrawlConfig {
     /**
