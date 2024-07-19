@@ -191,4 +191,16 @@ public class RpmGatewayImpl extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO
                 .groupBy(RPMPackageDO::getOs, RPMPackageDO::getArch).list();
         return archNumConverter.ofList(list, "RPM");
     }
+
+
+    /**
+     * get srcdownloadurls.
+     * @return list of srcdownloadurls.
+     */
+    public Set<String> getSrcDownloadUrls() {
+        List<RPMPackageDO> list = lambdaQuery().select(RPMPackageDO::getSrcDownloadUrl)
+                .isNotNull(RPMPackageDO::getSrcDownloadUrl).list();
+        return list.stream().map(RPMPackageDO::getSrcDownloadUrl).collect(Collectors.toSet());
+    }
+
 }
