@@ -34,6 +34,12 @@ public class GitService {
     private String operationConfigrepoPath;
 
     /**
+     * git .
+     */
+    @Value("${operation-config.git-url}")
+    private String operationConfigrepo;
+
+    /**
      * clone or pull the repo.
      */
     public void cloneOrPull() {
@@ -118,7 +124,7 @@ public class GitService {
     public void cloneRepoConfig() {
         UsernamePasswordCredentialsProvider provider = getProvider();
         try (Git git = Git.cloneRepository()
-                .setURI("https://gitee.com/opensourceway/om-data.git")
+                .setURI(operationConfigrepo)
                 .setDirectory(new File(operationConfigrepoPath))
                 .setCredentialsProvider(provider)
                 .setCloneSubmodules(true)
