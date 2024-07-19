@@ -17,9 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicLong;
 
-import org.dom4j.Document;
 import org.dom4j.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -29,7 +27,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.easysoftwareinput.domain.rpmpackage.ability.RPMPackageConverter;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackage;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackageDO;
-import com.easysoftwareinput.infrastructure.BasePackageDO;
+import com.easysoftwareinput.domain.rpmpackage.model.RpmContext;
 import com.easysoftwareinput.infrastructure.mapper.RPMPackageDOMapper;
 import com.easysoftwareinput.infrastructure.rpmpkg.RpmGatewayImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -63,27 +61,21 @@ public class MyThreadPool extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> 
 
     /**
      * parse xml by mylti threads.
-     * @param xml xml.
-     * @param osMes os.
-     * @param count file index.
-     * @param srcUrls map of src pkgs.
-     * @param maintainers maintainers.
-     * @param atomicLong length of data to be stored.
-     * @param existedPkgIdSet existedPkgIdSet.
-     * @return CompletableFuture object to indicate the thread work finished.
+     * @param context context.
+     * @return CompletableFuture.
      */
     @Async("asyncServiceExecutor")
-    public CompletableFuture<Void> parseXml(Document xml, Map<String, String> osMes, int count, Map<String, String>
-            srcUrls, Map<String, BasePackageDO> maintainers, AtomicLong atomicLong, Set<String> existedPkgIdSet) {
-        List<Element> pkgs = xml.getRootElement().elements();
+    public CompletableFuture<Void> parseXml(RpmContext context) {
+        List<Element> pkgs = context.getDoc().getRootElement().elements();
 
         long s = System.currentTimeMillis();
         List<RPMPackage> pkgList = new ArrayList<>();
         Set<String> pkgIds = new HashSet<>();
         for (int i = 0; i < pkgs.size(); i++) {
             Element ePkg = pkgs.get(i);
-            Map<String, String> res = pkgService.parsePkg(ePkg, osMes);
-            RPMPackage pkg = rpmPackageConverter.toEntity(res, srcUrls, maintainers);
+            Map<String, String> res = pkgService.parsePkg(ePkg, context.getOsMes());
+            RPMPackage pkg = rpmPackageConverter.toEntity(res, context.getSrcUrls(), context.getMaintainers(),
+                    context.getRepoNames());
 
             // 如果架构是src，则不写入
             if ("src".equals(pkg.getArch())) {
@@ -96,10 +88,10 @@ public class MyThreadPool extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> 
         }
 
         log.info("finish-xml-parse, thread name: {}, list.size(): {}, time used: {}ms, fileIndex: {}",
-                Thread.currentThread().getName(), pkgList.size(), (System.currentTimeMillis() - s), count);
+                Thread.currentThread().getName(), pkgList.size(), (System.currentTimeMillis() - s), context.getCount());
 
-        gateway.saveAll(pkgList, existedPkgIdSet);
-        atomicLong.addAndGet(pkgList.size());
+        gateway.saveAll(pkgList, context.getExistedPkgIdSet());
+        context.getCount().addAndGet(pkgList.size());
         return CompletableFuture.completedFuture(null);
     }
 
