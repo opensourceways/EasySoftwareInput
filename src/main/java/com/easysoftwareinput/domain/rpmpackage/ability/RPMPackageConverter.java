@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -127,24 +128,31 @@ public class RPMPackageConverter {
      * set repo and repoType of pkg.
      * @param pkg pkg.
      * @param camelMap camelMap.
+     * @param repoNames repoNames.
      */
-    public void setPkgRepoAndRepoType(RPMPackage pkg, Map<String, String> camelMap) {
+    public void setPkgRepoAndRepoType(RPMPackage pkg, Map<String, String> camelMap, Set<String> repoNames) {
         if (StringUtils.isBlank(official)) {
             log.error("no env: rpm.official");
             return;
         }
 
+        String name = getRepoName(pkg, camelMap);
+        String url;
+        if (repoNames.contains(name)) {
+            url = official + name;
+        } else {
+            url = official;
+        }
+
         try {
             pkg.setRepo(objectMapper.writeValueAsString(Map.ofEntries(
                 Map.entry("type", "openEuler官方仓库"),
-                Map.entry("url", official)
+                Map.entry("url", url)
             )));
         } catch (JsonProcessingException e) {
             log.error(MessageCode.EC00014.getMsgEn(), e);
             pkg.setRepo("");
         }
-
-        String name = getRepoName(pkg, camelMap);
 
         try {
             pkg.setRepoType(objectMapper.writeValueAsString(Map.ofEntries(
@@ -182,10 +190,11 @@ public class RPMPackageConverter {
      * @param underLineMap map.
      * @param srcUrls map of src pkg and url.
      * @param maintainers maintianers.
+     * @param repoNames repoNames.
      * @return rpm pkg.
      */
     public RPMPackage toEntity(Map<String, String> underLineMap, Map<String, String> srcUrls,
-            Map<String, BasePackageDO> maintainers) {
+            Map<String, BasePackageDO> maintainers, Set<String> repoNames) {
         Map<String, String> camelMap = new HashMap<>();
         for (Map.Entry<String, String> entry : underLineMap.entrySet()) {
             String camelKey = StringUtil.underlineToCamel(entry.getKey());
@@ -210,7 +219,7 @@ public class RPMPackageConverter {
         // 版本支持情况
         pkg.setOsSupport(camelMap.get("osName") + "-" + camelMap.get("osVer"));
 
-        setPkgRepoAndRepoType(pkg, camelMap);
+        setPkgRepoAndRepoType(pkg, camelMap, repoNames);
 
         Long cTime = Long.parseLong(camelMap.get("timeFile"));
         String fTime = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(cTime * 1000));
