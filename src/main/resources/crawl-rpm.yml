@@ -16,13 +16,13 @@ rpm:
       url: https://repo.openeuler.org/openEuler-20.03-LTS-SP4/
       target: primary.xml.gz
     - os: openEuler-20.09
-      url: https://repo.openeuler.org/openEuler-20.09/
+      url: https://archives.openeuler.openatom.cn/openEuler-20.09/
       target: primary.xml.gz
     - os: openEuler-21.03
-      url: https://repo.openeuler.org/openEuler-21.03/
+      url: https://archives.openeuler.openatom.cn/openEuler-21.03/
       target: primary.xml.gz
     - os: openEuler-21.09
-      url: https://repo.openeuler.org/openEuler-21.09/
+      url: https://archives.openeuler.openatom.cn/openEuler-21.09/
       target: primary.xml.gz
     - os: openEuler-22.03-LTS
       url: https://repo.openeuler.org/openEuler-22.03-LTS/
@@ -40,7 +40,7 @@ rpm:
       url: https://repo.openeuler.org/openEuler-22.03-LTS-SP4/
       target: primary.xml.gz
     - os: openEuler-22.09
-      url: https://repo.openeuler.org/openEuler-22.09/
+      url: https://archives.openeuler.openatom.cn/openEuler-22.09/
       target: primary.xml.gz
     - os: openEuler-23.03
       url: https://repo.openeuler.org/openEuler-23.03/
