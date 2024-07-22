@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -190,5 +191,15 @@ public class RpmGatewayImpl extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO
                 .select(RPMPackageDO::getOs, RPMPackageDO::getArch, RPMPackageDO::getCount)
                 .groupBy(RPMPackageDO::getOs, RPMPackageDO::getArch).list();
         return archNumConverter.ofList(list, "RPM");
+    }
+
+    /**
+     * get distinct name.
+     * @return set of names.
+     */
+    public Set<String> getDistinctName() {
+        List<RPMPackageDO> list = lambdaQuery().select(RPMPackageDO::getName).list();
+        return list.stream().filter(pkg -> !Objects.isNull(pkg))
+                .map(RPMPackageDO::getName).collect(Collectors.toSet());
     }
 }
