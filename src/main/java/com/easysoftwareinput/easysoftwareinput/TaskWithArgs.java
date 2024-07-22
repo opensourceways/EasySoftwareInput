@@ -23,6 +23,7 @@ import com.easysoftwareinput.application.externalos.ExternalOsService;
 import com.easysoftwareinput.application.fieldpkg.FieldPkgService;
 import com.easysoftwareinput.application.oepkg.OepkgService;
 import com.easysoftwareinput.application.operationconfig.OperationConfigService;
+import com.easysoftwareinput.application.rpmpackage.BatchServiceImpl;
 import com.easysoftwareinput.application.rpmpackage.RPMPackageService;
 
 
@@ -116,6 +117,9 @@ public class TaskWithArgs {
         } else if ("EXTERNALOS".equals(service)) {
             ExternalOsService ex = (ExternalOsService) context.getBean(ExternalOsService.class);
             ex.run();
+        } else if ("MAINTAINER".equals(service)) {
+            BatchServiceImpl ma = (BatchServiceImpl) context.getBean(BatchServiceImpl.class);
+            ma.run();
         } else {
             LOGGER.info("unrecognized service: {}", service);
         }

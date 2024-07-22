@@ -62,9 +62,9 @@ public final class MapConstant {
 
     static {
         Map<String, String> maintainerMap = new HashMap<>();
-        maintainerMap.put("id", "openEuler Community");
-        maintainerMap.put("email", "contact@openeuler.io");
-        maintainerMap.put("gitee_id", "openeuler-ci-bot");
+        maintainerMap.put("id", "");
+        maintainerMap.put("email", "");
+        maintainerMap.put("gitee_id", "");
         MAINTAINER = Collections.unmodifiableMap(maintainerMap);
     }
 }
