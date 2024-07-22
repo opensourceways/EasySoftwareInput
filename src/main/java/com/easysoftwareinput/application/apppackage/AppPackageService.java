@@ -121,6 +121,9 @@ public class AppPackageService {
 
         Map<String, Object> yamlMap = YamlUtil.parseYaml(infoPath);
 
+        String repoName = pkg.getName();
+        yamlMap.put("repoName", repoName);
+
         String name = (String) yamlMap.get("name");
         if (StringUtils.isBlank(name)) {
             LOGGER.info("no yaml name, file: {}", pkg.toString());

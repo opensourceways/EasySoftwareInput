@@ -200,6 +200,11 @@ public class AppDo implements IDataObject {
     private String latestOsSupport;
 
     /**
+     * repo.
+     */
+    private String repo;
+
+    /**
      * number of selected pkgs.
      */
     @TableField(value = "count(*)", insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
