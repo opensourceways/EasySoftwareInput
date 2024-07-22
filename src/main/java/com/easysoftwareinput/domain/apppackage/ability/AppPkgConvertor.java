@@ -33,6 +33,7 @@ import com.easysoftwareinput.common.constant.MapConstant;
 import com.easysoftwareinput.common.utils.HttpClientUtil;
 import com.easysoftwareinput.common.utils.ObjectMapperUtil;
 import com.easysoftwareinput.common.utils.UUidUtil;
+import com.easysoftwareinput.domain.apppackage.model.AppConfig;
 import com.easysoftwareinput.domain.apppackage.model.AppPackage;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.power.common.util.StringUtil;
@@ -66,6 +67,12 @@ public class AppPkgConvertor {
      */
     @Autowired
     private AppVerService verService;
+
+    /**
+     * config.
+     */
+    @Autowired
+    private AppConfig config;
 
     /**
      * convert map to AppPackage object.
@@ -105,6 +112,11 @@ public class AppPkgConvertor {
         pkg.setIconUrl(obsService.generateUrl(pkg.getName()));
         pkg.setId(UUidUtil.getUUID32());
         pkg.setUpdateAt(new Timestamp(System.currentTimeMillis()));
+
+        pkg.setRepo(Map.of(
+            "url", config.getRemoteRepo() + map.get("repoName"),
+            "type", "openEuler官方仓库"
+        ));
 
         List<String> simi = (List<String>) map.get("similar_packages");
         pkg.setSimilarPkgs(ObjectMapperUtil.writeValueAsString(simi));

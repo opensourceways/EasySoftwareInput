@@ -13,6 +13,7 @@ package com.easysoftwareinput.domain.apppackage.model;
 
 import java.io.Serial;
 import java.sql.Timestamp;
+import java.util.Map;
 
 import com.easysoftwareinput.domain.rpmpackage.model.BasePackage;
 
@@ -164,6 +165,11 @@ public class AppPackage extends BasePackage {
      * latestOsSupport of pkg.
      */
     private String latestOsSupport;
+
+    /**
+     * repo.
+     */
+    private Map<String, String> repo;
 
     /**
      * get updated time of pkg.
