@@ -74,6 +74,7 @@ public class ArchNumService implements IService {
 
     /**
      * init context.
+     *
      * @return context.
      */
     public ArchNumContext initContext() {
@@ -106,6 +107,7 @@ public class ArchNumService implements IService {
 
     /**
      * filter the OsArchNumDO.
+     *
      * @param list origin list of OsArchNumDO.
      * @return list of OsArchNumDO.
      */
@@ -115,12 +117,14 @@ public class ArchNumService implements IService {
         }
 
         List<String> allowedArches = List.of("aarch64", "noarch", "x86_64", "loongarch64",
-        "riscv64", "sw_64");
-        return list.stream().filter(pkg -> allowedArches.contains(pkg.getArchName())).collect(Collectors.toList());
+                "riscv64", "sw_64");
+        return list.stream().filter(pkg -> pkg.getArchName() != null && allowedArches.contains(pkg.getArchName()))
+                .collect(Collectors.toList());
     }
 
     /**
      * get OsArchNumDO from tables.
+     *
      * @return OsArchNumDO.
      */
     public List<OsArchNumDO> getOsArchNum() {
