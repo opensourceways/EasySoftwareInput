@@ -11,6 +11,8 @@
 
 package com.easysoftwareinput.infrastructure;
 
+import java.sql.Timestamp;
+
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
@@ -54,4 +56,30 @@ public class BasePackageDO {
      * download count of pkg.
      */
     private String downloadCount;
+
+    /**
+     * updateat.
+     */
+    private Timestamp updateAt;
+
+    /**
+     * set updated time of pkg.
+     * @param stamp updated time of pkg.
+     */
+    public void setUpdateAt(Timestamp stamp) {
+        if (stamp != null) {
+            this.updateAt = (Timestamp) stamp.clone();
+        }
+    }
+
+    /**
+     * get updated time of pkg.
+     * @return updated time of pkg.
+     */
+    public Timestamp getUpdateAt() {
+        if (this.updateAt == null) {
+            return null;
+        }
+        return (Timestamp) this.updateAt.clone();
+    }
 }

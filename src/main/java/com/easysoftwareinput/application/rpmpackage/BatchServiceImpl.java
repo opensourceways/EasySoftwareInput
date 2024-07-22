@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,9 +42,11 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.easysoftwareinput.common.components.UpstreamService;
 import com.easysoftwareinput.common.entity.MessageCode;
+import com.easysoftwareinput.domain.maintainer.MaintainerConfig;
 import com.easysoftwareinput.domain.rpmpackage.model.BasePackage;
 import com.easysoftwareinput.infrastructure.BasePackageDO;
 import com.easysoftwareinput.infrastructure.mapper.BasePackageDOMapper;
+import com.easysoftwareinput.infrastructure.rpmpkg.RpmGatewayImpl;
 
 
 @Service
@@ -67,10 +70,29 @@ public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePacka
     private BasePackageDOMapper basePackageMapper;
 
     /**
+     * maintainer config.
+     */
+    @Autowired
+    private MaintainerConfig maintainerConfig;
+
+    /**
+     * rpm gateway.
+     */
+    @Autowired
+    private RpmGatewayImpl rpmGateway;
+
+    /**
      * logger.
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(BatchServiceImpl.class);
 
+    /**
+     * run the program.
+     */
+    public void run() {
+        Set<String> nameSet = rpmGateway.getDistinctName();
+        dealByBatch(nameSet);
+    }
     /**
      * get upstream.
      */
@@ -173,11 +195,20 @@ public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePacka
                 BasePackage bp = new BasePackage();
                 bp.setName(pkgName);
                 bp = upstreamService.addMaintainerInfo(bp);
+                if (bp.getMaintainerEmail() == null) {
+                    bp.setMaintainerEmail(maintainerConfig.getEmail());
+                }
+                if (bp.getMaintainerId() == null) {
+                    bp.setMaintainerId(maintainerConfig.getId());
+                }
+                if (bp.getMaintainerGiteeId() == null) {
+                    bp.setMaintainerGiteeId(maintainerConfig.getGiteeId());
+                }
                 bp = upstreamService.addRepoCategory(bp);
-                bp = upstreamService.addRepoDownload(bp);
+                // bp = upstreamService.addRepoDownload(bp);
                 BasePackageDO bpDO = new BasePackageDO();
                 BeanUtils.copyProperties(bp, bpDO);
-
+                bpDO.setUpdateAt(new Timestamp(System.currentTimeMillis()));
                 objects.add(bpDO);
                 latch.countDown();
             });
