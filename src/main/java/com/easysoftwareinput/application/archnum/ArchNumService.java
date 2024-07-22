@@ -3,6 +3,7 @@ package com.easysoftwareinput.application.archnum;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -116,7 +117,10 @@ public class ArchNumService implements IService {
 
         List<String> allowedArches = List.of("aarch64", "noarch", "x86_64", "loongarch64",
         "riscv64", "sw_64");
-        return list.stream().filter(pkg -> allowedArches.contains(pkg.getArchName())).collect(Collectors.toList());
+        return list.stream().filter(pkg -> {
+            return !Objects.isNull(pkg.getArchName())
+                    && allowedArches.contains(pkg.getArchName());
+        }).collect(Collectors.toList());
     }
 
     /**
