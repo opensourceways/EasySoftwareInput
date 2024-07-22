@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
+
+import com.easysoftwareinput.common.utils.ObjectMapperUtil;
 import com.easysoftwareinput.domain.apppackage.model.AppPackage;
 import com.easysoftwareinput.infrastructure.apppkg.dataobject.AppDo;
 
@@ -55,6 +57,7 @@ public class AppConverter {
     public AppDo toDo(AppPackage a) {
         AppDo o = new AppDo();
         BeanUtils.copyProperties(a, o);
+        o.setRepo(ObjectMapperUtil.writeValueAsString(a.getRepo()));
         return o;
     }
 
