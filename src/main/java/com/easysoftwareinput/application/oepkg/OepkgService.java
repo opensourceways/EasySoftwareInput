@@ -172,7 +172,7 @@ public class OepkgService {
         String name;
         if (hrefSplits.length >= 2) {
             name = hrefSplits[1];
-            return Map.of(name, osMes.getBaseUrl() + href);
+            return Map.of(name, osMes.getBaseUrl() + "/" + href);
         } else {
             return Collections.emptyMap();
         }
