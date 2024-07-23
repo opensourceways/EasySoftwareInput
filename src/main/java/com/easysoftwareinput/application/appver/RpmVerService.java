@@ -16,10 +16,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,10 +36,15 @@ import org.springframework.stereotype.Component;
 
 import com.easysoftwareinput.common.utils.HttpClientUtil;
 import com.easysoftwareinput.common.utils.ObjectMapperUtil;
+import com.easysoftwareinput.common.utils.YamlUtil;
+import com.easysoftwareinput.domain.appver.AppVerConfig;
 import com.easysoftwareinput.domain.appver.AppVersion;
 import com.easysoftwareinput.infrastructure.appver.AppVerGatewayImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+
+import lombok.Getter;
+import lombok.Setter;
 
 @Component
 public class RpmVerService {
@@ -51,6 +60,12 @@ public class RpmVerService {
     private Environment env;
 
     /**
+     * config.
+     */
+    @Autowired
+    private AppVerConfig config;
+
+    /**
      * appverservice.
      */
     @Autowired
@@ -63,23 +78,34 @@ public class RpmVerService {
     private AppVerGatewayImpl gateway;
 
     /**
+     * get alias.
+     * @return map of alias.
+     */
+    public Map<String, List<String>> getRpmAlias() {
+        Map<String, Object> rawAliasMap = YamlUtil.parseYaml(config.getRpmAlias());
+        Map<String, List<String>> res = new HashMap<>();
+        for (Map.Entry<String, Object> entry : rawAliasMap.entrySet()) {
+            String value = String.valueOf(entry.getValue());
+            String[] values = value.split("\\|");
+            List<String> alias = Arrays.stream(values).map(StringUtils::trimToEmpty)
+                    .filter(StringUtils::isNotBlank).collect(Collectors.toList());
+            res.put(entry.getKey(), alias);
+        }
+        return res;
+    }
+
+    /**
      * run the program.
      */
     public void run() {
-        String rpmTxt = env.getProperty("appver.rpm-txt");
-        String monUrl = env.getProperty("appver.monurl");
-        String rpmEulerUrl = env.getProperty("appver.rpm-euler");
-        if (rpmTxt == null || monUrl == null || rpmEulerUrl == null) {
-            LOGGER.error("no env");
-            return;
-        }
-
-        List<String> pkgList = readFileByLine(rpmTxt);
+        List<String> pkgList = readFileByLine(config.getRpmTxt());
         Set<String> pkgs = validPkgs(pkgList);
+
+        Map<String, List<String>> aliasMap = getRpmAlias();
 
         List<AppVersion> vList = new ArrayList<>();
         for (String name : pkgs) {
-            AppVersion v = handleEachPkg(name, monUrl, rpmEulerUrl);
+            AppVersion v = handleEachPkg(name, aliasMap);
             vList.add(v);
         }
 
@@ -88,15 +114,54 @@ public class RpmVerService {
     }
 
     /**
+     * get euler version from list.
+     * @param name pkg name.
+     * @param aliasMap alias map.
+     * @return euler version.
+     */
+    public Map<String, String> getEulerVersionFromList(String name, Map<String, List<String>> aliasMap) {
+        List<EulerRpmVerOs> list = new ArrayList<>();
+        list.add(getEulerVersion(name, config.getRpmEuler()));
+
+        List<String> nameList = aliasMap.get(name);
+        nameList = nameList == null ? Collections.emptyList() : nameList;
+        for (String pkgName : nameList) {
+            EulerRpmVerOs euler = getEulerVersion(pkgName, config.getRpmEuler());
+            list.add(euler);
+        }
+        List<EulerRpmVerOs> listPkg = list.stream().filter(pkg -> {
+            return !Objects.isNull(pkg) && !StringUtils.isBlank(pkg.getOs()) && !StringUtils.isBlank(pkg.getVer());
+        }).collect(Collectors.toList());
+
+        return pickNewest(listPkg);
+    }
+
+    /**
+     * pick newest EulerRpmVerOs from list.
+     * @param list list of EulerRpmVerOs.
+     * @return map.
+     */
+    public Map<String, String> pickNewest(List<EulerRpmVerOs> list) {
+        if (list == null || list.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        list = list.stream().sorted(Comparator.comparing(EulerRpmVerOs::getOs).thenComparing(EulerRpmVerOs::getVer))
+                .collect(Collectors.toList());
+        EulerRpmVerOs winner = list.get(list.size() - 1);
+        return Map.of("ver", winner.getVer(), "os", winner.getOs());
+    }
+
+    /**
      * Generate AppVersion for each pkg.
      * @param name pkg name.
-     * @param monUrl monnitor url.
-     * @param rpmEulerUrl rpm euler url.
+     * @param aliasMap alias map.
      * @return AppVersion.
      */
-    private AppVersion handleEachPkg(String name, String monUrl, String rpmEulerUrl) {
-        Map<String, JsonNode> items = appService.getItems(name, monUrl);
-        Map<String, String> euler = getEulerVersion(name, rpmEulerUrl);
+    private AppVersion handleEachPkg(String name, Map<String, List<String>> aliasMap) {
+        Map<String, JsonNode> items = appService.getItems(name, config.getMonurl());
+
+        Map<String, String> euler = getEulerVersionFromList(name, aliasMap);
 
         AppVersion v = new AppVersion();
         v.setName(name);
@@ -153,7 +218,10 @@ public class RpmVerService {
      * @param monUrl monitor url.
      * @return euler version.
      */
-    public Map<String, String> getEulerVersion(String name, String monUrl) {
+    public EulerRpmVerOs getEulerVersion(String name, String monUrl) {
+        if (StringUtils.isBlank(monUrl) || StringUtils.isBlank(name)) {
+            return null;
+        }
         name = name.replaceAll(" ", "%20");
         String url = String.format(monUrl, name);
         try {
@@ -164,13 +232,14 @@ public class RpmVerService {
             JsonNode l = list.get(0);
             String ver = l.get("newestVersion").asText();
             String os = l.get("os").asText();
-            return Map.ofEntries(
-                Map.entry("ver", StringUtils.trimToEmpty(ver)),
-                Map.entry("os", StringUtils.trimToEmpty(os))
-            );
+
+            EulerRpmVerOs eulerRpmVerOs = new EulerRpmVerOs();
+            eulerRpmVerOs.setOs(StringUtils.trimToEmpty(os));
+            eulerRpmVerOs.setVer(StringUtils.trimToEmpty(ver));
+            return eulerRpmVerOs;
         } catch (Exception e) {
             LOGGER.error("fail-to-get-euler-verison, url: {}", url);
-            return Collections.emptyMap();
+            return null;
         }
     }
 
@@ -200,5 +269,19 @@ public class RpmVerService {
             LOGGER.error("error-reading-file: {}", fileName);
         }
         return res;
+    }
+
+    @Getter
+    @Setter
+    public static class EulerRpmVerOs {
+        /**
+         * os.
+         */
+        private String os;
+
+        /**
+         * ver.
+         */
+        private String ver;
     }
 }

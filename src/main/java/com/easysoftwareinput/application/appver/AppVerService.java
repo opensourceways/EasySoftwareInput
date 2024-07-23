@@ -162,6 +162,8 @@ public class AppVerService {
             os = "openEuler-22.03-LTS";
         } else if ("oe2003sp1".equals(rawOs)) {
             os = "openEuler-20.03-LTS-SP1";
+        } else if ("oe2403lts".equals(rawOs)) {
+            os = "openEuler-24.03-LTS";
         } else {
             log.info("unrecognized os: " + rawOs);
         }
