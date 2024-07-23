@@ -262,10 +262,6 @@ public class AppPkgConvertor {
      * @return list of AppPackage object.
      */
     private List<AppPackage> splitByMonMap(AppPackage originPkg, Map<String, Object> monMap) {
-        if (monMap.get("arch") == null || monMap.get("rawVer") == null) {
-            return List.of(originPkg);
-        }
-
         List<String> arches = (List<String>) monMap.get("arch");
         if (arches == null) {
             arches = List.of("");

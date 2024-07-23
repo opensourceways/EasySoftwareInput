@@ -251,7 +251,7 @@ public class RPMPackageService {
      */
     public void run() {
         Set<String> repoNames = gitRepoService.getOrgRepos(config.getRepoName());
-        // crawlService.run();
+        crawlService.run();
 
         if (archive1 == null || archive1.size() == 0
                 || StringUtils.isBlank(arUrl1) || StringUtils.isBlank(arUrl2) || StringUtils.isBlank(rpmDir)) {
