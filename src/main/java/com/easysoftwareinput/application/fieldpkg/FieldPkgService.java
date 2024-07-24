@@ -12,6 +12,7 @@
 package com.easysoftwareinput.application.fieldpkg;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -21,6 +22,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import com.easysoftwareinput.domain.fieldpkg.model.Field;
@@ -89,53 +91,76 @@ public class FieldPkgService {
     private Environment env;
 
     /**
+     * epkg enable.
+     */
+    @Value("${epkg.enable}")
+    private String epkgEnable;
+
+    /**
+     * retry os enable.
+     */
+    @Value("${filed.retry-os-enable}")
+    private String retryOsEnable;
+
+    /**
+     * list of retry os.
+     */
+    @Value("${filed.retry-os}")
+    private List<String> retryOsList;
+
+    /**
      * get rpm.
+     *
+     * @param os os.
      * @return map of rpm.
      */
-    private Map<String, Map<String, RPMPackageDO>> getRPMList() {
-        List<String> osList = rpmGateway.getOs();
 
+    private Map<String, Map<String, RPMPackageDO>> getRPMList(String os) {
         Map<String, Map<String, RPMPackageDO>> doMap = new HashMap<>();
-        for (String os : osList) {
-            List<RPMPackageDO> doList = rpmGateway.getPkg(os);
-            rpmConverter.convertToMap(doMap, doList, os);
-        }
+
+        List<RPMPackageDO> doList = rpmGateway.getPkg(os);
+        rpmConverter.convertToMap(doMap, doList, os);
+
         return doMap;
     }
 
     /**
      * get epkg.
+     *
+     * @param os os.
      * @return map of epkg.
      */
-    private Map<String, Map<String, EpkgDo>> getEpkgList() {
-        List<String> osList = epkgGateway.getOs();
+    private Map<String, Map<String, EpkgDo>> getEpkgList(String os) {
         Map<String, Map<String, EpkgDo>> doMap = new HashMap<>();
-        for (String os : osList) {
-            List<EpkgDo> doList = epkgGateway.getPkg(os);
-            epkgConverter.convertToMap(doMap, doList, os);
-        }
+
+        List<EpkgDo> doList = epkgGateway.getPkg(os);
+        epkgConverter.convertToMap(doMap, doList, os);
+
         return doMap;
     }
 
     /**
      * get app.
+     *
+     * @param os os.
      * @return map of app.
      */
-    private Map<String, Map<String, AppDo>> getAppList() {
-        List<String> osList = appGateway.getOs();
+    private Map<String, Map<String, AppDo>> getAppList(String os) {
+
         Map<String, Map<String, AppDo>> doMap = new HashMap<>();
-        for (String os : osList) {
-            List<AppDo> doList = appGateway.getPkg(os);
-            appConverter.convertToMap(doMap, doList, os);
-        }
+
+        List<AppDo> doList = appGateway.getPkg(os);
+        appConverter.convertToMap(doMap, doList, os);
+
         return doMap;
     }
 
     /**
      * convert rpm, epkg, app to field pkg.
-     * @param rpm rpm.
+     *
+     * @param rpm  rpm.
      * @param epkg epkg.
-     * @param app app.
+     * @param app  app.
      * @return map of field pkg.
      */
     private Map<String, Field> getFieldMap(Map<String, RPMPackageDO> rpm, Map<String, EpkgDo> epkg,
@@ -161,8 +186,9 @@ public class FieldPkgService {
 
     /**
      * fill field pkg with rpm.
+     *
      * @param fieldMap field map.
-     * @param rpm rpm.
+     * @param rpm      rpm.
      */
     private void fillFieldWithRpm(Map<String, Field> fieldMap, Map<String, RPMPackageDO> rpm) {
         for (Map.Entry<String, RPMPackageDO> entry : rpm.entrySet()) {
@@ -182,8 +208,9 @@ public class FieldPkgService {
 
     /**
      * fill field pkg with epkg.
+     *
      * @param fieldMap field map.
-     * @param epkg epkg.
+     * @param epkg     epkg.
      */
     private void fillFieldWithEpkg(Map<String, Field> fieldMap, Map<String, EpkgDo> epkg) {
         for (Map.Entry<String, EpkgDo> entry : epkg.entrySet()) {
@@ -203,8 +230,9 @@ public class FieldPkgService {
 
     /**
      * fill field pkg with app.
+     *
      * @param fieldMap field map.
-     * @param app app.
+     * @param app      app.
      */
     private void fillFieldWithApp(Map<String, Field> fieldMap, Map<String, AppDo> app) {
         for (Map.Entry<String, AppDo> entry : app.entrySet()) {
@@ -225,9 +253,10 @@ public class FieldPkgService {
 
     /**
      * get field pkg of each os.
-     * @param rpm rpm.
+     *
+     * @param rpm  rpm.
      * @param epkg epkg.
-     * @param app app.
+     * @param app  app.
      * @return list of field pkg.
      */
     private List<Field> getFieldsPerOs(Map<String, RPMPackageDO> rpm, Map<String, EpkgDo> epkg,
@@ -255,9 +284,10 @@ public class FieldPkgService {
 
     /**
      * convert rpm, epkg, app to field pkg.
-     * @param rpm rpm.
+     *
+     * @param rpm  rpm.
      * @param epkg epkg.
-     * @param app app.
+     * @param app  app.
      * @return list of field pkg.
      */
     private List<Field> mapToField(Map<String, Map<String, RPMPackageDO>> rpm, Map<String, Map<String, EpkgDo>> epkg,
@@ -279,17 +309,38 @@ public class FieldPkgService {
      * run the program.
      */
     public void run() {
-        Set<String> existedPkgs = fieldGateway.getPkgIds();
 
-        Map<String, Map<String, RPMPackageDO>> rpm = getRPMList();
+        List<String> rpmOsList = rpmGateway.getOs();
+        List<String> epkgOsList = epkgGateway.getOs();
+        List<String> appOsList = appGateway.getOs();
 
-        Map<String, Map<String, EpkgDo>> epkg = getEpkgList();
-        Map<String, Map<String, AppDo>> app = getAppList();
+        Set<String> osSet = new HashSet<>();
+        osSet.addAll(rpmOsList);
+        osSet.addAll(epkgOsList);
+        osSet.addAll(appOsList);
 
-        List<Field> fList = mapToField(rpm, epkg, app);
+        for (String os : osSet) {
+            // 是否启动单刷os
+            if (retryOsEnable.equals("true") && !retryOsList.contains(os)) {
+                continue;
+            }
+            Set<String> existedPkgs = fieldGateway.getPkgIds(os);
 
-        fieldGateway.saveAll(fList, existedPkgs);
+            Map<String, Map<String, RPMPackageDO>> rpm = getRPMList(os);
 
-        log.info("finish field pkg");
+            Map<String, Map<String, EpkgDo>> epkg = Collections.emptyMap();
+            // 是否忽略epkg
+            if (epkgEnable.equals("true")) {
+                epkg = getEpkgList(os);
+            }
+
+            Map<String, Map<String, AppDo>> app = getAppList(os);
+
+            List<Field> fList = mapToField(rpm, epkg, app);
+
+            fieldGateway.saveAll(fList, existedPkgs);
+
+            log.info("finish field pkg:" + os);
+        }
     }
 }
