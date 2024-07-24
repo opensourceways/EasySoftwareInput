@@ -154,7 +154,7 @@ public class OepkgConverter {
         pkg.setSrcRepo(camelMap.get("url"));
 
         String formatS = String.format("- 添加源%n  ```%n  dnf config-manager --add-repo %s%n  ```%n%n- 更新源索引%n"
-                + "  ```%n dnf clean all && dnf makecache%n  ```%n%n- 安装 %s 软件包%n  ```%n dnf install %s%n  ```",
+                + "  ```%n  dnf clean all && dnf makecache%n  ```%n%n- 安装 %s 软件包%n  ```%n  dnf install %s%n  ```",
                 camelMap.get("baseUrl"), pkg.getName(), pkg.getName());
 
         pkg.setInstallation(formatS);
