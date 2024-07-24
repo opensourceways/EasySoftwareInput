@@ -88,7 +88,8 @@ public class MyThreadPool extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO> 
         }
 
         log.info("finish-xml-parse, thread name: {}, list.size(): {}, time used: {}ms, fileIndex: {}",
-                Thread.currentThread().getName(), pkgList.size(), (System.currentTimeMillis() - s), context.getCount());
+                Thread.currentThread().getName(), pkgList.size(), (System.currentTimeMillis() - s),
+                context.getFileIndex());
 
         gateway.saveAll(pkgList, context.getExistedPkgIdSet());
         context.getCount().addAndGet(pkgList.size());
