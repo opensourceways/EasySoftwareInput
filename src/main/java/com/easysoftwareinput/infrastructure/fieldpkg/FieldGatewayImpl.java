@@ -59,7 +59,8 @@ public class FieldGatewayImpl extends ServiceImpl<FieldDoMapper, FieldDo> {
 
     /**
      * save all the pkg.
-     * @param fList list of pkg.
+     *
+     * @param fList         list of pkg.
      * @param existedPkgIds existed pkgs.
      * @return boolean.
      */
@@ -74,7 +75,8 @@ public class FieldGatewayImpl extends ServiceImpl<FieldDoMapper, FieldDo> {
 
     /**
      * if existed, update; if unexisted, insert.
-     * @param existed existed.
+     *
+     * @param existed   existed.
      * @param unexisted unexisted.
      * @return boolean.
      */
@@ -100,17 +102,21 @@ public class FieldGatewayImpl extends ServiceImpl<FieldDoMapper, FieldDo> {
 
     /**
      * get pkg ids from table.
+     *
+     * @param os os.
      * @return set of ids.
      */
-    public Set<String> getPkgIds() {
+    public Set<String> getPkgIds(String os) {
         QueryWrapper<FieldDo> wrapper = new QueryWrapper<>();
         wrapper.select("distinct (pkg_ids)");
+        wrapper.eq("os", os);
         List<FieldDo> dList = mapper.selectList(wrapper);
         return dList.stream().map(FieldDo::getPkgIds).collect(Collectors.toSet());
     }
 
     /**
      * get list of FieldDo for mainpage.
+     *
      * @return list of FieldDo.
      */
     public List<FieldDo> getMainPage() {
@@ -121,16 +127,17 @@ public class FieldGatewayImpl extends ServiceImpl<FieldDoMapper, FieldDo> {
                         FieldDo::getMaintainers)
                 .like(FieldDo::getTags, "image")
                 .or(i -> i.like(FieldDo::getTags, "rpm")
-                .and(f -> f.ne(FieldDo::getCategory, unCate))).list();
+                        .and(f -> f.ne(FieldDo::getCategory, unCate)))
+                .list();
         Map<String, List<FieldDo>> dMap = dList.stream().collect(Collectors.groupingBy(FieldDo::getName));
         Map<String, FieldDo> fMap = dMap.entrySet().stream().collect(
-            Collectors.toMap(Map.Entry::getKey, e -> this.pickNewestOs(e.getValue()))
-        );
+                Collectors.toMap(Map.Entry::getKey, e -> this.pickNewestOs(e.getValue())));
         return fMap.values().stream().collect(Collectors.toList());
     }
 
     /**
      * pick the FieldDo with newest os.
+     *
      * @param dList origin list.
      * @return FieldDo.
      */
@@ -140,13 +147,13 @@ public class FieldGatewayImpl extends ServiceImpl<FieldDoMapper, FieldDo> {
         }
 
         List<FieldDo> sList = dList.stream().sorted(
-            Comparator.comparing(FieldDo::getOs, Comparator.reverseOrder())
-        ).collect(Collectors.toList());
+                Comparator.comparing(FieldDo::getOs, Comparator.reverseOrder())).collect(Collectors.toList());
         return sList.get(0);
     }
 
     /**
      * get the pkgs group by os and arch.
+     *
      * @return list of OsArchNumDO.
      */
     public List<OsArchNumDO> getOsArchNum() {
