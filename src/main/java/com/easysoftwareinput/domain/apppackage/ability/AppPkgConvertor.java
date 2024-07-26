@@ -250,7 +250,7 @@ public class AppPkgConvertor {
         pkg.setAppVer(ver);
         pkg.setOsSupport(osAndVer.get("osVer"));
         pkg.setOs(osAndVer.get("osVer"));
-        pkg.setPkgId(pkg.getName() + pkg.getOs() + pkg.getArch());
+        pkg.setPkgId(pkg.getName() + pkg.getOs() + pkg.getAppVer() + pkg.getArch());
         pkg.setId(UUidUtil.getUUID32());
         return pkg;
     }
