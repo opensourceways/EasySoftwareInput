@@ -13,7 +13,12 @@ package com.easysoftwareinput.infrastructure.apppkg;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -25,9 +30,15 @@ import com.easysoftwareinput.infrastructure.apppkg.dataobject.AppDo;
 import com.easysoftwareinput.infrastructure.archnum.OsArchNumDO;
 import com.easysoftwareinput.infrastructure.archnum.converter.ArchNumConverter;
 import com.easysoftwareinput.infrastructure.mapper.AppDoMapper;
+import com.easysoftwareinput.infrastructure.rpmpkg.Gateway;
 
 @Component
-public class AppGatewayImpl extends ServiceImpl<AppDoMapper, AppDo> {
+public class AppGatewayImpl extends ServiceImpl<AppDoMapper, AppDo> implements Gateway<AppDo> {
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(AppGatewayImpl.class);
+
     /**
      * mapper.
      */
@@ -53,7 +64,12 @@ public class AppGatewayImpl extends ServiceImpl<AppDoMapper, AppDo> {
      */
     public boolean saveAll(List<AppPackage> appList) {
         List<AppDo> dList = converter.toDo(appList);
-        return saveOrUpdateBatch(dList, 50);
+        List<AppDo> existed = getExistedIds("pkg_id");
+        Set<String> existedPkgIds = existed.stream().map(AppDo::getPkgId).collect(Collectors.toSet());
+        Map<Boolean, List<AppDo>> map = dList.stream().collect(Collectors.partitioningBy(
+            pkg -> existedPkgIds.contains(pkg.getPkgId())
+        ));
+        return saveAndUpdate(map);
     }
 
     /**
@@ -119,5 +135,14 @@ public class AppGatewayImpl extends ServiceImpl<AppDoMapper, AppDo> {
                 .select(AppDo::getOs, AppDo::getArch, AppDo::getCount)
                 .groupBy(AppDo::getOs, AppDo::getArch).list();
         return archNumConverter.ofList(list, "IMAGE");
+    }
+
+    /**
+     * get logger.
+     * @return logger.
+     */
+    @Override
+    public Logger getLogger() {
+        return AppGatewayImpl.LOGGER;
     }
 }
