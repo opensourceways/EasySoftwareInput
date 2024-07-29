@@ -39,7 +39,6 @@ public class EasysoftwareinputApplication {
      */
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(EasysoftwareinputApplication.class, args);
-
         TaskWithArgs task = (TaskWithArgs) context.getBean(TaskWithArgs.class);
         task.execArgs();
         System.exit(0);

@@ -25,9 +25,11 @@ import org.springframework.stereotype.Component;
 import com.easysoftwareinput.common.utils.UUidUtil;
 import com.easysoftwareinput.domain.epkgpackage.model.EPKGPackage;
 import com.easysoftwareinput.infrastructure.epkgpkg.dataobject.EpkgDo;
+import com.easysoftwareinput.infrastructure.rpmpkg.IDataObject;
+import com.easysoftwareinput.infrastructure.rpmpkg.converter.IConverter;
 
-@Component
-public class EpkgConverter {
+@Component("EPKG")
+public class EpkgConverter implements IConverter {
     /**
      * pick order.
      */
@@ -143,5 +145,26 @@ public class EpkgConverter {
                 .thenComparing(pkg -> ORDER.indexOf(pkg.getArch()), Comparator.reverseOrder())
         ).collect(Collectors.toList());
         return sort.get(0);
+    }
+
+    /**
+     * group list by version.
+     */
+    @Override
+    public Map<String, List<IDataObject>> getVersionMap(List<IDataObject> list) {
+        return list.stream().collect(Collectors.groupingBy(IDataObject::getVersion));
+    }
+
+    /**
+     * pick one from list.
+     */
+    @Override
+    public IDataObject pickOneFromList(List<IDataObject> list) {
+        List<IDataObject> versionList = getLatestVersion(list);
+        if (versionList == null || versionList.isEmpty()) {
+            return null;
+        } else {
+            return versionList.get(0);
+        }
     }
 }

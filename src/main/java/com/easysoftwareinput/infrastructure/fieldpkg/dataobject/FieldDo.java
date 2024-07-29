@@ -110,4 +110,28 @@ public class FieldDo implements IDataObject {
             this.updateAt = (Timestamp) stamp.clone();
         }
     }
+
+    /**
+     * get appver.
+     */
+    @Override
+    public String getAppVer() {
+        return null;
+    }
+
+    /**
+     * get pkg id.
+     */
+    @Override
+    public String getPkgId() {
+        return null;
+    }
+
+    /**
+     * get maintianerid.
+     */
+    @Override
+    public String getMaintainerId() {
+        return this.maintainers;
+    }
 }

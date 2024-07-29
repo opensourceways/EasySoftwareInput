@@ -252,4 +252,12 @@ public class RPMPackageDO implements IDataObject {
             this.createAt = (Timestamp) stamp.clone();
         }
     }
+
+    /**
+     * get app ver.
+     */
+    @Override
+    public String getAppVer() {
+        return null;
+    }
 }
