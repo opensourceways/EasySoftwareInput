@@ -24,9 +24,11 @@ import org.springframework.stereotype.Component;
 import com.easysoftwareinput.common.utils.ObjectMapperUtil;
 import com.easysoftwareinput.domain.apppackage.model.AppPackage;
 import com.easysoftwareinput.infrastructure.apppkg.dataobject.AppDo;
+import com.easysoftwareinput.infrastructure.rpmpkg.IDataObject;
+import com.easysoftwareinput.infrastructure.rpmpkg.converter.IConverter;
 
-@Component
-public class AppConverter {
+@Component("APP")
+public class AppConverter implements IConverter {
     /**
      * pick order.
      */
@@ -143,5 +145,26 @@ public class AppConverter {
                 .thenComparing(pkg -> ORDER.indexOf(pkg.getArch()), Comparator.reverseOrder())
         ).collect(Collectors.toList());
         return sort.get(0);
+    }
+
+    /**
+     * pick one from list.
+     */
+    @Override
+    public IDataObject pickOneFromList(List<IDataObject> list) {
+        List<IDataObject> versionList = getLatestVersion(list);
+        if (versionList == null || versionList.isEmpty()) {
+            return null;
+        } else {
+            return versionList.get(0);
+        }
+    }
+
+    /**
+     * group list by verison.
+     */
+    @Override
+    public Map<String, List<IDataObject>> getVersionMap(List<IDataObject> list) {
+        return list.stream().collect(Collectors.groupingBy(IDataObject::getAppVer));
     }
 }

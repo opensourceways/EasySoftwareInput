@@ -145,7 +145,7 @@ public class RpmGatewayImpl extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO
      */
     public List<RPMPackageDO> getPkg(String os) {
         QueryWrapper<RPMPackageDO> wrapper = new QueryWrapper<>();
-        wrapper.select("os, arch, name, version, category, pkg_id, description, maintainer_id");
+        wrapper.select("os, arch, name, version, category, pkg_id, description, maintainer_id, sub_path");
         wrapper.eq("os", os);
         wrapper.and(i -> i.notLike("sub_path", "update"));
         wrapper.and(i -> i.likeRight("sub_path", "EPOL").or()

@@ -181,7 +181,7 @@ public class AppDo implements IDataObject {
     /**
      * Package ID.
      */
-    @TableId
+    @TableId(value = "pkg_id")
     private String pkgId;
 
     /**
@@ -251,6 +251,14 @@ public class AppDo implements IDataObject {
         if (stamp != null) {
             this.createAt = (Timestamp) stamp.clone();
         }
+    }
+
+    /**
+     * get version.
+     */
+    @Override
+    public String getVersion() {
+        return null;
     }
 }
 
