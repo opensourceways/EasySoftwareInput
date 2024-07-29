@@ -12,17 +12,20 @@
 package com.easysoftwareinput.infrastructure.rpmpkg.converter;
 
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
-import com.easysoftwareinput.domain.rpmpackage.model.RPMPackageDO;
 
-@Component
-public class RpmConverter {
+import com.easysoftwareinput.domain.rpmpackage.model.RPMPackageDO;
+import com.easysoftwareinput.infrastructure.rpmpkg.IDataObject;
+
+@Component("RPM")
+public class RpmConverter implements IConverter {
     /**
      * pick order.
      */
@@ -97,20 +100,86 @@ public class RpmConverter {
         } else if (size == 1) {
             return list.get(0);
         } else {
-            return pickLatestFromList(list);
+            // return pickLatestFromList(list);
+            return null;
         }
     }
 
     /**
-     * get latest pkg from list. 排序规则：1. 取最新版本 2. 如果版本相同，aarch64>x86_64>other
+     * pick list of pkgs from list.
+     * 排序规则：
+     *     1. 根据源排序，os->everything->epol
+     *     2. 选取最新版本
      * @param list list of pkg.
-     * @return pkg.
+     * @return list of pkgs.
      */
-    private  RPMPackageDO pickLatestFromList(List<RPMPackageDO> list) {
-        List<RPMPackageDO> sort = list.stream().sorted(
-                Comparator.comparing(RPMPackageDO::getVersion, Comparator.reverseOrder())
-                .thenComparing(pkg -> ORDER.indexOf(pkg.getArch()), Comparator.reverseOrder())
-        ).collect(Collectors.toList());
-        return sort.get(0);
+    private List<RPMPackageDO> pickLatestFromList(List<RPMPackageDO> list) {
+        // List<RPMPackageDO> versionList = getLatestVersion(list);
+        // return getPreferSource(versionList);
+        return null;
+    }
+
+    /**
+     * 排序规则：
+     *     1. 根据源排序，os->everything->epol
+     * @param list list of pkgs.
+     * @return list of pkgs.
+     */
+    public List<RPMPackageDO> getPreferSource(List<RPMPackageDO> list) {
+        Map<String, List<RPMPackageDO>> map = list.stream().collect(
+            Collectors.groupingBy(RPMPackageDO::getSubPath)
+        );
+
+        List<String> osSource = new ArrayList<>();
+        List<String> epolSource = new ArrayList<>();
+        List<String> everythingSource = new ArrayList<>();
+
+        for (String source : map.keySet()) {
+            String upper = source.toUpperCase(Locale.ROOT);
+            if (upper.startsWith("OS")) {
+                osSource.add(source);
+            } else if (upper.startsWith("EPOL")) {
+                epolSource.add(source);
+            } else if (upper.startsWith("EVERYTHING")) {
+                everythingSource.add(source);
+            } else {
+                int temp = 0;
+            }
+        }
+
+        if (!osSource.isEmpty()) {
+            return osSource.stream().map(s -> map.get(s)).flatMap(List::stream).collect(Collectors.toList());
+        } else if (!everythingSource.isEmpty()) {
+            return everythingSource.stream().map(s -> map.get(s)).flatMap(List::stream).collect(Collectors.toList());
+        } else if (!epolSource.isEmpty()) {
+            return epolSource.stream().map(s -> map.get(s)).flatMap(List::stream).collect(Collectors.toList());
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * pick one from list.
+     */
+    @Override
+    public IDataObject pickOneFromList(List<IDataObject> list) {
+        List<IDataObject> versionList = getLatestVersion(list);
+        List<RPMPackageDO> dList = versionList.stream().
+                filter(pkg -> pkg.getClass().equals(RPMPackageDO.class))
+                .map(pkg -> (RPMPackageDO) pkg).collect(Collectors.toList());
+        List<RPMPackageDO> sourceList = getPreferSource(dList);
+        if (sourceList == null || sourceList.isEmpty()) {
+            return null;
+        } else {
+            return sourceList.get(0);
+        }
+    }
+
+    /**
+     * group list by version.
+     */
+    @Override
+    public Map<String, List<IDataObject>> getVersionMap(List<IDataObject> list) {
+        return list.stream().collect(Collectors.groupingBy(IDataObject::getVersion));
     }
 }

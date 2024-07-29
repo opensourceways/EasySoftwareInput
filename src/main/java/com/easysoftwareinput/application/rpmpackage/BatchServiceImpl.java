@@ -27,6 +27,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -195,13 +197,13 @@ public class BatchServiceImpl extends ServiceImpl<BasePackageDOMapper, BasePacka
                 BasePackage bp = new BasePackage();
                 bp.setName(pkgName);
                 bp = upstreamService.addMaintainerInfo(bp);
-                if (bp.getMaintainerEmail() == null) {
+                if (StringUtils.isBlank(bp.getMaintainerEmail())) {
                     bp.setMaintainerEmail(maintainerConfig.getEmail());
                 }
-                if (bp.getMaintainerId() == null) {
+                if (StringUtils.isBlank(bp.getMaintainerId())) {
                     bp.setMaintainerId(maintainerConfig.getId());
                 }
-                if (bp.getMaintainerGiteeId() == null) {
+                if (StringUtils.isBlank(bp.getMaintainerGiteeId())) {
                     bp.setMaintainerGiteeId(maintainerConfig.getGiteeId());
                 }
                 bp = upstreamService.addRepoCategory(bp);

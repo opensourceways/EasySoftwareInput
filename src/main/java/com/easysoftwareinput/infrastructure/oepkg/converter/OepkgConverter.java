@@ -24,7 +24,7 @@ import com.power.common.util.StringUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Component
+@Component("OEPKG")
 @Slf4j
 public class OepkgConverter {
         /**
