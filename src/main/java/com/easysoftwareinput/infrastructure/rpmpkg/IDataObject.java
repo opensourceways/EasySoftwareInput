@@ -60,4 +60,10 @@ public interface IDataObject {
      * @return description.
      */
     String getDescription();
+
+    /**
+     * get icon url.
+     * @return icon url.
+     */
+    String getIconUrl();
 }
