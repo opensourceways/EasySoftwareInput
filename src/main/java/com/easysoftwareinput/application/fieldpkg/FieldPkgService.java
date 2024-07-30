@@ -214,7 +214,7 @@ public class FieldPkgService {
             } else if (EpkgDo.class.equals(cls)) {
                 setTag(field, "EPKG", iDataObject);
             } else if (AppDo.class.equals(cls)) {
-                setTag(field, "APP", iDataObject);
+                setTag(field, "IMAGE", iDataObject);
             }
         }
 
