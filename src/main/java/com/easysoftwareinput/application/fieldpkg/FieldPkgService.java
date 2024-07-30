@@ -240,6 +240,7 @@ public class FieldPkgService {
         } else if (AppDo.class.equals(idaDataObject.getClass())) {
             field.setVersion(idaDataObject.getAppVer());
         }
+        field.setIconUrl(idaDataObject.getIconUrl());
         field.setCategory(idaDataObject.getCategory());
         field.setDescription(idaDataObject.getDescription());
     }
