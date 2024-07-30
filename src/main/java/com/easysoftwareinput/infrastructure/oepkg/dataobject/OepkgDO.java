@@ -249,4 +249,12 @@ public class OepkgDO implements IDataObject {
     public String getAppVer() {
         return null;
     }
+
+    /**
+     * get icon url.
+     */
+    @Override
+    public String getIconUrl() {
+        return null;
+    }
 }
