@@ -126,6 +126,11 @@ public class RpmVerService {
         List<String> nameList = aliasMap.get(name);
         nameList = nameList == null ? Collections.emptyList() : nameList;
         for (String pkgName : nameList) {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                LOGGER.error("error in thread sleep, cause: {}", e.getMessage());
+            }
             EulerRpmVerOs euler = getEulerVersion(pkgName, config.getRpmEuler());
             list.add(euler);
         }
@@ -238,7 +243,7 @@ public class RpmVerService {
             eulerRpmVerOs.setVer(StringUtils.trimToEmpty(ver));
             return eulerRpmVerOs;
         } catch (Exception e) {
-            LOGGER.error("fail-to-get-euler-verison, url: {}", url);
+            LOGGER.error("fail-to-get-euler-verison, url: {}, cause: {}", url, e.getMessage());
             return null;
         }
     }
