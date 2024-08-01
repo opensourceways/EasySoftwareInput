@@ -12,7 +12,7 @@
 package com.easysoftwareinput.application.fieldpkg;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,7 +20,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -275,41 +279,214 @@ public class FieldPkgService {
     }
 
     /**
+     * refresh by os.
+     * @param os          os
+     * @param maxCount    data count limit
+     * @param nameCountMap analysis data: name and count group by name
+     * @param tableMap    table configuration
+     */
+    public void refreshByOsAsync(String os, int maxCount, Map<String, Integer> nameCountMap,
+                                 Map<String, Boolean> tableMap) {
+        Set<String> existedPkgs = fieldGateway.getPkgIds(os);
+        int maxCountLimit = maxCount;
+        String beginName = null;
+        String endName = null;
+        int size = nameCountMap.size();
+        for (Map.Entry<String, Integer> nameCount : nameCountMap.entrySet()) {
+            String name = nameCount.getKey();
+            Integer count = nameCount.getValue();
+            if (StringUtils.isEmpty(beginName)) {
+                beginName = name;
+            }
+            if (count > maxCountLimit || size == 1) {
+                endName = size == 1 ? name : endName;
+                refreshByNameAndOs(os, beginName, endName, tableMap, existedPkgs);
+                maxCountLimit = maxCount - count;
+                beginName = name;
+            } else {
+                maxCountLimit -= count;
+            }
+            endName = name;
+            size--;
+        }
+        nameCountMap.clear();
+        log.info("{} refresh success!", os);
+    }
+
+    /**
+     * refresh by os and name interval.
+     * @param os          os
+     * @param beginName   begin of name interval
+     * @param endName     end of name interval
+     * @param tableMap    table configuration
+     * @param existedPkgs exist pkgId collection
+     */
+    public void refreshByNameAndOs(String os, String beginName, String endName,
+                                   Map<String, Boolean> tableMap, Set<String> existedPkgs) {
+        boolean rpmEnable = tableMap.get("rpm");
+        boolean epkgEnable = tableMap.get("epkg");
+        boolean appEnable = tableMap.get("app");
+
+        List<FieldDTO> rpmFieldList = new ArrayList<>();
+        if (rpmEnable) {
+            List rpmPackageDOList = rpmGateway.getPkg(os, beginName, endName);
+            if (!rpmPackageDOList.isEmpty()) {
+                rpmFieldList = fieldConverter.toFieldDto(rpmPackageDOList);
+            }
+            rpmPackageDOList.clear();
+        }
+
+        List<FieldDTO> epkgFieldList = new ArrayList<>();
+        if (epkgEnable) {
+            List epkgDoList = epkgGateway.getPkg(os, beginName, endName);
+            if (!epkgDoList.isEmpty()) {
+                epkgFieldList = fieldConverter.toFieldDto(epkgDoList);
+            }
+            epkgDoList.clear();
+        }
+
+        List<FieldDTO> appFieldList = new ArrayList<>();
+        if (appEnable) {
+            List appDoList = appGateway.getPkg(os, beginName, endName);
+            if (!appDoList.isEmpty()) {
+                appFieldList = fieldConverter.toFieldDto(appDoList);
+            }
+            appDoList.clear();
+        }
+
+        List<Field> fList = mapToField(rpmFieldList, epkgFieldList, appFieldList);
+        rpmFieldList.clear();
+        epkgFieldList.clear();
+        appFieldList.clear();
+        fieldGateway.saveAll(fList, existedPkgs);
+        existedPkgs.clear();
+        fList.clear();
+    }
+
+    /**
+     * aggregate list data to map : key is os, value is TreeMap; TreeMap key is name, value is count.
+     * when both os and name are equal, add the count;
+     * use TreeMap with CASE_INSENSITIVE_ORDER to match mysql order
+     * @param list list data
+     * @return map
+     */
+    private Map<String, Map<String, Integer>> parseListToMap(List<IDataObject> list) {
+        return list.stream().
+                filter(IDataObject -> !StringUtils.isEmpty(IDataObject.getOs())).
+                collect(Collectors.groupingBy(IDataObject::getOs,
+                        Collectors.toMap(IDataObject::getName, IDataObject::getCount, Integer::sum,
+                                () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER))));
+    }
+
+    /**
      * run the program.
      */
     public void run() {
-        List<String> rpmOsList = rpmGateway.getOs();
-        List<String> epkgOsList = epkgGateway.getOs();
-        List<String> appOsList = appGateway.getOs();
-
         Set<String> osSet = new HashSet<>();
-        osSet.addAll(rpmOsList);
-        osSet.addAll(epkgOsList);
-        osSet.addAll(appOsList);
+        String updateOs = env.getProperty("field.refresh.os");
+        if (StringUtils.isNotEmpty(updateOs)) {
+            Arrays.stream(updateOs.split(",")).map(String::trim).forEach(osSet::add);
+        } else {
+            osSet.addAll(rpmGateway.getOs());
+            osSet.addAll(epkgGateway.getOs());
+            osSet.addAll(appGateway.getOs());
+        }
+        if (osSet.isEmpty()) {
+            log.info("can not find os that needs to be refreshed!");
+            return;
+        }
 
+        String limitCountStr = env.getProperty("field.refresh.limitCount");
+        if (StringUtils.isEmpty(limitCountStr)) {
+            log.error("required max limit count unset!");
+            return;
+        }
+
+        String tables = env.getProperty("field.refresh.tables");
+        if (StringUtils.isEmpty(tables)) {
+            log.error("refresh tables unset!");
+            return;
+        }
+
+        boolean rpmEnable = false;
+        boolean epkgEnable = false;
+        boolean appEnable = false;
+        String[] tableArr = tables.split(",");
+        for (String table : tableArr) {
+            if (table.trim().equals("rpm")) {
+                rpmEnable = true;
+            }
+            if (table.trim().equals("epkg")) {
+                epkgEnable = true;
+            }
+            if (table.trim().equals("app")) {
+                appEnable = true;
+            }
+        }
+        if (!rpmEnable && !epkgEnable && !appEnable) {
+            log.error("tables value only supports 'rpm','epkg','app'!");
+            return;
+        }
+        Map<String, Boolean> tableMap = new HashMap<>();
+        tableMap.put("rpm", rpmEnable);
+        tableMap.put("epkg", epkgEnable);
+        tableMap.put("app", appEnable);
+
+        int maxLimitCountByOs = Integer.parseInt(limitCountStr.trim()) / osSet.size();
+        List<String> osList = osSet.stream().toList();
+
+        Map<String, Map<String, Integer>> rpmOsNameCountMap = new HashMap<>();
+        if (rpmEnable) {
+            List rpmPackageDOList = rpmGateway.getNameCountByOs(osList);
+            rpmOsNameCountMap = parseListToMap(rpmPackageDOList);
+            rpmPackageDOList.clear();
+        }
+        Map<String, Map<String, Integer>> epkgOsNameCountMap = new HashMap<>();
+        if (epkgEnable) {
+            List epkgDoList = epkgGateway.getNameCountByOs(osList);
+            epkgOsNameCountMap = parseListToMap(epkgDoList);
+            epkgDoList.clear();
+        }
+        Map<String, Map<String, Integer>> appOsNameCountMap = new HashMap<>();
+        if (appEnable) {
+            List appDoList = appGateway.getNameCountByOs(osList);
+            appOsNameCountMap = parseListToMap(appDoList);
+            appDoList.clear();
+        }
+
+        Map<String, Map<String, Integer>> osNameCountMap =
+                Stream.of(rpmOsNameCountMap, epkgOsNameCountMap, appOsNameCountMap)
+                        .flatMap(stringMapMap -> stringMapMap.entrySet().stream())
+                        .collect(Collectors.toMap(
+                                Map.Entry::getKey,
+                                Map.Entry::getValue,
+                                (map1, map2) -> {
+                                    map2.forEach((k, v) -> map1.merge(k, v, Integer::sum));
+                                    return map1;
+                                }
+                        ));
+        rpmOsNameCountMap.clear();
+        epkgOsNameCountMap.clear();
+        appOsNameCountMap.clear();
+
+        String taskCountStr = env.getProperty("field.refresh.taskCount");
+        int taskCount = StringUtils.isEmpty(taskCountStr) ? 4 : Integer.parseInt(taskCountStr.trim());
+        ExecutorService executorService = Executors.newFixedThreadPool(taskCount);
         for (String os : osSet) {
-            // 是否启动单刷os
-            if (retryOsEnable.equals("true") && !retryOsList.contains(os)) {
-                continue;
+            Map<String, Integer> nameCountMap = osNameCountMap.get(os);
+            executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    refreshByOsAsync(os, maxLimitCountByOs, nameCountMap, tableMap);
+                }
+            });
+        }
+        executorService.shutdown();
+        while (true) {
+            if (executorService.isTerminated()) {
+                log.info("finish field pkg");
+                break;
             }
-            Set<String> existedPkgs = fieldGateway.getPkgIds(os);
-
-            List<FieldDTO> rpm = getRPMList(os);
-
-            List<FieldDTO> epkg = Collections.emptyList();
-
-            // 是否忽略epkg
-            if (epkgEnable.equals("true")) {
-                epkg = getEpkgList(os);
-            }
-
-            List<FieldDTO> app = getAppList(os);
-
-            List<Field> fList = mapToField(rpm, epkg, app);
-
-            fieldGateway.saveAll(fList, existedPkgs);
-
-            log.info("finish field pkg:" + os);
         }
     }
 }
