@@ -126,6 +126,26 @@ public class RpmGatewayImpl extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO
     }
 
     /**
+     * get distinct name filter by os from table.
+     * @param osList os collection
+     * @return list of name.
+     */
+    public List<RPMPackageDO> getNameCountByOs(List<String> osList) {
+        QueryWrapper<RPMPackageDO> wrapper = new QueryWrapper<>();
+        wrapper.select("os", "name", "count(*) as count");
+        wrapper.and(i -> i.notLike("sub_path", "update"));
+        wrapper.and(i -> i.likeRight("sub_path", "EPOL").or()
+                .likeRight("sub_path", "everything").or()
+                .likeRight("sub_path", "OS"));
+        if (osList != null && !osList.isEmpty()) {
+            wrapper.in("os", osList);
+        }
+        wrapper.groupBy("os", "name");
+        wrapper.orderByAsc("name");
+        return mapper.selectList(wrapper);
+    }
+
+    /**
      * get length of data row from table.
      * @param startTime startTime.
      * @return length of data.
@@ -151,6 +171,27 @@ public class RpmGatewayImpl extends ServiceImpl<RPMPackageDOMapper, RPMPackageDO
         wrapper.and(i -> i.likeRight("sub_path", "EPOL").or()
                 .likeRight("sub_path", "everything").or()
                 .likeRight("sub_path", "OS"));
+        return mapper.selectList(wrapper);
+    }
+
+    /**
+     * get pkg by os and name.
+     * @param os os.
+     * @param beginName equal or greater than the beginName.
+     * @param endName equal or less than the endName.
+     * @return list of pkgs.
+     */
+    public List<RPMPackageDO> getPkg(String os, String beginName, String endName) {
+        QueryWrapper<RPMPackageDO> wrapper = new QueryWrapper<>();
+        wrapper.select("os, arch, name, version, category, pkg_id, description, maintainer_id, sub_path");
+        wrapper.eq("os", os);
+        wrapper.ge("name", beginName);
+        wrapper.le("name", endName);
+        wrapper.and(i -> i.notLike("sub_path", "update"));
+        wrapper.and(i -> i.likeRight("sub_path", "EPOL").or()
+                .likeRight("sub_path", "everything").or()
+                .likeRight("sub_path", "OS"));
+        wrapper.orderByAsc("name");
         return mapper.selectList(wrapper);
     }
 

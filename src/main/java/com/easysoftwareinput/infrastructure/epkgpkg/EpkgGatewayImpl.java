@@ -137,6 +137,22 @@ public class EpkgGatewayImpl extends ServiceImpl<EpkgDoMapper, EpkgDo> {
     }
 
     /**
+     * get distinct name filter by os from table.
+     * @param osList os collection
+     * @return list of name.
+     */
+    public List<EpkgDo> getNameCountByOs(List<String> osList) {
+        QueryWrapper<EpkgDo> wrapper = new QueryWrapper<>();
+        wrapper.select("os", "name", "count(*) as count");
+        if (osList != null && !osList.isEmpty()) {
+            wrapper.in("os", osList);
+        }
+        wrapper.groupBy("os", "name");
+        wrapper.orderByAsc("name");
+        return mapper.selectList(wrapper);
+    }
+
+    /**
      * get list of pkgs by os.
      * @param os os.
      * @return list of pkgs.
@@ -145,6 +161,23 @@ public class EpkgGatewayImpl extends ServiceImpl<EpkgDoMapper, EpkgDo> {
         QueryWrapper<EpkgDo> wrapper = new QueryWrapper<>();
         wrapper.select("os, arch, name, version, category, pkg_id, description, maintainer_id");
         wrapper.eq("os", os);
+        return mapper.selectList(wrapper);
+    }
+
+    /**
+     * get list of pkgs by os and name.
+     * @param os os.
+     * @param beginName equal or greater than the beginName.
+     * @param endName   equal or less than the endName.
+     * @return list of pkgs.
+     */
+    public List<EpkgDo> getPkg(String os, String beginName, String endName) {
+        QueryWrapper<EpkgDo> wrapper = new QueryWrapper<>();
+        wrapper.select("os, arch, name, version, category, pkg_id, description, maintainer_id");
+        wrapper.eq("os", os);
+        wrapper.ge("name", beginName);
+        wrapper.le("name", endName);
+        wrapper.orderByAsc("name");
         return mapper.selectList(wrapper);
     }
 

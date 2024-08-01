@@ -87,6 +87,23 @@ public class AppGatewayImpl extends ServiceImpl<AppDoMapper, AppDo> implements G
         return osList;
     }
 
+
+    /**
+     * get distinct name filter by os from table.
+     * @param osList os collection
+     * @return list of name.
+     */
+    public List<AppDo> getNameCountByOs(List<String> osList) {
+        QueryWrapper<AppDo> wrapper = new QueryWrapper<>();
+        wrapper.select("os", "name", "count(*) as count");
+        if (osList != null && !osList.isEmpty()) {
+            wrapper.in("os", osList);
+        }
+        wrapper.groupBy("os", "name");
+        wrapper.orderByAsc("name");
+        return mapper.selectList(wrapper);
+    }
+
     /**
      * get pkgs by os.
      * @param os os.
@@ -96,6 +113,24 @@ public class AppGatewayImpl extends ServiceImpl<AppDoMapper, AppDo> implements G
         QueryWrapper<AppDo> wrapper = new QueryWrapper<>();
         wrapper.select("os, arch, name, app_ver, category, icon_url, pkg_id, description, maintainer_id");
         wrapper.eq("os", os);
+        return mapper.selectList(wrapper);
+    }
+
+
+    /**
+     * get pkgs by os and name.
+     * @param os os.
+     * @param beginName equal or greater than the beginName.
+     * @param endName equal or less than the endName.
+     * @return a list of pkg.
+     */
+    public List<AppDo> getPkg(String os, String beginName, String endName) {
+        QueryWrapper<AppDo> wrapper = new QueryWrapper<>();
+        wrapper.select("os, arch, name, app_ver, category, icon_url, pkg_id, description, maintainer_id");
+        wrapper.eq("os", os);
+        wrapper.ge("name", beginName);
+        wrapper.le("name", endName);
+        wrapper.orderByAsc("name");
         return mapper.selectList(wrapper);
     }
 
