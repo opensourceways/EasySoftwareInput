@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -365,6 +364,21 @@ public class FieldPkgService {
     }
 
     /**
+     * aggregate list data to map : key is os, value is TreeMap; TreeMap key is name, value is count.
+     * when both os and name are equal, add the count;
+     * use TreeMap with CASE_INSENSITIVE_ORDER to match mysql order
+     * @param list list data
+     * @return map
+     */
+    private Map<String, Map<String, Integer>> parseListToMap(List<IDataObject> list) {
+        return list.stream().
+                filter(IDataObject -> !StringUtils.isEmpty(IDataObject.getOs())).
+                collect(Collectors.groupingBy(IDataObject::getOs,
+                        Collectors.toMap(IDataObject::getName, IDataObject::getCount, Integer::sum,
+                                () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER))));
+    }
+
+    /**
      * run the program.
      */
     public void run() {
@@ -423,28 +437,23 @@ public class FieldPkgService {
 
         Map<String, Map<String, Integer>> rpmOsNameCountMap = new HashMap<>();
         if (rpmEnable) {
-            rpmOsNameCountMap = rpmGateway.getNameCountByOs(osList).stream().
-                    filter(Objects::nonNull).
-                    collect(Collectors.groupingBy(RPMPackageDO::getOs,
-                            Collectors.toMap(RPMPackageDO::getName, RPMPackageDO::getCount, Integer::sum,
-                                    () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER))));
+            List rpmPackageDOList = rpmGateway.getNameCountByOs(osList);
+            rpmOsNameCountMap = parseListToMap(rpmPackageDOList);
+            rpmPackageDOList.clear();
         }
         Map<String, Map<String, Integer>> epkgOsNameCountMap = new HashMap<>();
         if (epkgEnable) {
-            epkgOsNameCountMap = epkgGateway.getNameCountByOs(osList).stream().
-                    filter(EpkgDo -> !StringUtils.isEmpty(EpkgDo.getOs())).
-                    collect(Collectors.groupingBy(EpkgDo::getOs,
-                            Collectors.toMap(EpkgDo::getName, EpkgDo::getCount, Integer::sum,
-                                    () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER))));
+            List epkgDoList = epkgGateway.getNameCountByOs(osList);
+            epkgOsNameCountMap = parseListToMap(epkgDoList);
+            epkgDoList.clear();
         }
         Map<String, Map<String, Integer>> appOsNameCountMap = new HashMap<>();
         if (appEnable) {
-            appOsNameCountMap = appGateway.getNameCountByOs(osList).stream().
-                    filter(Objects::nonNull).
-                    collect(Collectors.groupingBy(AppDo::getOs,
-                            Collectors.toMap(AppDo::getName, AppDo::getCount, Integer::sum,
-                                    () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER))));
+            List appDoList = appGateway.getNameCountByOs(osList);
+            appOsNameCountMap = parseListToMap(appDoList);
+            appDoList.clear();
         }
+
         Map<String, Map<String, Integer>> osNameCountMap =
                 Stream.of(rpmOsNameCountMap, epkgOsNameCountMap, appOsNameCountMap)
                         .flatMap(stringMapMap -> stringMapMap.entrySet().stream())
@@ -465,11 +474,12 @@ public class FieldPkgService {
         ExecutorService executorService = Executors.newFixedThreadPool(taskCount);
         for (String os : osSet) {
             Map<String, Integer> nameCountMap = osNameCountMap.get(os);
-            Callable<String> task = () -> {
-                refreshByOsAsync(os, maxLimitCountByOs, nameCountMap, tableMap);
-                return null;
-            };
-            executorService.submit(task);
+            executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    refreshByOsAsync(os, maxLimitCountByOs, nameCountMap, tableMap);
+                }
+            });
         }
         executorService.shutdown();
         while (true) {
