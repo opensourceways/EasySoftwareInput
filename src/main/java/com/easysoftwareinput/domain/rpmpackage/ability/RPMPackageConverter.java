@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 import com.easysoftwareinput.common.constant.MapConstant;
 import com.easysoftwareinput.common.entity.MessageCode;
 import com.easysoftwareinput.common.utils.UUidUtil;
+import com.easysoftwareinput.domain.maintainer.MaintainerConfig;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackage;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackageDO;
 import com.easysoftwareinput.infrastructure.BasePackageDO;
@@ -65,6 +66,12 @@ public class RPMPackageConverter {
      */
     @Autowired
     private ObjectMapper objectMapper;
+
+    /**
+     * maintainer config.
+     */
+    @Autowired
+    private MaintainerConfig maintainerConfig;
 
     /**
      * convert rpm pkg to rpm data object.
@@ -246,15 +253,24 @@ public class RPMPackageConverter {
         setPkgSubPath(pkg, camelMap);
         setPkgPkgId(pkg);
 
-        if (maintainers.containsKey(pkg.getName())) {
-            BasePackageDO base = maintainers.get(pkg.getName());
-            pkg.setCategory(base.getCategory());
-            pkg.setDownloadCount(base.getDownloadCount());
-            pkg.setMaintainerEmail(base.getMaintainerEmail());
-            pkg.setMaintainerGiteeId(base.getMaintainerGiteeId());
-            pkg.setMaintainerId(base.getMaintainerId());
-            pkg.setMaintainerUpdateAt(base.getMaintainerUpdateAt());
+        String srcName = getRepoName(pkg, camelMap);
+
+        BasePackageDO base = maintainers.get(srcName);
+        if (base == null) {
+            base = new BasePackageDO();
+            base.setMaintainerEmail(maintainerConfig.getEmail());
+            base.setMaintainerGiteeId(maintainerConfig.getGiteeId());
+            base.setMaintainerId(maintainerConfig.getId());
+            base.setCategory(MapConstant.CATEGORY_MAP.get("Other"));
         }
+
+        pkg.setCategory(base.getCategory());
+        pkg.setDownloadCount(base.getDownloadCount());
+        pkg.setMaintainerEmail(base.getMaintainerEmail());
+        pkg.setMaintainerGiteeId(base.getMaintainerGiteeId());
+        pkg.setMaintainerId(base.getMaintainerId());
+        pkg.setMaintainerUpdateAt(base.getMaintainerUpdateAt());
+
 
         if (StringUtils.isBlank(pkg.getCategory())) {
             pkg.setCategory(MapConstant.APP_CATEGORY_MAP.get("others"));
