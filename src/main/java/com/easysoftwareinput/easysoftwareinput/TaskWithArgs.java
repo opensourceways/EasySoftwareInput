@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +24,7 @@ import com.easysoftwareinput.application.oepkg.OepkgService;
 import com.easysoftwareinput.application.operationconfig.OperationConfigService;
 import com.easysoftwareinput.application.rpmpackage.BatchServiceImpl;
 import com.easysoftwareinput.application.rpmpackage.RPMPackageService;
-
+import com.easysoftwareinput.common.dag.DagTaskExecutor;
 
 @Component
 public class TaskWithArgs {
@@ -48,6 +47,7 @@ public class TaskWithArgs {
 
     /**
      * get service.
+     *
      * @return list of services.
      */
     public List<String> getService() {
@@ -60,8 +60,7 @@ public class TaskWithArgs {
 
         String[] splits = service1.split(",");
         return Arrays.stream(splits).filter(
-            s -> !StringUtils.isBlank(StringUtils.trimToEmpty(s))
-        ).collect(Collectors.toList());
+                s -> !StringUtils.isBlank(StringUtils.trimToEmpty(s))).collect(Collectors.toList());
     }
 
     /**
@@ -81,6 +80,7 @@ public class TaskWithArgs {
 
     /**
      * exec service.
+     *
      * @param service service.
      */
     public void execService(String service) {
@@ -120,6 +120,24 @@ public class TaskWithArgs {
         } else if ("MAINTAINER".equals(service)) {
             BatchServiceImpl ma = (BatchServiceImpl) context.getBean(BatchServiceImpl.class);
             ma.run();
+        } else if ("ARRANGE".equals(service)) {
+            ArchNumService arch = (ArchNumService) context.getBean(ArchNumService.class);
+            DomainPkgService domain = (DomainPkgService) context.getBean(DomainPkgService.class);
+            OperationConfigService op = (OperationConfigService) context.getBean(OperationConfigService.class);
+            AppPackageService app = (AppPackageService) context.getBean(AppPackageService.class);
+
+            DagTaskExecutor dag = new DagTaskExecutor();
+            dag.addTaskObj("ARCHNUM", arch);
+            dag.addTaskObj("DOMAIN", domain);
+            dag.addTaskObj("OPERATIONCONFIG", op);
+            dag.addTaskObj("APP", app);
+
+            dag.addDependency("APP", "DOMAIN");
+            dag.addDependency("APP", "OPERATIONCONFIG");
+            dag.addDependency("DOMAIN", "ARCHNUM");
+            dag.addDependency("OPERATIONCONFIG", "ARCHNUM");
+
+            dag.executeConcurrent();
         } else {
             LOGGER.info("unrecognized service: {}", service);
         }
