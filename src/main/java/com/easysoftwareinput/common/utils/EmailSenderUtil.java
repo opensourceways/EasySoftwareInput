@@ -1,25 +1,39 @@
 package com.easysoftwareinput.common.utils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.mail.*;
-import javax.mail.internet.*;
-import java.util.Properties;
 
-public class EmailSenderUtil {
+import javax.mail.Authenticator;
+import javax.mail.PasswordAuthentication;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.util.Properties;
+import javax.mail.Message;
+import javax.mail.Transport;
+import javax.mail.Session;
+
+public final class EmailSenderUtil {
+    private EmailSenderUtil() {
+        // private constructor to hide the implicit public one
+        throw new AssertionError("ClientUtil class cannot be instantiated.");
+    }
+
+    /**
+     * logger.
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(EmailSenderUtil.class);
 
     /**
-     * @param host        发件人的SMTP服务器地址
-     * @param userName    发件人的邮箱用户名
-     * @param password    发件人的邮箱授权码
-     * @param toAddress   收件人电子邮件地址
-     * @param fromAddress 发件人电子邮件地址
-     * @param subject     邮件主题
-     * @param emailBody   邮件内容
+     * @param host      发件人的SMTP服务器地址
+     * @param user      发件人的邮箱用户名
+     * @param password  发件人的邮箱授权码
+     * @param to        收件人电子邮件地址
+     * @param from      发件人电子邮件地址
+     * @param subject   邮件主题
+     * @param emailBody 邮件内容
      */
-    public static void sendEmail(final String host, final String userName, final String password, String fromAddress, String toAddress, String subject, String emailBody) {
+    public static void sendEmail(final String host, final String user, final String password, String from, String to,
+                                 String subject, String emailBody) {
         // SMTP服务器端口号
         final String port = "587";  // 对于TLS
         // final String port = "465";  // 对于SSL
@@ -36,7 +50,7 @@ public class EmailSenderUtil {
         // 获取默认的Session对象
         Session session = Session.getInstance(properties, new Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(userName, password);
+                return new PasswordAuthentication(user, password);
             }
         });
 
@@ -45,10 +59,10 @@ public class EmailSenderUtil {
             MimeMessage message = new MimeMessage(session);
 
             // 设置发件人
-            message.setFrom(new InternetAddress(fromAddress));
+            message.setFrom(new InternetAddress(from));
 
             // 设置收件人
-            message.addRecipient(Message.RecipientType.TO, new InternetAddress(toAddress));
+            message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
 
             // 设置邮件主题
             message.setSubject(subject);
