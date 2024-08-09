@@ -62,6 +62,11 @@ public interface Gateway<T> extends IService<T> {
         String time = sdf.format(startTime);
         QueryWrapper<T> wrapper = new QueryWrapper<>();
         wrapper.ge("update_at", time);
-        return count(wrapper);
+        try {
+            return count(wrapper);
+        } catch (Exception e) {
+            getLogger().error("fail-to-getChangedRow, e: {}", e.getMessage());
+            return 0;
+        }
     }
 }
