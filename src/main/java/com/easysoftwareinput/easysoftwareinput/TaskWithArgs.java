@@ -25,6 +25,7 @@ import com.easysoftwareinput.application.oepkg.OepkgService;
 import com.easysoftwareinput.application.operationconfig.OperationConfigService;
 import com.easysoftwareinput.application.rpmpackage.BatchServiceImpl;
 import com.easysoftwareinput.application.rpmpackage.RPMPackageService;
+import com.easysoftwareinput.common.dag.DagTaskExecutor;
 
 
 @Component
@@ -120,6 +121,49 @@ public class TaskWithArgs {
         } else if ("MAINTAINER".equals(service)) {
             BatchServiceImpl ma = (BatchServiceImpl) context.getBean(BatchServiceImpl.class);
             ma.run();
+        } else if ("TESTDAG".equals(service)) {
+            AppPackageService app = (AppPackageService) context.getBean(AppPackageService.class);
+            AppVerService appVerService = (AppVerService) context.getBean(AppVerService.class);
+            RpmVerService rpmVerService = (RpmVerService) context.getBean(RpmVerService.class);
+            RPMPackageService rpm = (RPMPackageService) context.getBean(RPMPackageService.class);
+            DomainPkgService domain = (DomainPkgService) context.getBean(DomainPkgService.class);
+            FieldPkgService field = (FieldPkgService) context.getBean(FieldPkgService.class);
+            EPKGPackageService epkg = (EPKGPackageService) context.getBean(EPKGPackageService.class);
+            OepkgService oepkg = (OepkgService) context.getBean(OepkgService.class);
+            ArchNumService arch = (ArchNumService) context.getBean(ArchNumService.class);
+            OperationConfigService op = (OperationConfigService) context.getBean(OperationConfigService.class);
+            ExternalOsService ex = (ExternalOsService) context.getBean(ExternalOsService.class);
+            BatchServiceImpl ma = (BatchServiceImpl) context.getBean(BatchServiceImpl.class);
+
+            DagTaskExecutor executor = new DagTaskExecutor();
+            executor.addTaskObj("APP", app);
+            executor.addTaskObj("APPVER", appVerService);
+            executor.addTaskObj("RPMVER", rpmVerService);
+            executor.addTaskObj("RPM", rpm);
+            executor.addTaskObj("DOMAIN", domain);
+            executor.addTaskObj("FIELD", field);
+            executor.addTaskObj("EPKG", epkg);
+            executor.addTaskObj("OEPKG", oepkg);
+            executor.addTaskObj("ARCH", arch);
+            executor.addTaskObj("OPERATIONCONFIG", op);
+            executor.addTaskObj("EXTERNALOS", ex);
+            executor.addTaskObj("MAINTAINER", ma);
+
+            executor.addDependency("APP", "ARCH");
+            executor.addDependency("RPM", "ARCH");
+            executor.addDependency("FIELD", "ARCH");
+            executor.addDependency("EPKG", "ARCH");
+            executor.addDependency("OEPKG", "ARCH");
+
+            executor.addDependency("FIELD", "DOMAIN");
+
+            executor.addDependency("APP", "FIELD");
+            executor.addDependency("RPM", "FIELD");
+
+            executor.addDependency("MAINTAINER", "RPM");
+
+            executor.dependencyCheck();
+            executor.executeConcurrent();
         } else {
             LOGGER.info("unrecognized service: {}", service);
         }
