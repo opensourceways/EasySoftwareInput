@@ -131,8 +131,6 @@ public class TaskWithArgs {
             EPKGPackageService epkg = (EPKGPackageService) context.getBean(EPKGPackageService.class);
             OepkgService oepkg = (OepkgService) context.getBean(OepkgService.class);
             ArchNumService arch = (ArchNumService) context.getBean(ArchNumService.class);
-            OperationConfigService op = (OperationConfigService) context.getBean(OperationConfigService.class);
-            ExternalOsService ex = (ExternalOsService) context.getBean(ExternalOsService.class);
             BatchServiceImpl ma = (BatchServiceImpl) context.getBean(BatchServiceImpl.class);
 
             DagTaskExecutor executor = new DagTaskExecutor();
@@ -145,8 +143,6 @@ public class TaskWithArgs {
             executor.addTaskObj("EPKG", epkg);
             executor.addTaskObj("OEPKG", oepkg);
             executor.addTaskObj("ARCH", arch);
-            executor.addTaskObj("OPERATIONCONFIG", op);
-            executor.addTaskObj("EXTERNALOS", ex);
             executor.addTaskObj("MAINTAINER", ma);
 
             executor.addDependency("APP", "ARCH");
@@ -161,6 +157,8 @@ public class TaskWithArgs {
             executor.addDependency("RPM", "FIELD");
 
             executor.addDependency("MAINTAINER", "RPM");
+            executor.addDependency("APP", "APPVER");
+            executor.addDependency("RPM", "RPMVER");
 
             executor.dependencyCheck();
             executor.executeConcurrent();
