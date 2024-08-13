@@ -25,4 +25,14 @@ public class MaintainerConfig {
      * gitee id.
      */
     private String giteeId;
+
+    /**
+     * sig url.
+     */
+    private String sigUrl;
+
+    /**
+     * maintainer url.
+     */
+    private String maintainerUrl;
 }
