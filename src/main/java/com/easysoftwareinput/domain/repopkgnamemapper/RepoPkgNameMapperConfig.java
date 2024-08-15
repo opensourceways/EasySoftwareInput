@@ -9,7 +9,7 @@
  See the Mulan PSL v2 for more details.
 */
 
-package com.easysoftwareinput.domain.rpmpackage.model;
+package com.easysoftwareinput.domain.repopkgnamemapper;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -18,42 +18,22 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Component
-@ConfigurationProperties(prefix = "git-repo")
 @Getter
 @Setter
-public class GitRepoConfig {
+@ConfigurationProperties(prefix = "repo-pkg-name-mapper")
+public class RepoPkgNameMapperConfig {
     /**
-     * org-template.
+     * org.
      */
-    private String orgTemplate;
+    private String org;
 
     /**
-     * repo branch template.
+     * repo url.
      */
-    private String repoBranchTemplate;
+    private String repoUrlTemplate;
 
     /**
-     * tree template.
+     * local dir.
      */
-    private String treeTemplate;
-
-    /**
-     * blob text template.
-     */
-    private String blobTextTemplate;
-
-    /**
-     * token.
-     */
-    private String token;
-
-    /**
-     * per page.
-     */
-    private String perPage;
-
-    /**
-     * page interval.
-     */
-    private int pageInterval;
+    private String dir;
 }
