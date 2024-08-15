@@ -70,6 +70,17 @@ public final class ObjectMapperUtil {
     }
 
     /**
+     * convert object to type.
+     * @param <T> generic type.
+     * @param obj obj.
+     * @param t type reference.
+     * @return t.
+     */
+    public static <T> T convertValue(Object obj, TypeReference<T> t) {
+        return objectMapper.convertValue(obj, t);
+    }
+
+    /**
      * writeValueAsString.
      * @param obj object.
      * @return string.
