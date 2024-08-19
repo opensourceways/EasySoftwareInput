@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.easysoftwareinput.application.oepkg.IService;
@@ -74,6 +75,12 @@ public class ArchNumService implements IService {
     private OePkgEntity context;
 
     /**
+     * epkg enable.
+     */
+    @Value("${epkg.enable}")
+    private boolean epkgEnable;
+
+    /**
      * init context.
      * @return context.
      */
@@ -135,9 +142,12 @@ public class ArchNumService implements IService {
         tasks.add(CompletableFuture.supplyAsync(() -> {
             return appGateway.getOsArchNum();
         }));
-        tasks.add(CompletableFuture.supplyAsync(() -> {
-            return epkgGateway.getOsArchNum();
-        }));
+        if (epkgEnable) {
+            tasks.add(CompletableFuture.supplyAsync(() -> {
+                return epkgGateway.getOsArchNum();
+            }));
+        }
+
         tasks.add(CompletableFuture.supplyAsync(() -> {
             return fieldGateway.getOsArchNum();
         }));
