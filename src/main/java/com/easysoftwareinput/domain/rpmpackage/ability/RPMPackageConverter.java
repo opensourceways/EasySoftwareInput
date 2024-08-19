@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,6 +36,7 @@ import com.easysoftwareinput.domain.maintainer.MaintainerConfig;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackage;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackageDO;
 import com.easysoftwareinput.infrastructure.BasePackageDO;
+import com.easysoftwareinput.infrastructure.repopkgnamemapper.RepoPkgNameMapperGatewayImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.power.common.util.StringUtil;
@@ -72,6 +74,12 @@ public class RPMPackageConverter {
      */
     @Autowired
     private MaintainerConfig maintainerConfig;
+
+    /**
+     * repo gateway.
+     */
+    @Autowired
+    private RepoPkgNameMapperGatewayImpl repoGateway;
 
     /**
      * convert rpm pkg to rpm data object.
@@ -143,7 +151,7 @@ public class RPMPackageConverter {
             return;
         }
 
-        String name = getRepoName(pkg, camelMap);
+        String name = getSrcName(pkg, camelMap);
         String url;
         if (repoNames.contains(name)) {
             url = official + name;
@@ -178,7 +186,7 @@ public class RPMPackageConverter {
      * @param camelMap map.
      * @return name.
      */
-    public String getRepoName(RPMPackage pkg, Map<String, String> camelMap) {
+    public String getSrcName(RPMPackage pkg, Map<String, String> camelMap) {
         if ("src".equals(pkg.getArch())) {
             return pkg.getName();
         }
@@ -253,9 +261,52 @@ public class RPMPackageConverter {
         setPkgSubPath(pkg, camelMap);
         setPkgPkgId(pkg);
 
-        String srcName = getRepoName(pkg, camelMap);
+        setPkgMaintainers(maintainers, pkg, camelMap);
 
+
+        if (StringUtils.isBlank(pkg.getCategory())) {
+            pkg.setCategory(MapConstant.APP_CATEGORY_MAP.get("others"));
+        }
+        return pkg;
+    }
+
+    /**
+     * get maintainer by repo.
+     * @param maintainers maintainers.
+     * @param srcName src name.
+     * @return maintainer.
+     */
+    public BasePackageDO getMaintainerByRepo(Map<String, BasePackageDO> maintainers, String srcName) {
+        List<String> repoUrlList = repoGateway.getRepoUrlByName(srcName);
+        if (repoUrlList == null || repoUrlList.isEmpty()) {
+            return null;
+        }
+        Set<String> urlSet = new HashSet<>(repoUrlList);
+        for (String url : urlSet) {
+            String[] splits = url.split("/");
+            String repo = splits[splits.length - 1];
+            BasePackageDO pkg = maintainers.get(repo);
+            if (pkg != null) {
+                return pkg;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * set pkg maintainer.
+     * @param maintainers maintainers.
+     * @param pkg pkg.
+     * @param camelMap camel map.
+     */
+    public void setPkgMaintainers(Map<String, BasePackageDO> maintainers, RPMPackage pkg,
+            Map<String, String> camelMap) {
+        String srcName = getSrcName(pkg, camelMap);
         BasePackageDO base = maintainers.get(srcName);
+        if (base == null) {
+            base = getMaintainerByRepo(maintainers, srcName);
+        }
+
         if (base == null) {
             base = new BasePackageDO();
             base.setMaintainerEmail(maintainerConfig.getEmail());
@@ -270,12 +321,6 @@ public class RPMPackageConverter {
         pkg.setMaintainerGiteeId(base.getMaintainerGiteeId());
         pkg.setMaintainerId(base.getMaintainerId());
         pkg.setMaintainerUpdateAt(base.getMaintainerUpdateAt());
-
-
-        if (StringUtils.isBlank(pkg.getCategory())) {
-            pkg.setCategory(MapConstant.APP_CATEGORY_MAP.get("others"));
-        }
-        return pkg;
     }
 
     /**
