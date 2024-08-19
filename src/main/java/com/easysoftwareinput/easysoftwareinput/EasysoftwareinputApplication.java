@@ -13,7 +13,6 @@ package com.easysoftwareinput.easysoftwareinput;
 
 import java.util.List;
 
-import com.easysoftwareinput.application.elasticsearch.SynchronizeEsService;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -41,12 +40,8 @@ public class EasysoftwareinputApplication {
      */
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(EasysoftwareinputApplication.class, args);
-       /* TaskWithArgs task = (TaskWithArgs) context.getBean(TaskWithArgs.class);
+        TaskWithArgs task = (TaskWithArgs) context.getBean(TaskWithArgs.class);
         task.execArgs();
-        System.exit(0);*/
-
-        SynchronizeEsService task = (SynchronizeEsService) context.getBean(SynchronizeEsService.class);
-        task.run();
         System.exit(0);
     }
 

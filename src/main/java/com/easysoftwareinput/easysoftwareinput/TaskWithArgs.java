@@ -5,6 +5,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.easysoftwareinput.application.elasticsearch.SearchAppService;
+import com.easysoftwareinput.application.elasticsearch.SearchAppverService;
+import com.easysoftwareinput.application.elasticsearch.SearchEpkgService;
+import com.easysoftwareinput.application.elasticsearch.SearchRpmService;
+import com.easysoftwareinput.application.elasticsearch.SearchFieldService;
+import com.easysoftwareinput.application.elasticsearch.SearchOepkgService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +55,7 @@ public class TaskWithArgs {
 
     /**
      * get service.
+     *
      * @return list of services.
      */
     public List<String> getService() {
@@ -61,7 +68,7 @@ public class TaskWithArgs {
 
         String[] splits = service1.split(",");
         return Arrays.stream(splits).filter(
-            s -> !StringUtils.isBlank(StringUtils.trimToEmpty(s))
+                s -> !StringUtils.isBlank(StringUtils.trimToEmpty(s))
         ).collect(Collectors.toList());
     }
 
@@ -82,6 +89,7 @@ public class TaskWithArgs {
 
     /**
      * exec service.
+     *
      * @param service service.
      */
     public void execService(String service) {
@@ -132,7 +140,13 @@ public class TaskWithArgs {
             OepkgService oepkg = (OepkgService) context.getBean(OepkgService.class);
             ArchNumService arch = (ArchNumService) context.getBean(ArchNumService.class);
             BatchServiceImpl ma = (BatchServiceImpl) context.getBean(BatchServiceImpl.class);
+            SearchRpmService searchRpm = (SearchRpmService) context.getBean(SearchRpmService.class);
 
+            SearchAppService searchApp = (SearchAppService) context.getBean(SearchAppService.class);
+            SearchAppverService searchAppver = (SearchAppverService) context.getBean(SearchAppverService.class);
+            SearchEpkgService searchEpkg = (SearchEpkgService) context.getBean(SearchEpkgService.class);
+            SearchFieldService searchField = (SearchFieldService) context.getBean(SearchFieldService.class);
+            SearchOepkgService searchOepkg = (SearchOepkgService) context.getBean(SearchOepkgService.class);
             DagTaskExecutor executor = new DagTaskExecutor();
             executor.addTaskObj("APP", app);
             executor.addTaskObj("APPVER", appVerService);
@@ -144,6 +158,14 @@ public class TaskWithArgs {
             executor.addTaskObj("OEPKG", oepkg);
             executor.addTaskObj("ARCH", arch);
             executor.addTaskObj("MAINTAINER", ma);
+
+            executor.addTaskObj("searchRpm", searchRpm);
+            executor.addTaskObj("searchApp", searchApp);
+            executor.addTaskObj("searchAppver", searchAppver);
+            executor.addTaskObj("searchEpkg", searchEpkg);
+            executor.addTaskObj("searchField", searchField);
+            executor.addTaskObj("searchOepkg", searchOepkg);
+
 
             executor.addDependency("APP", "ARCH");
             executor.addDependency("RPM", "ARCH");
@@ -159,6 +181,13 @@ public class TaskWithArgs {
             executor.addDependency("MAINTAINER", "RPM");
             executor.addDependency("APP", "APPVER");
             executor.addDependency("RPM", "RPMVER");
+
+            executor.addDependency("APP", "searchApp");
+            executor.addDependency("RPM", "searchRpm");
+            executor.addDependency("APPVER", "searchAppver");
+            executor.addDependency("EPKG", "searchEpkg");
+            executor.addDependency("FIELD", "searchField");
+            executor.addDependency("OEPKG", "searchOepkg");
 
             executor.dependencyCheck();
             executor.executeConcurrent();
