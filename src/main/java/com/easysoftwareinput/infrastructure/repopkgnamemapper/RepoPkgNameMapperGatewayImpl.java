@@ -11,10 +11,12 @@
 
 package com.easysoftwareinput.infrastructure.repopkgnamemapper;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,5 +73,20 @@ public class RepoPkgNameMapperGatewayImpl extends ServiceImpl<RepoPkgNameDOMappe
     @Override
     public Logger getLogger() {
         return RepoPkgNameMapperGatewayImpl.LOGGER;
+    }
+
+    /**
+     * get repo url by name.
+     * @param name name.
+     * @return list of repo urls.
+     */
+    public List<String> getRepoUrlByName(String name) {
+        List<RepoPkgNameDO> list = lambdaQuery().select(RepoPkgNameDO::getRepoUrl)
+                .eq(RepoPkgNameDO::getName, name).list();
+        if (list == null || list.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return list.stream().map(RepoPkgNameDO::getRepoUrl)
+                .filter(StringUtils::isNotBlank).collect(Collectors.toList());
     }
 }
