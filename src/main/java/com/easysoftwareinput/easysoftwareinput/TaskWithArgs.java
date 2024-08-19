@@ -23,6 +23,7 @@ import com.easysoftwareinput.application.externalos.ExternalOsService;
 import com.easysoftwareinput.application.fieldpkg.FieldPkgService;
 import com.easysoftwareinput.application.oepkg.OepkgService;
 import com.easysoftwareinput.application.operationconfig.OperationConfigService;
+import com.easysoftwareinput.application.repopkgnamemapper.RepoPkgNameMapperService;
 import com.easysoftwareinput.application.rpmpackage.BatchServiceImpl;
 import com.easysoftwareinput.application.rpmpackage.RPMPackageService;
 import com.easysoftwareinput.common.dag.DagTaskExecutor;
@@ -121,6 +122,10 @@ public class TaskWithArgs {
         } else if ("MAINTAINER".equals(service)) {
             BatchServiceImpl ma = (BatchServiceImpl) context.getBean(BatchServiceImpl.class);
             ma.run();
+        } else if ("SRCREPO".equals(service)) {
+            RepoPkgNameMapperService repo =
+                    (RepoPkgNameMapperService) context.getBean(RepoPkgNameMapperService.class);
+            repo.run();
         } else if ("arrangement".equals(service)) {
             AppPackageService app = (AppPackageService) context.getBean(AppPackageService.class);
             AppVerService appVerService = (AppVerService) context.getBean(AppVerService.class);
