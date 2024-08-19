@@ -61,7 +61,10 @@ public class SynchronizeEsService {
      * run the program.
      */
     public void run() {
-        Arrays.asList("APP", "APPVER", "FIELD", "EPKG", "OEPKG","RPM");
+        List<String> types = Arrays.asList("APP", "APPVER", "FIELD", "EPKG", "OEPKG", "RPM");
+        for (String pkg : types) {
+            dbDataImportToEs(pkg);
+        }
     }
 
 

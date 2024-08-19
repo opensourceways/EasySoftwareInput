@@ -13,6 +13,7 @@ package com.easysoftwareinput.easysoftwareinput;
 
 import java.util.List;
 
+import com.easysoftwareinput.application.elasticsearch.SynchronizeEsService;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -28,24 +29,30 @@ import com.baomidou.mybatisplus.autoconfigure.DdlApplicationRunner;
 
 @EnableAsync
 @EnableRetry
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.easysoftwareinput"})
 @ComponentScan(basePackages = {"com.easysoftwareinput.*"})
 @MapperScan("com.easysoftwareinput.infrastructure.mapper")
 @EnableTransactionManagement
 public class EasysoftwareinputApplication {
     /**
      * run the program.
+     *
      * @param args args.
      */
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(EasysoftwareinputApplication.class, args);
-        TaskWithArgs task = (TaskWithArgs) context.getBean(TaskWithArgs.class);
+       /* TaskWithArgs task = (TaskWithArgs) context.getBean(TaskWithArgs.class);
         task.execArgs();
+        System.exit(0);*/
+
+        SynchronizeEsService task = (SynchronizeEsService) context.getBean(SynchronizeEsService.class);
+        task.run();
         System.exit(0);
     }
 
     /**
      * slove the issue of mybatis with springboot3.
+     *
      * @param ddlList ddlList.
      * @return DdlApplicationRunner.
      */
