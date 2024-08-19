@@ -121,7 +121,7 @@ public class TaskWithArgs {
         } else if ("MAINTAINER".equals(service)) {
             BatchServiceImpl ma = (BatchServiceImpl) context.getBean(BatchServiceImpl.class);
             ma.run();
-        } else if ("TESTDAG".equals(service)) {
+        } else if ("arrangement".equals(service)) {
             AppPackageService app = (AppPackageService) context.getBean(AppPackageService.class);
             AppVerService appVerService = (AppVerService) context.getBean(AppVerService.class);
             RpmVerService rpmVerService = (RpmVerService) context.getBean(RpmVerService.class);
