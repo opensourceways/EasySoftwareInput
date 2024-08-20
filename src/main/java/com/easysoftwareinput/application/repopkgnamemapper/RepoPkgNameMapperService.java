@@ -126,8 +126,10 @@ public class RepoPkgNameMapperService {
             }
             String context = Base64Util.decryptToString(pkg.getRawSpecContext());
             String pkgName = getSpecficName(context.lines().collect(Collectors.toList()), pkg.getRepoName());
-            pkg.setPkgName(pkgName);
-            updatedList.add(pkg);
+            if (!StringUtils.isBlank(pkgName)) {
+                pkg.setPkgName(pkgName);
+                updatedList.add(pkg);
+            }
         }
         gateway.saveAll(updatedList, existedPkgIds);
         long end = System.currentTimeMillis();
@@ -162,7 +164,14 @@ public class RepoPkgNameMapperService {
         String fullName = lines.stream().filter(
             line -> StringUtils.startsWithIgnoreCase(line, "name:")
         ).findFirst().orElse("");
+        if (StringUtils.isBlank(fullName)) {
+            return null;
+        }
         String name = StringUtils.trimToNull(fullName.substring(5));
+        if (StringUtils.isBlank(name)) {
+            LOGGER.error("no name, repo: {}", file);
+            return null;
+        }
 
         while (true) {
             String[] virtualNames = StringUtils.substringsBetween(name, START_MARKER, END_MARKER);
@@ -173,7 +182,9 @@ public class RepoPkgNameMapperService {
             }
             for (String virtualName : virtualNames) {
                 String actualName = getActualName(virtualName, lines, file);
-                name = name.replace(virtualName, actualName);
+                if (!StringUtils.isBlank(actualName)) {
+                    name = name.replace(virtualName, actualName);
+                }
             }
         }
         return name;
@@ -229,20 +240,22 @@ public class RepoPkgNameMapperService {
      * @return name.
      */
     public String getSimpleName(String virtualName, List<String> lines, String repo) {
-        String actualLine = lines.stream().filter(line ->
-                (line.contains("%global") || line.contains("%define")) && line.contains(virtualName)
-        ).findFirst().orElse(null);
-        if (StringUtils.isBlank(actualLine)) {
-            return null;
-        }
+        List<String> globalLines = lines.stream().filter(
+            line -> !StringUtils.isBlank(line) && (line.startsWith("%global") || line.startsWith("%define"))
+        ).collect(Collectors.toList());
 
-        String[] splits = actualLine.split(" ");
-        String res = Arrays.stream(splits).filter(s -> !StringUtils.isBlank(StringUtils.trimToNull(s))).filter(s ->
-            !s.equals(virtualName) && !s.equals("%global") && !s.equals("%define")
-        ).findFirst().orElse(null);
-        if (res == null) {
-            LOGGER.info("the {} micro is not defined, repo: {}", virtualName, repo);
+        for (String globalLine : globalLines) {
+            List<String> pieces = Arrays.stream(globalLine.split(" ")).filter(StringUtils::isNotBlank)
+                    .collect(Collectors.toList());
+            if (pieces == null || pieces.size() != 3) {
+                continue;
+            }
+            if ((pieces.get(0).equals("%global") || pieces.get(0).equals("%define"))
+                    && pieces.get(1).equals(virtualName)) {
+                return pieces.get(2);
+            }
         }
-        return res;
+        LOGGER.info("the {} micro is not defined, repo: {}", virtualName, repo);
+        return null;
     }
 }
