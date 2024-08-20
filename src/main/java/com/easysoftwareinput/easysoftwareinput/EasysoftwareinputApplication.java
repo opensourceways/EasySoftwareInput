@@ -28,13 +28,14 @@ import com.baomidou.mybatisplus.autoconfigure.DdlApplicationRunner;
 
 @EnableAsync
 @EnableRetry
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.easysoftwareinput"})
 @ComponentScan(basePackages = {"com.easysoftwareinput.*"})
 @MapperScan("com.easysoftwareinput.infrastructure.mapper")
 @EnableTransactionManagement
 public class EasysoftwareinputApplication {
     /**
      * run the program.
+     *
      * @param args args.
      */
     public static void main(String[] args) {
@@ -46,6 +47,7 @@ public class EasysoftwareinputApplication {
 
     /**
      * slove the issue of mybatis with springboot3.
+     *
      * @param ddlList ddlList.
      * @return DdlApplicationRunner.
      */
