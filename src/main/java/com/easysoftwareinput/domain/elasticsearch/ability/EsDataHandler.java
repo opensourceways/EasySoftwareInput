@@ -11,7 +11,6 @@
 package com.easysoftwareinput.domain.elasticsearch.ability;
 
 import com.easysoftwareinput.common.utils.JsonFileUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.action.update.UpdateRequest;
@@ -22,12 +21,17 @@ import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.core.TimeValue;
 import org.elasticsearch.xcontent.XContentType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-@Slf4j
 @Service
 public class EsDataHandler {
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(EsDataHandler.class);
     /**
      * restHighLevelClient.
      */
@@ -60,7 +64,7 @@ public class EsDataHandler {
             }
 
         } catch (Exception e) {
-            log.error(e.toString());
+            LOGGER.error(e.toString());
         }
 
         return Boolean.FALSE;
@@ -87,19 +91,19 @@ public class EsDataHandler {
         request.timeout("2m");
         try {
             AcknowledgedResponse delete = restHighLevelClient.indices().delete(request, RequestOptions.DEFAULT);
-            log.info("删除索引成功：" + index);
+            LOGGER.info("删除索引成功：" + index);
         } catch (Exception e) {
-            log.error(e.toString());
+            LOGGER.error(e.toString());
         } finally {
             try {
                 restHighLevelClient.close();
             } catch (Exception e) {
-                log.error(e.toString());
+                LOGGER.error(e.toString());
             }
         }
         long end = System.currentTimeMillis();
         //计算删除耗时
-        log.info("删除{}索引成功，耗时：{}", index, end - start);
+        LOGGER.info("删除{}索引成功，耗时：{}", index, end - start);
         return Boolean.TRUE;
 
     }
@@ -118,7 +122,7 @@ public class EsDataHandler {
         try {
             return restHighLevelClient.indices().exists(request, RequestOptions.DEFAULT);
         } catch (Exception e) {
-            log.error(e.toString());
+            LOGGER.error(e.toString());
         }
         return Boolean.FALSE;
     }
@@ -139,7 +143,7 @@ public class EsDataHandler {
         try {
             restHighLevelClient.update(updateRequest, RequestOptions.DEFAULT);
         } catch (Exception e) {
-            log.error(e.toString());
+            LOGGER.error(e.toString());
         }
         return Boolean.TRUE;
     }

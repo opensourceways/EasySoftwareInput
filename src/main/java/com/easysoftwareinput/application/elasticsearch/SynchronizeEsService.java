@@ -14,20 +14,23 @@ import com.alibaba.fastjson.JSONObject;
 import com.easysoftwareinput.domain.elasticsearch.ability.EsDataHandler;
 import com.easysoftwareinput.infrastructure.elasticsearch.SearchGatewayImpl;
 import com.easysoftwareinput.infrastructure.elasticsearch.dataobject.BaseSearchDo;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 
 @Service
-@Slf4j
 public class SynchronizeEsService {
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(SynchronizeEsService.class);
     /**
      * index.
      */
@@ -116,14 +119,14 @@ public class SynchronizeEsService {
                         esDataHandler.updateEsData(index,
                                 JSONObject.toJSONString(d), d.getId() + "#" + d.getDataType());
                     }
-                    log.info("{}插入数据：{}", type, toEsDataList.size());
+                    LOGGER.info("{}插入数据：{}", type, toEsDataList.size());
                 }
                 pageNum++;
             } while (toEsDataList.size() >= pageSize);
             long endTime = System.currentTimeMillis();
-            log.info("{}数据导入完成,耗时:{}", type, endTime - startTime);
+            LOGGER.info("{}数据导入完成,耗时:{}", type, endTime - startTime);
         } catch (Exception e) {
-            log.error(e.toString());
+            LOGGER.error(e.toString());
         }
     }
 

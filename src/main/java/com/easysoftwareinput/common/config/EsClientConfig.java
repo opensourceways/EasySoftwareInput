@@ -10,7 +10,6 @@
 */
 package com.easysoftwareinput.common.config;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -25,11 +24,11 @@ import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.core.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -46,8 +45,11 @@ import java.util.List;
 import java.util.Objects;
 
 @Configuration
-@Slf4j
 public class EsClientConfig {
+    /**
+     * logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(EsClientConfig.class);
     /**
      * host.
      */
@@ -96,7 +98,7 @@ public class EsClientConfig {
             sc = SSLContext.getInstance("SSL");
             sc.init(null, trustAllCerts, new SecureRandom());
         } catch (KeyManagementException | NoSuchAlgorithmException e) {
-            log.error(e.toString());
+            LOGGER.error(e.toString());
         }
         SSLIOSessionStrategy sessionStrategy = new SSLIOSessionStrategy(sc, new NullHostNameVerifier());
         SecuredHttpClientConfigCallback httpClientConfigCallback = new SecuredHttpClientConfigCallback(sessionStrategy,
@@ -109,11 +111,11 @@ public class EsClientConfig {
                         .setSocketTimeout(30 * 1000))
                 .setHttpClientConfigCallback(httpClientConfigCallback);
         final RestHighLevelClient client = new RestHighLevelClient(builder);
-        log.info("es rest client build success {} ", client);
+        LOGGER.info("es rest client build success {} ", client);
 
         ClusterHealthRequest request = new ClusterHealthRequest();
         ClusterHealthResponse response = client.cluster().health(request, RequestOptions.DEFAULT);
-        log.info("es rest client health response  {}", response);
+        LOGGER.info("es rest client health response  {}", response);
 
         return client;
     }
