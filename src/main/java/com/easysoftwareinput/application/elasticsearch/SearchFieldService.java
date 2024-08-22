@@ -8,17 +8,17 @@
  MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  See the Mulan PSL v2 for more details.
 */
+package com.easysoftwareinput.application.elasticsearch;
 
-package com.easysoftwareinput.easysoftwareinput;
+import org.springframework.stereotype.Service;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+@Service
+public class SearchFieldService extends SynchronizeEsService {
 
-@SpringBootTest
-class EasysoftwareinputApplicationTests {
-
-	@Test
-	void contextLoads() {
-	}
-
+    /**
+     * run the program.
+     */
+    public void run() {
+        super.dbDataImportToEs("FIELD");
+    }
 }
