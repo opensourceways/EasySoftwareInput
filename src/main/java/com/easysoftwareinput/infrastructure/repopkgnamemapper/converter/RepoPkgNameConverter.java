@@ -20,8 +20,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.easysoftwareinput.domain.repopkgnamemapper.RepoPkg;
 import com.easysoftwareinput.domain.repopkgnamemapper.RepoPkgNameMapperConfig;
-import com.easysoftwareinput.domain.repopkgnamemapper.RepoPkgNamePkg;
 import com.easysoftwareinput.infrastructure.repopkgnamemapper.dataobject.RepoPkgNameDO;
 
 @Component
@@ -37,7 +37,7 @@ public class RepoPkgNameConverter {
      * @param list list of RepoPkgNamePkg.
      * @return list of RepoPkgNameDO.
      */
-    public List<RepoPkgNameDO> toDo(List<RepoPkgNamePkg> list) {
+    public List<RepoPkgNameDO> toDo(List<RepoPkg> list) {
         List<RepoPkgNameDO> res = list.stream().map(this::toDo).filter(pkg -> !Objects.isNull(pkg))
                 .collect(Collectors.toList());
         return res;
@@ -48,17 +48,16 @@ public class RepoPkgNameConverter {
      * @param pkg RepoPkgNamePkg.
      * @return RepoPkgNameDO.
      */
-    public RepoPkgNameDO toDo(RepoPkgNamePkg pkg) {
-        if (StringUtils.isBlank(pkg.getPkgName())) {
+    public RepoPkgNameDO toDo(RepoPkg pkg) {
+        if (StringUtils.isBlank(pkg.getName())) {
             return null;
         }
         RepoPkgNameDO pkgDo = new RepoPkgNameDO();
-        pkgDo.setOs(pkg.getBranch());
-        pkgDo.setName(pkg.getPkgName());
+        pkgDo.setOs(pkg.getOs());
+        pkgDo.setName(pkg.getName());
         pkgDo.setUpdateAt(new Timestamp(System.currentTimeMillis()));
 
-        String url = String.format(config.getRepoUrlTemplate(), config.getOrg(), pkg.getRepoName());
-        pkgDo.setRepoUrl(url);
+        pkgDo.setRepoUrl(pkg.getRepoUrl());
         pkgDo.setPkgId(pkgDo.getRepoUrl() + pkgDo.getOs() + pkgDo.getName());
         return pkgDo;
     }

@@ -22,7 +22,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -138,7 +137,7 @@ public class GitRepoBatchService {
             if (pkg == null) {
                 continue;
             }
-            if (pkg.isHasSpec() && StringUtils.isBlank(pkg.getRawSpecContext())) {
+            if (pkg.isHasSpec() && pkg.getRawSpecContextList().isEmpty()) {
                 continue;
             }
             resList.add(pkg);

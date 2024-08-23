@@ -13,6 +13,7 @@ package com.easysoftwareinput.application.repopkgnamemapper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Component;
 
 import com.easysoftwareinput.application.rpmpackage.GitRepoBatchService;
 import com.easysoftwareinput.application.rpmpackage.GitRepoService;
+import com.easysoftwareinput.domain.repopkgnamemapper.RepoPkg;
 import com.easysoftwareinput.domain.repopkgnamemapper.RepoPkgNameMapperConfig;
 import com.easysoftwareinput.domain.repopkgnamemapper.RepoPkgNamePkg;
 import com.easysoftwareinput.infrastructure.repopkgnamemapper.RepoPkgNameMapperGatewayImpl;
@@ -118,23 +120,37 @@ public class RepoPkgNameMapperService {
             return;
         }
 
-        List<RepoPkgNamePkg> updatedList = new ArrayList<>();
+        List<RepoPkg> updatedList = new ArrayList<>();
         for (RepoPkgNamePkg pkg : pkgList) {
-            String raw = pkg.getRawSpecContext();
-            if (StringUtils.isBlank(raw)) {
-                continue;
-            }
-            String context = Base64Util.decryptToString(pkg.getRawSpecContext());
-            String pkgName = getSpecficName(context.lines().collect(Collectors.toList()), pkg.getRepoName());
-            if (!StringUtils.isBlank(pkgName)) {
-                pkg.setPkgName(pkgName);
-                updatedList.add(pkg);
-            }
+            updatedList.addAll(parseSpecOfEachPkg(pkg));
         }
         gateway.saveAll(updatedList, existedPkgIds);
         long end = System.currentTimeMillis();
         LOGGER.info("size: {}, time: {}, pkgsize: {}", pkgList.size(), end - start, updatedList.size());
         pkgSize.addAndGet(updatedList.size());
+    }
+
+    /**
+     * parse spec files of each RepoPkgNamePkg.
+     * @param pkg RepoPkgNamePkg.
+     * @return list of RepoPkg.
+     */
+    public List<RepoPkg> parseSpecOfEachPkg(RepoPkgNamePkg pkg) {
+        List<RepoPkg> resList = new ArrayList<>();
+        List<String> rawList = pkg.getRawSpecContextList();
+        for (String raw : rawList) {
+            if (StringUtils.isBlank(raw)) {
+                continue;
+            }
+            String context = Base64Util.decryptToString(raw);
+            List<String> pkgNameList = getSpecficName(context.lines()
+                    .collect(Collectors.toList()), pkg.getRepoName());
+            for (String pkgName : pkgNameList) {
+                String url = String.format(config.getRepoUrlTemplate(), config.getOrg(), pkg.getRepoName());
+                resList.add(RepoPkg.of(pkgName, pkg.getBranch(), url));
+            }
+        }
+        return resList;
     }
 
     /**
@@ -160,17 +176,17 @@ public class RepoPkgNameMapperService {
      * @param file file name.
      * @return name.
      */
-    public String getSpecficName(List<String> lines, String file) {
+    public List<String> getSpecficName(List<String> lines, String file) {
         String fullName = lines.stream().filter(
             line -> StringUtils.startsWithIgnoreCase(line, "name:")
         ).findFirst().orElse("");
         if (StringUtils.isBlank(fullName)) {
-            return null;
+            return Collections.emptyList();
         }
         String name = StringUtils.trimToNull(fullName.substring(5));
         if (StringUtils.isBlank(name)) {
             LOGGER.error("no name, repo: {}", file);
-            return null;
+            return Collections.emptyList();
         }
 
         while (true) {
@@ -183,11 +199,18 @@ public class RepoPkgNameMapperService {
             for (String virtualName : virtualNames) {
                 String actualName = getActualName(virtualName, lines, file);
                 if (!StringUtils.isBlank(actualName)) {
+                    actualName = "%{nil}".equals(actualName) ? "" : actualName;
                     name = name.replace(virtualName, actualName);
                 }
             }
         }
-        return name;
+
+        if (name.contains("ros_distro")) {
+            String name1 = name.replace("ros_distro", "humble");
+            String name2 = name.replace("ros_distro", "noetic");
+            return List.of(name1, name2);
+        }
+        return List.of(name);
     }
 
     /**
@@ -243,9 +266,8 @@ public class RepoPkgNameMapperService {
         List<String> globalLines = lines.stream().filter(
             line -> !StringUtils.isBlank(line) && (line.startsWith("%global") || line.startsWith("%define"))
         ).collect(Collectors.toList());
-
         for (String globalLine : globalLines) {
-            List<String> pieces = Arrays.stream(globalLine.split(" ")).filter(StringUtils::isNotBlank)
+            List<String> pieces = Arrays.stream(StringUtils.split(globalLine)).filter(StringUtils::isNotBlank)
                     .collect(Collectors.toList());
             if (pieces == null || pieces.size() != 3) {
                 continue;
