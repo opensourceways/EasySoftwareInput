@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.easysoftwareinput.domain.repopkgnamemapper.RepoPkgNamePkg;
+import com.easysoftwareinput.domain.repopkgnamemapper.RepoPkg;
 import com.easysoftwareinput.infrastructure.mapper.RepoPkgNameDOMapper;
 import com.easysoftwareinput.infrastructure.repopkgnamemapper.converter.RepoPkgNameConverter;
 import com.easysoftwareinput.infrastructure.repopkgnamemapper.dataobject.RepoPkgNameDO;
@@ -60,7 +60,7 @@ public class RepoPkgNameMapperGatewayImpl extends ServiceImpl<RepoPkgNameDOMappe
      * @param list list of RepoPkgNamePkg.
      * @param existed existed pkgs.
      */
-    public void saveAll(List<RepoPkgNamePkg> list, List<String> existed) {
+    public void saveAll(List<RepoPkg> list, List<String> existed) {
         List<RepoPkgNameDO> doList = converter.toDo(list);
         Map<Boolean, List<RepoPkgNameDO>> map = doList.stream()
                 .collect(Collectors.partitioningBy(pkg -> existed.contains(pkg.getPkgId())));
