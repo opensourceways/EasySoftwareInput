@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easysoftwareinput.infrastructure.mapper.BaseSearchMapper">
+
+    <select id="getRmpSearchList"
+            resultType="com.easysoftwareinput.infrastructure.elasticsearch.dataobject.RpmSearchDo">
+        select DISTINCT 'rpmpkg' as dataType, r.id,r.name,r.version,r.os,r.arch,src_repo as
+        srcRepo,r.summary,r.description,date_format(r.rpm_update_at,'%Y-%m-%d %H:%i:%S') as updatetime,r.rpm_size as
+        size,r.bin_download_url as binDownloadUrl,r.category as category,
+        r.requires as requiresText,r.provides as providesText,r.download_count as downloadCount,r.pkg_id as
+        pkgId,os.origin_pkg as originPkg from (SELECT * FROM rpm_pkg_base limit #{start},#{pagesize}) r left JOIN
+        external_os
+        os ON r.name=os.target_pkg
+    </select>
+    <select id="getAppSearchList"
+            resultType="com.easysoftwareinput.infrastructure.elasticsearch.dataobject.AppSearchDo">
+        SELECT 'application' as
+        dataType,a.*,CONCAT_WS(',',if(ISNULL(a.name),NULL,'IMAGE'),if(ISNULL(a.rpm_name),NULL,'RPM'),if(ISNULL(a.epkg_name),NULL,'EPKG'))
+        as tagsText from (select app.id,app.name,app.app_ver as appVer,app.os,app.arch,app.src_repo as
+        srcRepo,app.category as category,app.icon_url as iconUrl,app.description,app.installation,app.download_count as
+        downloadCount,app.pkg_id as pkgId,app.pkg_id as image,e.pkg_id as epkg,rpm.pkg_id as rpm,e.epkg_update_at as
+        epkgUpdate,rpm.rpm_update_at as rpmUpdate,e.name as epkg_name,rpm.name as rpm_name from (SELECT * FROM
+        application_package limit #{start},#{pagesize}) app LEFT JOIN (SELECT * from (SELECT distinct * FROM epkg_pkg
+        WHERE
+        name in (SELECT name
+        FROM application_package) ORDER BY epkg_update_at DESC ) as ekpg GROUP BY ekpg.name )e ON app.name= e.name LEFT
+        JOIN (SELECT * from (SELECT distinct * FROM rpm_pkg_base WHERE name in (SELECT name FROM application_package)
+        ORDER BY rpm_update_at DESC ) as rpmkg GROUP BY rpmkg.name) rpm ON app.name=rpm.name) a
+    </select>
+    <select id="getAppversionSearchList"
+            resultType="com.easysoftwareinput.infrastructure.elasticsearch.dataobject.AppversionSearchDo">
+
+        SELECT DISTINCT 'appversion' as dataType,id,name, upstream_version as upstreamVersion,up_homepage as upHomepage,
+        backend as backend,openeuler_version as openeulerVersion,ci_version as ciVersion,status as status,euler_homepage
+        as eulerHomepage,euler_os_version as eulerOsVersion FROM application_version limit #{start},#{pagesize}
+    </select>
+    <select id="getFieldSearchList"
+            resultType="com.easysoftwareinput.infrastructure.elasticsearch.dataobject.FieldSearchDo">
+        SELECT 'all' as dataType,os, arch,name,version,category,icon_url as iconUrl ,tags ,pkg_ids as
+        pkgIds,pkg_ids as id,description,maintainers FROM field_package limit #{start},#{pagesize}
+    </select>
+    <select id="getSearchEpkgList"
+            resultType="com.easysoftwareinput.infrastructure.elasticsearch.dataobject.EpkgSearchDo">
+        select DISTINCT 'epkg' as dataType,e.id,e.name,e.version,e.os,e.arch,e.src_repo as srcRepo,e.summary
+        ,e.description ,e.category as category,date_format(e.epkg_update_at,'%Y-%m-%d %H:%i:%S') as
+        updatetime,e.epkg_size as size,e.bin_download_url as
+        binDownloadUrl,REPLACE(REPLACE(JSON_UNQUOTE(JSON_EXTRACT(e.requires, '$[*].name')), '[', ''), ']', '') as
+        requiresText,e.installation as installation, REPLACE(REPLACE(JSON_UNQUOTE(JSON_EXTRACT(e.provides,
+        '$[*].name')), '[', ''), ']', '') as providesText,e.download_count as downloadCount,e.pkg_id as
+        pkgId,os.origin_pkg as originPkg from (SELECT * FROM epkg_pkg limit #{start},#{pagesize}) e left JOIN
+        external_os os ON
+        e.name=os.target_pkg
+    </select>
+    <select id="getSearchOepkgList"
+            resultType="com.easysoftwareinput.infrastructure.elasticsearch.dataobject.OepkgSearchDo">
+        SELECT 'oepkg' as dataType, id,name ,version,os,arch,category,rpm_update_at as rpmUpdateAt,src_repo as srcRepo
+        ,rpm_size as rpmSize ,bin_download_url as binDownloadUrl, pkg_id as pkgId,sub_path as subPath ,license FROM
+        oepkg limit #{start},#{pagesize}
+    </select>
+
+</mapper>
