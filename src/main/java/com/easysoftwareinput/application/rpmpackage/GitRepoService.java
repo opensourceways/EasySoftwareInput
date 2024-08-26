@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.ParseException;
@@ -215,18 +216,22 @@ public class GitRepoService {
             return null;
         }
 
-        RepoFileVO spec = fileList.stream().filter(file ->
-                !Objects.isNull(file.getPath()) && file.getPath().endsWith(".spec")
-        ).findFirst().orElse(null);
+        List<RepoFileVO> specList = fileList.stream().filter(
+            file -> !Objects.isNull(file.getPath()) && file.getPath().endsWith(".spec")
+        ).collect(Collectors.toList());
 
-        if (spec == null) {
+        if (specList == null || specList.size() == 0) {
             pkg.setHasSpec(false);
             return pkg;
         }
 
         pkg.setHasSpec(true);
-        String blob = getBlobFile(pkg.getOrg(), pkg.getRepoName(), spec.getSha());
-        pkg.setRawSpecContext(blob);
+        List<String> blobList = new ArrayList<>();
+        for (RepoFileVO spec : specList) {
+            String blob = getBlobFile(pkg.getOrg(), pkg.getRepoName(), spec.getSha());
+            blobList.add(blob);
+        }
+        pkg.setRawSpecContextList(blobList);
         return pkg;
     }
 

@@ -11,6 +11,9 @@
 
 package com.easysoftwareinput.domain.repopkgnamemapper;
 
+import java.util.Collections;
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -45,7 +48,7 @@ public class RepoPkgNamePkg {
     /**
      * raw context of .spec.
      */
-    private String rawSpecContext;
+    private List<String> rawSpecContextList = Collections.emptyList();
 
     /**
      * create RepoPkgNamePkg object.
