@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import com.easysoftwareinput.common.constant.MapConstant;
 import com.easysoftwareinput.common.entity.MessageCode;
+import com.easysoftwareinput.common.utils.ObjectMapperUtil;
 import com.easysoftwareinput.common.utils.UUidUtil;
 import com.easysoftwareinput.domain.maintainer.MaintainerConfig;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackage;
@@ -235,6 +236,7 @@ public class RPMPackageConverter {
         pkg.setOsSupport(camelMap.get("osName") + "-" + camelMap.get("osVer"));
 
         setPkgRepoAndRepoType(pkg, camelMap, repoNames);
+        reSetRepo(pkg, camelMap);
 
         Long cTime = Long.parseLong(camelMap.get("timeFile"));
         String fTime = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(cTime * 1000));
@@ -268,6 +270,32 @@ public class RPMPackageConverter {
             pkg.setCategory(MapConstant.APP_CATEGORY_MAP.get("others"));
         }
         return pkg;
+    }
+
+    /**
+     * reset the repo.
+     * @param pkg pkg.
+     * @param camelMap camelMap.
+     */
+    public void reSetRepo(RPMPackage pkg, Map<String, String> camelMap) {
+        Map<String, String> repo = ObjectMapperUtil.<String>strToMap(pkg.getRepo());
+        if (repo != null && repo.size() != 0 && !official.equals(repo.get("url"))) {
+            return;
+        }
+        String name = getSrcName(pkg, camelMap);
+        List<String> repoUrlList = repoGateway.getRepoUrlByName(name);
+        if (repoUrlList == null || repoUrlList.isEmpty()) {
+            return;
+        }
+        String url = repoUrlList.get(0);
+        try {
+            pkg.setRepo(objectMapper.writeValueAsString(Map.ofEntries(
+                Map.entry("type", "openEuler官方仓库"),
+                Map.entry("url", url)
+            )));
+        } catch (JsonProcessingException e) {
+            log.error(MessageCode.EC00014.getMsgEn(), e);
+        }
     }
 
     /**
