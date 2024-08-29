@@ -10,7 +10,6 @@
 */
 package com.easysoftwareinput.infrastructure.elasticsearch.dataobject;
 
-import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -181,12 +180,6 @@ public class EpkgSearchDo extends BaseSearchDo {
     private String downloadCount;
 
     /**
-     * Package ID.
-     */
-    @TableId
-    private String pkgId;
-
-    /**
      * subPath.
      */
     private String subPath;
@@ -202,6 +195,7 @@ public class EpkgSearchDo extends BaseSearchDo {
 
     /**
      * get updated time of pkg.
+     *
      * @return updated time of pkg.
      */
     public Timestamp getUpdateTime() {
@@ -213,6 +207,7 @@ public class EpkgSearchDo extends BaseSearchDo {
 
     /**
      * get created time of pkg.
+     *
      * @return created time of pkg.
      */
     public Timestamp getCreateAt() {
@@ -224,6 +219,7 @@ public class EpkgSearchDo extends BaseSearchDo {
 
     /**
      * set updated time of pkg.
+     *
      * @param stamp updated time of pkg.
      */
     public void setUpdateTime(Timestamp stamp) {
@@ -234,6 +230,7 @@ public class EpkgSearchDo extends BaseSearchDo {
 
     /**
      * set updated time of pkg.
+     *
      * @param stamp updated time of pkg.
      */
     public void setCreateAt(Timestamp stamp) {
