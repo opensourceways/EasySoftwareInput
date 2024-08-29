@@ -121,7 +121,6 @@ public class SynchronizeEsService {
                                 JSONObject.toJSONString(d),
                                 (d.getPkgId() == null ? d.getId() : d.getPkgId()) + "#" + d.getDataType());
                     }
-                    LOGGER.info("{}插入数据：{}", type, toEsDataList.size());
                 }
                 pageNum++;
             } while (toEsDataList.size() >= pageSize);
