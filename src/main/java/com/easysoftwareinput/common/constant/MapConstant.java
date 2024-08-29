@@ -37,6 +37,11 @@ public final class MapConstant {
      */
     public static final Map<String, String> APP_CATEGORY_MAP;
 
+    /**
+     * pkg repo map.
+     */
+    public static final Map<String, String> PKG_REPO_MAP;
+
     static {
         Map<String, String> categoryMap = new HashMap<>();
         categoryMap.put("bigdata", "大数据");
@@ -66,5 +71,17 @@ public final class MapConstant {
         maintainerMap.put("email", "");
         maintainerMap.put("gitee_id", "");
         MAINTAINER = Collections.unmodifiableMap(maintainerMap);
+    }
+
+    static {
+        PKG_REPO_MAP = Map.of(
+            "NestOS-kernel", "nestos-kernel",
+            "clang12", "clang",
+            "clang15", "clang-15",
+            "compiler-rt12", "compiler-rt",
+            "llvm-libunwind12", "llvm-libunwind",
+            "llvm12", "llvm",
+            "libomp12", "libomp"
+        );
     }
 }
