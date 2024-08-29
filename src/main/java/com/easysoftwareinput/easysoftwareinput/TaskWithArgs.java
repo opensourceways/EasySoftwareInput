@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 
 import com.easysoftwareinput.application.apppackage.AppPackageService;
@@ -33,6 +34,7 @@ import com.easysoftwareinput.application.operationconfig.OperationConfigService;
 import com.easysoftwareinput.application.rpmpackage.BatchServiceImpl;
 import com.easysoftwareinput.application.rpmpackage.RPMPackageService;
 import com.easysoftwareinput.common.dag.DagTaskExecutor;
+import com.easysoftwareinput.common.dag.DagTaskExecutor.RunningMode;
 
 
 @Component
@@ -152,7 +154,7 @@ public class TaskWithArgs {
             SearchEpkgService searchEpkg = (SearchEpkgService) context.getBean(SearchEpkgService.class);
             SearchFieldService searchField = (SearchFieldService) context.getBean(SearchFieldService.class);
             SearchOepkgService searchOepkg = (SearchOepkgService) context.getBean(SearchOepkgService.class);
-            DagTaskExecutor executor = new DagTaskExecutor();
+            DagTaskExecutor executor = new DagTaskExecutor(RunningMode.NON_INTERRUP);
             executor.addTaskObj("APP", app);
             executor.addTaskObj("APPVER", appVerService);
             executor.addTaskObj("RPMVER", rpmVerService);
@@ -195,7 +197,10 @@ public class TaskWithArgs {
             executor.addDependency("OEPKG", "searchOepkg");
 
             executor.dependencyCheck();
-            executor.executeConcurrent();
+            List<Pair<String, Boolean>> excuteResult = executor.executeConcurrent();
+            for (Pair<String, Boolean> res : excuteResult) {
+                LOGGER.info("task: " + res.getFirst() +  " running results: " + res.getSecond());
+            }
         } else {
             LOGGER.info("unrecognized service: {}", service);
         }
