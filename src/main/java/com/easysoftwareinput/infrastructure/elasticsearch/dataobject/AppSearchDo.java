@@ -62,10 +62,6 @@ public class AppSearchDo extends BaseSearchDo {
     /**
      * Field.
      */
-    private String pkgId;
-    /**
-     * Field.
-     */
     private Timestamp epkgUpdate;
     /**
      * Field.

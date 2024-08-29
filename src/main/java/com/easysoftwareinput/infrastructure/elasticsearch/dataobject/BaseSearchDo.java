@@ -24,5 +24,11 @@ public class BaseSearchDo {
     /**
      * id.
      */
-    private  String id;
+    private String id;
+
+
+    /**
+     * pkgId.
+     */
+    private String pkgId;
 }
