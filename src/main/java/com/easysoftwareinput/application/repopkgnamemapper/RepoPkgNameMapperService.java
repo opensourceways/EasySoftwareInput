@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Component;
 
 import com.easysoftwareinput.application.rpmpackage.GitRepoBatchService;
 import com.easysoftwareinput.application.rpmpackage.GitRepoService;
+import com.easysoftwareinput.common.constant.MapConstant;
 import com.easysoftwareinput.domain.repopkgnamemapper.RepoPkg;
 import com.easysoftwareinput.domain.repopkgnamemapper.RepoPkgNameMapperConfig;
 import com.easysoftwareinput.domain.repopkgnamemapper.RepoPkgNamePkg;
@@ -87,6 +89,7 @@ public class RepoPkgNameMapperService {
             return false;
         }
 
+
         AtomicLong pkgSize = new AtomicLong(0);
         while (!repoNames.isEmpty()) {
             List<RepoPkgNameDO> existedPkgs = gateway.getExistedIds("pkg_id");
@@ -97,7 +100,31 @@ public class RepoPkgNameMapperService {
             copy.removeAll(curRepoNames);
             repoNames.removeAll(copy);
         }
+
+        addPkgManually(pkgSize);
         return validData(start, pkgSize.get());
+    }
+
+    /**
+     * add pkg manually.
+     * @param pkgSize pkg size.
+     */
+    public void addPkgManually(AtomicLong pkgSize) {
+        List<RepoPkgNameDO> existedPkgs = gateway.getExistedIds("pkg_id");
+        List<String> existedPkgIds = existedPkgs.stream().map(RepoPkgNameDO::getPkgId).collect(Collectors.toList());
+
+        Map<String, String> pkgRepo = MapConstant.PKG_REPO_MAP;
+
+        List<RepoPkg> pkgList = new ArrayList<>();
+        for (Map.Entry<String, String> entry : pkgRepo.entrySet()) {
+            String pkgName = entry.getKey();
+            String repo = entry.getValue();
+            String repoUrl = String.format(config.getRepoUrlTemplate(), config.getOrg(), repo);
+            pkgList.add(RepoPkg.of(pkgName, "", repoUrl));
+        }
+
+        gateway.saveAll(pkgList, existedPkgIds);
+        pkgSize.addAndGet(pkgList.size());
     }
 
     /**
