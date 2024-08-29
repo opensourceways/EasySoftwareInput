@@ -174,10 +174,6 @@ public class OepkgSearchDo extends BaseSearchDo {
      * Download count information.
      */
     private String downloadCount;
-    /**
-     * pkgId.
-     */
-    private String pkgId;
 
     /**
      * get updated time of pkg.

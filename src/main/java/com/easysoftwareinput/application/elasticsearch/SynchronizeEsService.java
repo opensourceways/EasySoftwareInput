@@ -85,7 +85,7 @@ public class SynchronizeEsService {
             long startTime = System.currentTimeMillis();
             List<BaseSearchDo> toEsDataList = new ArrayList<>();
             int pageNum = 0;
-            int pageSize = 1000;
+            int pageSize = 3000;
             do {
                 toEsDataList.clear();
                 switch (type) {
@@ -118,7 +118,8 @@ public class SynchronizeEsService {
                 if (!CollectionUtils.isEmpty(toEsDataList)) {
                     for (BaseSearchDo d : toEsDataList) {
                         esDataHandler.updateEsData(index,
-                                JSONObject.toJSONString(d), d.getId() + "#" + d.getDataType());
+                                JSONObject.toJSONString(d),
+                                (d.getPkgId() == null ? d.getId() : d.getPkgId()) + "#" + d.getDataType());
                     }
                     LOGGER.info("{}插入数据：{}", type, toEsDataList.size());
                 }
