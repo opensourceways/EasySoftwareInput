@@ -147,6 +147,8 @@ public final class MapConstant {
 
         pkgRepoMap.put("containerd.io", "containerd");
 
+        pkgRepoMap.put("lustre-client", "lustre");
+
         PKG_REPO_MAP = Collections.unmodifiableMap(pkgRepoMap);
     }
 }
