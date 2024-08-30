@@ -38,7 +38,7 @@ public final class MapConstant {
     public static final Map<String, String> APP_CATEGORY_MAP;
 
     /**
-     * pkg repo map.
+     * key is the pkg name, value is the repo, for repo_pkg_name table.
      */
     public static final Map<String, String> PKG_REPO_MAP;
 
@@ -74,14 +74,79 @@ public final class MapConstant {
     }
 
     static {
-        PKG_REPO_MAP = Map.of(
-            "NestOS-kernel", "nestos-kernel",
-            "clang12", "clang",
-            "clang15", "clang-15",
-            "compiler-rt12", "compiler-rt",
-            "llvm-libunwind12", "llvm-libunwind",
-            "llvm12", "llvm",
-            "libomp12", "libomp"
-        );
+        Map<String, String> pkgRepoMap = new HashMap<>();
+        pkgRepoMap.put("NestOS-kernel", "nestos-kernel");
+        pkgRepoMap.put("clang12", "clang");
+        pkgRepoMap.put("clang15", "clang-15");
+        pkgRepoMap.put("compiler-rt12", "compiler-rt");
+        pkgRepoMap.put("llvm-libunwind12", "llvm-libunwind");
+        pkgRepoMap.put("llvm12", "llvm");
+        pkgRepoMap.put("libomp12", "libomp");
+
+        pkgRepoMap.put("kernel-visionfive-devel", "kernel");
+        pkgRepoMap.put("kernel-hck-devel", "kernel");
+        pkgRepoMap.put("kernel-hck", "kernel");
+        pkgRepoMap.put("kernel-d1-official-devel", "kernel");
+        pkgRepoMap.put("patch-kernel-5.10.0-153.12.0.92.oe2203sp2-ACC", "kernel");
+        pkgRepoMap.put("patch-kernel-5.10.0-182.0.0.95.oe2203sp3-ACC", "kernel");
+        pkgRepoMap.put("kernel-unmatched-devel", "kernel");
+        pkgRepoMap.put("kernel-d1-devel", "kernel");
+        pkgRepoMap.put("kernel-visionfive-source", "kernel");
+        pkgRepoMap.put("kernel-d1-official-source", "kernel");
+        pkgRepoMap.put("kernel-d1-official-headers", "kernel");
+        pkgRepoMap.put("patch-kernel-5.10.0-136.12.0.86.oe2203sp1-ACC", "kernel");
+        pkgRepoMap.put("patch-kernel-4.19.90-2312.1.0.0255.oe2003sp4-ACC", "kernel");
+        pkgRepoMap.put("kernel-hck-debuginfo", "kernel");
+        pkgRepoMap.put("kernel-visionfive", "kernel");
+        pkgRepoMap.put("kernel-d1", "kernel");
+        pkgRepoMap.put("kernel-d1-headers", "kernel");
+        pkgRepoMap.put("kernel-unmatched-source", "kernel");
+        pkgRepoMap.put("kernel-hck-debugsource", "kernel");
+        pkgRepoMap.put("patch-kernel-4.19.90-2112.8.0.0131.oe1-ACC", "kernel");
+        pkgRepoMap.put("kernel-d1-official", "kernel");
+        pkgRepoMap.put("kernel-hck-headers", "kernel");
+        pkgRepoMap.put("kernel-unmatched-headers", "kernel");
+        pkgRepoMap.put("kernel-visionfive-headers", "kernel");
+        pkgRepoMap.put("kernel-unmatched", "kernel");
+        pkgRepoMap.put("patch-kernel-4.19.90-2207.2.0.0158.oe1-ACC", "kernel");
+        pkgRepoMap.put("kernel-d1-source", "kernel");
+
+        pkgRepoMap.put("ros-noetic-catkin", "ros_comm");
+        pkgRepoMap.put("ros-humble-octovis", "ros_comm");
+        pkgRepoMap.put("ros-humble-dynamic-edt-3d", "ros_comm");
+        pkgRepoMap.put("ros-noetic-rosconsole-bridge", "ros_comm");
+        pkgRepoMap.put("ros-humble-octovis-debuginfo", "ros_comm");
+        pkgRepoMap.put("ros-humble-dynamic-edt-3d-debugsource", "ros_comm");
+        pkgRepoMap.put("ros-humble-laser-proc-debugsource", "ros_comm");
+        pkgRepoMap.put("ros-noetic-rosconsole-bridge-debugsource", "ros_comm");
+        pkgRepoMap.put("ros-humble-can-msgs", "ros_comm");
+        pkgRepoMap.put("ros-humble-laser-proc", "ros_comm");
+        pkgRepoMap.put("ros-humble-dynamic-edt-3d-debuginfo", "ros_comm");
+        pkgRepoMap.put("ros-humble-octomap-debuginfo", "ros_comm");
+        pkgRepoMap.put("ros-noetic-laser-proc", "ros_comm");
+        pkgRepoMap.put("ros-humble-laser-proc-debuginfo", "ros_comm");
+        pkgRepoMap.put("ros-humble-octomap", "ros_comm");
+        pkgRepoMap.put("ros-noetic-laser-proc-debuginfo", "ros_comm");
+        pkgRepoMap.put("ros-noetic-laser-proc-debugsource", "ros_comm");
+        pkgRepoMap.put("ros-humble-octomap-debugsource", "ros_comm");
+
+        pkgRepoMap.put("umdk-urma-debuginfo", "umdk-urma");
+        pkgRepoMap.put("umdk-urma-bin", "umdk-urma");
+        pkgRepoMap.put("umdk-urma-compat-hns-lib", "umdk-urma");
+        pkgRepoMap.put("umdk-urma-tools", "umdk-urma");
+        pkgRepoMap.put("umdk-urma-debugsource", "umdk-urma");
+        pkgRepoMap.put("umdk-urma-lib", "umdk-urma");
+        pkgRepoMap.put("umdk-urma-devel", "umdk-urma");
+
+        pkgRepoMap.put("python-ovs-help", "python-ovsdbapp");
+        pkgRepoMap.put("python3-ovs", "python-ovsdbapp");
+
+        pkgRepoMap.put("python3-appdirs", "python-appdirs");
+
+        pkgRepoMap.put("python3-keras-applications", "python-Keras");
+
+        pkgRepoMap.put("containerd.io", "containerd");
+
+        PKG_REPO_MAP = Collections.unmodifiableMap(pkgRepoMap);
     }
 }
