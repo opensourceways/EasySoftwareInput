@@ -130,13 +130,13 @@ public final class MapConstant {
         pkgRepoMap.put("ros-noetic-laser-proc-debugsource", "ros_comm");
         pkgRepoMap.put("ros-humble-octomap-debugsource", "ros_comm");
 
-        pkgRepoMap.put("umdk-urma-debuginfo", "umdk-urma");
-        pkgRepoMap.put("umdk-urma-bin", "umdk-urma");
-        pkgRepoMap.put("umdk-urma-compat-hns-lib", "umdk-urma");
-        pkgRepoMap.put("umdk-urma-tools", "umdk-urma");
-        pkgRepoMap.put("umdk-urma-debugsource", "umdk-urma");
-        pkgRepoMap.put("umdk-urma-lib", "umdk-urma");
-        pkgRepoMap.put("umdk-urma-devel", "umdk-urma");
+        pkgRepoMap.put("umdk-urma-debuginfo", "umdk");
+        pkgRepoMap.put("umdk-urma-bin", "umdk");
+        pkgRepoMap.put("umdk-urma-compat-hns-lib", "umdk");
+        pkgRepoMap.put("umdk-urma-tools", "umdk");
+        pkgRepoMap.put("umdk-urma-debugsource", "umdk");
+        pkgRepoMap.put("umdk-urma-lib", "umdk");
+        pkgRepoMap.put("umdk-urma-devel", "umdk");
 
         pkgRepoMap.put("python-ovs-help", "python-ovsdbapp");
         pkgRepoMap.put("python3-ovs", "python-ovsdbapp");
