@@ -136,12 +136,16 @@ public final class MapConstant {
         pkgRepoMap.put("umdk-urma-tools", "umdk");
         pkgRepoMap.put("umdk-urma-debugsource", "umdk");
         pkgRepoMap.put("umdk-urma-lib", "umdk");
+        pkgRepoMap.put("umdk-urma", "umdk");
         pkgRepoMap.put("umdk-urma-devel", "umdk");
 
         pkgRepoMap.put("python-ovs-help", "python-ovsdbapp");
+        pkgRepoMap.put("python-ovs", "python-ovsdbapp");
         pkgRepoMap.put("python3-ovs", "python-ovsdbapp");
-
+    
         pkgRepoMap.put("python3-appdirs", "python-appdirs");
+        pkgRepoMap.put("python-appdirs", "python-appdirs");
+        pkgRepoMap.put("pythono-appdirs", "python-appdirs");
 
         pkgRepoMap.put("python3-keras-applications", "python-Keras");
 
