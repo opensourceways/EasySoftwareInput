@@ -90,6 +90,9 @@ oepkg:
     - os: openEuler-24.03-LTS
       url: https://repo.oepkgs.net/openeuler/rpm/openEuler-24.03-LTS/
       target: primary.xml.gz
+    - os: openEuler-24.09-LTS
+      url: https://repo.oepkgs.net/openeuler/rpm/openEuler-24.09-LTS/
+      target: primary.xml.gz
 
 epkg:
   list:
