@@ -39,6 +39,7 @@ import com.easysoftwareinput.common.utils.ObjectMapperUtil;
 import com.easysoftwareinput.common.utils.YamlUtil;
 import com.easysoftwareinput.domain.appver.AppVerConfig;
 import com.easysoftwareinput.domain.appver.AppVersion;
+import com.easysoftwareinput.domain.appver.FedoraMonitorVO;
 import com.easysoftwareinput.infrastructure.appver.AppVerGatewayImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -78,6 +79,12 @@ public class RpmVerService {
     private AppVerGatewayImpl gateway;
 
     /**
+     * fedora monitor service.
+     */
+    @Autowired
+    private FedoraMonitorService fedoraMonitorService;
+
+    /**
      * get alias.
      * @return map of alias.
      */
@@ -109,9 +116,43 @@ public class RpmVerService {
             vList.add(v);
         }
 
+        vList.addAll(addFedoraMonitorPkg());
+
         gateway.saveAll(appService.filter(vList));
+
+
         LOGGER.info("finish-rpm-version");
     }
+
+    /**
+     * add fedora monitor pkg.
+     * @return list of AppVersion.
+     */
+    public List<AppVersion> addFedoraMonitorPkg() {
+        List<String> pkgList = readFileByLine(config.getFedoraMonitorTxt());
+        Set<String> pkgs = validPkgs(pkgList);
+        List<AppVersion> verList = new ArrayList<>();
+        for (String pkgName : pkgs) {
+            FedoraMonitorVO upstreamPkg = fedoraMonitorService.getUpstream(pkgName);
+            if (upstreamPkg == null) {
+                continue;
+            }
+            AppVersion pkg = new AppVersion();
+            pkg.setUpstreamVersion(upstreamPkg.getFirstStableVersion());
+            pkg.setName(pkgName);
+            pkg.setType("rpm");
+
+            EulerRpmVerOs euler = getEulerVersion(pkgName, config.getRpmEuler());
+            if (euler != null) {
+                pkg.setEulerOsVersion(euler.getOs());
+                setEulerVersion(pkg, euler.getVer());
+            }
+            verList.add(pkg);
+        }
+        return verList;
+
+    }
+
 
     /**
      * get euler version from list.
@@ -229,7 +270,7 @@ public class RpmVerService {
             JsonNode info = ObjectMapperUtil.toJsonNode(response);
             JsonNode data = info.get("data");
             ArrayNode list = (ArrayNode) data.get("list");
-            JsonNode l = list.get(0);
+            JsonNode l = list.get(0).get(0);
             String ver = l.get("newestVersion").asText();
             String os = l.get("os").asText();
 
