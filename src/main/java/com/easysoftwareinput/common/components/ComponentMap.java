@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import com.easysoftwareinput.domain.rpmpackage.model.RPMPackageDO;
 import com.easysoftwareinput.infrastructure.apppkg.dataobject.AppDo;
 import com.easysoftwareinput.infrastructure.epkgpkg.dataobject.EpkgDo;
+import com.easysoftwareinput.infrastructure.oepkg.dataobject.OepkgDO;
 import com.easysoftwareinput.infrastructure.rpmpkg.converter.IConverter;
 
 @Component
@@ -30,6 +31,8 @@ public class ComponentMap {
             return iConverterMap.get("EPKG");
         } else if (AppDo.class.equals(cls)) {
             return iConverterMap.get("APP");
+        } else if (OepkgDO.class.equals(cls)) {
+            return iConverterMap.get("OEPKG");
         } else {
             return null;
         }

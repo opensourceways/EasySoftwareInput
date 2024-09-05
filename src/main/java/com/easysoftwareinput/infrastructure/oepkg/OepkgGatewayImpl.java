@@ -155,10 +155,6 @@ public class OepkgGatewayImpl extends ServiceImpl<OepkgDOMapper, OepkgDO> {
         QueryWrapper<OepkgDO> wrapper = new QueryWrapper<>();
         wrapper.select("os, arch, name, version, category, pkg_id, description");
         wrapper.eq("os", os);
-        wrapper.and(i -> i.notLike("sub_path", "update"));
-        wrapper.and(i -> i.likeRight("sub_path", "EPOL").or()
-                .likeRight("sub_path", "everything").or()
-                .likeRight("sub_path", "OS"));
         return baseMapper.selectList(wrapper);
     }
 
