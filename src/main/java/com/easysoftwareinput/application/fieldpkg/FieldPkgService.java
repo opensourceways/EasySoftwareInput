@@ -37,6 +37,8 @@ import com.easysoftwareinput.infrastructure.epkgpkg.EpkgGatewayImpl;
 import com.easysoftwareinput.infrastructure.epkgpkg.dataobject.EpkgDo;
 import com.easysoftwareinput.infrastructure.fieldpkg.FieldGatewayImpl;
 import com.easysoftwareinput.infrastructure.fieldpkg.converter.FieldConverter;
+import com.easysoftwareinput.infrastructure.oepkg.OepkgGatewayImpl;
+import com.easysoftwareinput.infrastructure.oepkg.dataobject.OepkgDO;
 import com.easysoftwareinput.infrastructure.rpmpkg.IDataObject;
 import com.easysoftwareinput.infrastructure.rpmpkg.RpmGatewayImpl;
 
@@ -48,7 +50,8 @@ public class FieldPkgService {
     /**
      * order.
      */
-    private static final List<Class<?>> ORDER = List.of(AppDo.class, RPMPackageDO.class, EpkgDo.class);
+    private static final List<Class<?>> ORDER = List.of(AppDo.class, RPMPackageDO.class, EpkgDo.class,
+            OepkgDO.class);
     /**
      * rpm gateway.
      */
@@ -72,6 +75,12 @@ public class FieldPkgService {
      */
     @Autowired
     private AppGatewayImpl appGateway;
+
+    /**
+     * oepkg gateway.
+     */
+    @Autowired
+    private OepkgGatewayImpl oepkgGateway;
 
     /**
      * field gateway.
@@ -109,9 +118,19 @@ public class FieldPkgService {
      * @param os os.
      * @return map of rpm.
      */
-
     private List<FieldDTO> getRPMList(String os) {
         List doList = rpmGateway.getPkg(os);
+        return fieldConverter.toFieldDto(doList);
+    }
+
+    /**
+     * get oepkg.
+     *
+     * @param os os.
+     * @return map of oepkg.
+     */
+    private List<FieldDTO> getOepkgList(String os) {
+        List doList = oepkgGateway.getPkg(os);
         return fieldConverter.toFieldDto(doList);
     }
 
@@ -167,16 +186,13 @@ public class FieldPkgService {
     }
 
     /**
-     * convert rpm, epkg, app to field pkg.
-     *
-     * @param rpm  rpm.
-     * @param epkg epkg.
-     * @param app  app.
-     * @return list of field pkg.
+     * map fielddto to Field.
+     * @param listList list of FieldDTO.
+     * @return list of Field.
      */
-    private List<Field> mapToField(List<FieldDTO> rpm, List<FieldDTO> epkg, List<FieldDTO> app) {
+    private List<Field> mapToField(List<List<FieldDTO>> listList) {
         Map<String, List<FieldDTO>> uniqueMap = new HashMap<>();
-        for (List<FieldDTO> list : List.of(rpm, epkg, app)) {
+        for (List<FieldDTO> list : listList) {
             Map<String, List<FieldDTO>> curMap = list.stream().collect(Collectors.groupingBy(
                 pkg -> pkg.getOs() + pkg.getName() + pkg.getArch()
             ));
@@ -215,6 +231,8 @@ public class FieldPkgService {
                 setTag(field, "EPKG", iDataObject);
             } else if (AppDo.class.equals(cls)) {
                 setTag(field, "IMAGE", iDataObject);
+            } else if (OepkgDO.class.equals(cls)) {
+                setTag(field, "OEPKG", iDataObject);
             }
         }
 
@@ -235,7 +253,9 @@ public class FieldPkgService {
         field.setOs(idaDataObject.getOs());
         field.setArch(idaDataObject.getArch());
         field.setName(idaDataObject.getName());
-        if (RPMPackageDO.class.equals(idaDataObject.getClass()) || EpkgDo.class.equals(idaDataObject.getClass())) {
+        if (RPMPackageDO.class.equals(idaDataObject.getClass())
+                || EpkgDo.class.equals(idaDataObject.getClass())
+                || OepkgDO.class.equals(idaDataObject.getClass())) {
             field.setVersion(idaDataObject.getVersion());
         } else if (AppDo.class.equals(idaDataObject.getClass())) {
             field.setVersion(idaDataObject.getAppVer());
@@ -281,11 +301,13 @@ public class FieldPkgService {
         List<String> rpmOsList = rpmGateway.getOs();
         List<String> epkgOsList = epkgGateway.getOs();
         List<String> appOsList = appGateway.getOs();
+        List<String> oepkgOsList = oepkgGateway.getOs();
 
         Set<String> osSet = new HashSet<>();
         osSet.addAll(rpmOsList);
         osSet.addAll(epkgOsList);
         osSet.addAll(appOsList);
+        osSet.addAll(oepkgOsList);
 
         for (String os : osSet) {
             // 是否启动单刷os
@@ -305,10 +327,11 @@ public class FieldPkgService {
 
             List<FieldDTO> app = getAppList(os);
 
-            List<Field> fList = mapToField(rpm, epkg, app);
+            List<FieldDTO> oepkg = getOepkgList(os);
+
+            List<Field> fList = mapToField(List.of(rpm, epkg, app, oepkg));
 
             fieldGateway.saveAll(fList, existedPkgs);
-
             log.info("finish field pkg:" + os);
         }
     }

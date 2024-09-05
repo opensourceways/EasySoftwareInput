@@ -20,13 +20,15 @@ import com.easysoftwareinput.common.utils.UUidUtil;
 import com.easysoftwareinput.domain.oepkg.model.OePkg;
 import com.easysoftwareinput.infrastructure.BasePackageDO;
 import com.easysoftwareinput.infrastructure.oepkg.dataobject.OepkgDO;
+import com.easysoftwareinput.infrastructure.rpmpkg.IDataObject;
+import com.easysoftwareinput.infrastructure.rpmpkg.converter.IConverter;
 import com.power.common.util.StringUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Component("OEPKG")
 @Slf4j
-public class OepkgConverter {
+public class OepkgConverter implements IConverter {
         /**
      * convert rpm pkg to rpm data object.
      * @param pkgList lsit of rpm pkg.
@@ -228,5 +230,26 @@ public class OepkgConverter {
      */
     public String[] splitBase(String cBase) {
         return cBase.split("/rpm/");
+    }
+
+    /**
+     * pick one IDataObject from list.
+     */
+    @Override
+    public IDataObject pickOneFromList(List<IDataObject> list) {
+        List<IDataObject> versionList = getLatestVersion(list);
+        if (versionList == null || versionList.isEmpty()) {
+            return null;
+        } else {
+            return versionList.get(0);
+        }
+    }
+
+    /**
+     * get map of IDataObject by version.
+     */
+    @Override
+    public Map<String, List<IDataObject>> getVersionMap(List<IDataObject> list) {
+        return list.stream().collect(Collectors.groupingBy(IDataObject::getVersion));
     }
 }
