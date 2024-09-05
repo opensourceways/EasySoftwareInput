@@ -35,4 +35,14 @@ public class AppVerConfig {
      * rpm alias.
      */
     private String rpmAlias;
+
+    /**
+     * fedora monitor url.
+     */
+    private String fedoraMonitorUrl;
+
+    /**
+     * fedora monitor txt.
+     */
+    private String fedoraMonitorTxt;
 }
