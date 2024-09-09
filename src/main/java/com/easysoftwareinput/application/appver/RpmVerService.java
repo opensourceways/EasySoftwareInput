@@ -146,6 +146,7 @@ public class RpmVerService {
             if (euler != null) {
                 pkg.setEulerOsVersion(euler.getOs());
                 setEulerVersion(pkg, euler.getVer());
+                appService.setStatus(pkg);
             }
             verList.add(pkg);
         }

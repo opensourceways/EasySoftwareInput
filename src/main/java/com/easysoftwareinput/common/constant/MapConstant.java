@@ -154,6 +154,8 @@ public final class MapConstant {
         pkgRepoMap.put("lustre-client", "lustre");
 
         pkgRepoMap.put("docker-proxy", "docker");
+        pkgRepoMap.put("docker-ce-cli", "docker");
+        pkgRepoMap.put("docker-ce", "docker");
 
         PKG_REPO_MAP = Collections.unmodifiableMap(pkgRepoMap);
     }
