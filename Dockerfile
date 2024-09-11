@@ -1,9 +1,5 @@
 FROM openeuler/openeuler:22.03-lts-sp1 as BUILDER
 
-RUN sed -i "s|repo.openeuler.org|mirrors.nju.edu.cn/openeuler|g" /etc/yum.repos.d/openEuler.repo \
-    && sed -i '/metalink/d' /etc/yum.repos.d/openEuler.repo \
-    && sed -i '/metadata_expire/d' /etc/yum.repos.d/openEuler.repo 
-
 RUN cd / \
     && yum install -y wget \
     && wget https://mirrors.tuna.tsinghua.edu.cn/Adoptium/17/jdk/x64/linux/OpenJDK17U-jdk_x64_linux_hotspot_17.0.12_7.tar.gz \
@@ -24,10 +20,6 @@ RUN cd /EasySoftware \
 
 FROM openeuler/openeuler:22.03-lts-sp1
 
-RUN sed -i "s|repo.openeuler.org|mirrors.nju.edu.cn/openeuler|g" /etc/yum.repos.d/openEuler.repo \
-    && sed -i '/metalink/d' /etc/yum.repos.d/openEuler.repo \
-    && sed -i '/metadata_expire/d' /etc/yum.repos.d/openEuler.repo 
-
 RUN yum update -y \
     && yum install -y shadow passwd
 
@@ -39,6 +31,9 @@ ENV WORKSPACE=/home/easysoftware
 WORKDIR ${WORKSPACE}
 
 COPY --chown=easysoftware --from=Builder /EasySoftware/target/easysoftwareinput-0.0.1-SNAPSHOT.jar ${WORKSPACE}/target/easysoftwareinput-0.0.1-SNAPSHOT.jar
+
+RUN mkdir -p /home/easysoftware/pkg/appver \
+    && chown -R easysoftware:easysoftware /home/easysoftware
 
 RUN echo "umask 027" >> /home/easysoftware/.bashrc \
     && echo "umask 027" >> /root/.bashrc \
