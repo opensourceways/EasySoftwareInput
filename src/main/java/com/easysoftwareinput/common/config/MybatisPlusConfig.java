@@ -11,15 +11,24 @@
 
 package com.easysoftwareinput.common.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.baomidou.mybatisplus.core.config.GlobalConfig;
+import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.DynamicTableNameInnerInterceptor;
 
 @EnableTransactionManagement
 @Configuration
 public class MybatisPlusConfig {
+    /**
+     * backup.
+     */
+    @Value("${backup}")
+    private boolean backup;
+
     /**
      * create a mybatis injector.
      * @return a MySqlInjector.
@@ -38,5 +47,23 @@ public class MybatisPlusConfig {
         GlobalConfig globalConfig = new GlobalConfig();
         globalConfig.setSqlInjector(mySqlInjector());
         return globalConfig;
+    }
+
+    /**
+     * add interceptor.
+     * @return MybatisPlusInterceptor.
+     */
+    @Bean
+    public MybatisPlusInterceptor mybatisPlusInterceptor() {
+        MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
+        DynamicTableNameInnerInterceptor dynamicTableNameInnerInterceptor = new DynamicTableNameInnerInterceptor();
+        dynamicTableNameInnerInterceptor.setTableNameHandler((sql, tableName) -> {
+            if (backup) {
+                return tableName + "_backup";
+            }
+            return tableName;
+        });
+        interceptor.addInnerInterceptor(dynamicTableNameInnerInterceptor);
+        return interceptor;
     }
 }
