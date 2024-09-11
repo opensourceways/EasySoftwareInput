@@ -34,7 +34,7 @@ public final class FileUtil {
     /**
      * logger.
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(YamlUtil.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
 
     /**
      * list sub menus.
