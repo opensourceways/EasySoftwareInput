@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.InputStream;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +74,7 @@ public class ObsService {
      * @param filePath file path to be stored.
      */
     public void putData(String ObjectKey, String filePath) {
-        if (filePath == null) {
+        if (StringUtils.isBlank(filePath)) {
             return;
         }
         PutObjectRequest request = new PutObjectRequest();
