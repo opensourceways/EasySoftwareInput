@@ -40,6 +40,7 @@ import com.easysoftwareinput.common.entity.MessageCode;
 import com.easysoftwareinput.domain.rpmpackage.model.RpmConfig;
 import com.easysoftwareinput.domain.rpmpackage.model.RpmContext;
 import com.easysoftwareinput.infrastructure.BasePackageDO;
+import com.easysoftwareinput.infrastructure.mapper.RPMPackageDOMapper;
 import com.easysoftwareinput.infrastructure.rpmpkg.RpmGatewayImpl;
 
 import lombok.Getter;
@@ -73,6 +74,12 @@ public class RPMPackageService {
      */
     @Autowired
     private Environment env;
+
+    /**
+     * mapper.
+     */
+    @Autowired
+    private RPMPackageDOMapper mapper;
 
     /**
      * thread pool.
@@ -318,6 +325,7 @@ public class RPMPackageService {
             }
         }
 
+        mapper.updateRpmSecurity();
         log.info("finish-rpm-write");
         this.setRows(count.get());
         validData();
