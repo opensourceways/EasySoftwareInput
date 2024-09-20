@@ -98,6 +98,11 @@ public class OepkgService {
     private OePkgEntity oePkgEntity;
 
     /**
+     * maintianer service.
+     */
+    private OepkgMaintainerService maintainerService;
+
+    /**
      * run the program.
      */
     public void run() {
@@ -310,6 +315,9 @@ public class OepkgService {
         initFields(files, getOePkgEntity());
 
         threadService.exeByThread(files, getOePkgEntity());
+
+        maintainerService.updateMaintainerList();
+
         validData();
     }
 }
