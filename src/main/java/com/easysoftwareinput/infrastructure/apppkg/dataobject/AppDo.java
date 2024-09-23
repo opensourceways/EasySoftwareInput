@@ -146,7 +146,7 @@ public class AppDo implements IDataObject {
     /**
      * Security level information.
      */
-    private String securityLevel;
+    private String security;
 
     /**
      * Safety label information.

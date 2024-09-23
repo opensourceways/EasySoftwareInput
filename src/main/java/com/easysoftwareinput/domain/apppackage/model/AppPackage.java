@@ -107,9 +107,9 @@ public class AppPackage extends BasePackage {
     private String arch;
 
     /**
-     * securityLevel of pkg.
+     * security of pkg.
      */
-    private String securityLevel;
+    private String security;
 
     /**
      * safeLabel of pkg.

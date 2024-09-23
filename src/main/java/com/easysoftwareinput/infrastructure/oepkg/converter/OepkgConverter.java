@@ -165,6 +165,7 @@ public class OepkgConverter implements IConverter {
 
         setPkgSubPath(pkg, camelMap);
         setPkgPkgId(pkg);
+        pkg.setSecurity("oepkg");
 
         if (maintainers.containsKey(pkg.getName())) {
             BasePackageDO base = maintainers.get(pkg.getName());
