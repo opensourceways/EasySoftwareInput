@@ -100,6 +100,7 @@ public class OepkgService {
     /**
      * maintianer service.
      */
+    @Autowired
     private OepkgMaintainerService maintainerService;
 
     /**
