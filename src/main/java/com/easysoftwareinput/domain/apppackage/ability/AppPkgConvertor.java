@@ -105,6 +105,7 @@ public class AppPkgConvertor {
         String json = ObjectMapperUtil.writeValueAsString(map);
         AppPackage pkg = ObjectMapperUtil.jsonToObject(json, AppPackage.class);
 
+        pkg.setSecurity("L1");
         pkg.setImageTags((String) map.get("tags"));
         pkg.setImageUsage((String) map.get("usage"));
         pkg.setInstallation((String) map.get("install"));
