@@ -61,6 +61,12 @@ public class RpmVerService {
     private Environment env;
 
     /**
+     * rpmver monitor alias service.
+     */
+    @Autowired
+    private RpmVerMonitorAliasService rpmVerMonitorAliasService;
+
+    /**
      * config.
      */
     @Autowired
@@ -201,8 +207,7 @@ public class RpmVerService {
      * @return AppVersion.
      */
     private AppVersion handleEachPkg(String name, Map<String, List<String>> aliasMap) {
-        Map<String, JsonNode> items = appService.getItems(name, config.getMonurl());
-
+        Map<String, JsonNode> items = getVersionFromMonitor(name);
         Map<String, String> euler = getEulerVersionFromList(name, aliasMap);
 
         AppVersion v = new AppVersion();
@@ -211,6 +216,16 @@ public class RpmVerService {
         fillWithEuler(v, euler);
         fillWithUpCi(v, items);
         return v;
+    }
+
+    /**
+     * get version from monitor.
+     * @param name name.
+     * @return version.
+     */
+    public Map<String, JsonNode> getVersionFromMonitor(String name) {
+        String monitorName = rpmVerMonitorAliasService.getMonitorName(name);
+        return appService.getItems(monitorName, config.getMonurl());
     }
 
     /**
