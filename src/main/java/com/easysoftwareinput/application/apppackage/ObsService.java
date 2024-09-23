@@ -104,7 +104,7 @@ public class ObsService {
     public String generateUrl(String name) {
         String objectKey = name;
         if (!obsClient.doesObjectExist(obsBucketName, objectKey)) {
-            objectKey = "logo.png";
+            objectKey = "logo";
         }
         return "https://" + obsBucketName + "." + obsEndpoint + "/" + objectKey;
     }
