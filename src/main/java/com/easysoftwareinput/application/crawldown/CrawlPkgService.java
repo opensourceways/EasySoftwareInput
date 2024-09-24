@@ -89,7 +89,7 @@ public class CrawlPkgService {
 
         int httpsCount = StringUtils.countMatches(url, "https://");
         int httpCount = StringUtils.countMatches(url, "http://");
-        if (httpsCount > 1 || httpCount > 1) {
+        if (httpsCount + httpCount > 1) {
             return false;
         }
 

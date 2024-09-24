@@ -360,13 +360,15 @@ public class RPMPackageService {
         String filename = pathSplits[pathSplits.length - 1];
         String[] nameSplits = filename.split("_a_");
 
-        String osVer = nameSplits[0].replace("openEuler-", "");
-        String osType = "";
-        try {
-            osType = nameSplits[1];
-        } catch (Exception e) {
-            log.info("nameSplits: {}, filePaht: {}", nameSplits, filePath);
-        }
+        String osVer = "24.09";
+        String osType = nameSplits[3];
+        // String osVer = nameSplits[0].replace("openEuler-", "");
+        // String osType = "";
+        // try {
+        //     osType = nameSplits[1];
+        // } catch (Exception e) {
+        //     log.info("nameSplits: {}, filePaht: {}", nameSplits, filePath);
+        // }
 
         String baseUrlS = assembleBaseUrl(nameSplits);
 

@@ -1,59 +1,8 @@
 rpm:
   list:
-    - os: openEuler-20.03-LTS
-      url: https://repo.openeuler.org/openEuler-20.03-LTS/
-      target: primary.xml.gz
-    - os: openEuler-20.03-LTS-SP1
-      url: https://repo.openeuler.org/openEuler-20.03-LTS-SP1/
-      target: primary.xml.gz
-    - os: openEuler-20.03-LTS-SP2
-      url: https://repo.openeuler.org/openEuler-20.03-LTS-SP2/
-      target: primary.xml.gz
-    - os: openEuler-20.03-LTS-SP3
-      url: https://repo.openeuler.org/openEuler-20.03-LTS-SP3/
-      target: primary.xml.gz
-    - os: openEuler-20.03-LTS-SP4
-      url: https://repo.openeuler.org/openEuler-20.03-LTS-SP4/
-      target: primary.xml.gz
-    - os: openEuler-20.09
-      url: https://archives.openeuler.openatom.cn/openEuler-20.09/
-      target: primary.xml.gz
-    - os: openEuler-21.03
-      url: https://archives.openeuler.openatom.cn/openEuler-21.03/
-      target: primary.xml.gz
-    - os: openEuler-21.09
-      url: https://archives.openeuler.openatom.cn/openEuler-21.09/
-      target: primary.xml.gz
-    - os: openEuler-22.03-LTS
-      url: https://repo.openeuler.org/openEuler-22.03-LTS/
-      target: primary.xml.gz
-    - os: openEuler-22.03-LTS-SP1
-      url: https://repo.openeuler.org/openEuler-22.03-LTS-SP1/
-      target: primary.xml.gz
-    - os: openEuler-22.03-LTS-SP2
-      url: https://repo.openeuler.org/openEuler-22.03-LTS-SP2/
-      target: primary.xml.gz
-    - os: openEuler-22.03-LTS-SP3
-      url: https://repo.openeuler.org/openEuler-22.03-LTS-SP3/
-      target: primary.xml.gz
-    - os: openEuler-22.03-LTS-SP4
-      url: https://repo.openeuler.org/openEuler-22.03-LTS-SP4/
-      target: primary.xml.gz
-    - os: openEuler-22.09
-      url: https://archives.openeuler.openatom.cn/openEuler-22.09/
-      target: primary.xml.gz
-    - os: openEuler-23.03
-      url: https://repo.openeuler.org/openEuler-23.03/
-      target: primary.xml.gz
-    - os: openEuler-23.09
-      url: https://repo.openeuler.org/openEuler-23.09/
-      target: primary.xml.gz
-    - os: openEuler-24.03-LTS
-      url: https://repo.openeuler.org/openEuler-24.03-LTS/
+    - os: openEuler-24.09
+      url: http://121.36.84.172/dailybuild/EBS-openEuler-24.09/
       target: primary.xml.zst
-    - os: openEuler-preview
-      url: https://repo.openeuler.org/openEuler-preview/
-      target: primary.xml.gz
 
 oepkg:
   list:
