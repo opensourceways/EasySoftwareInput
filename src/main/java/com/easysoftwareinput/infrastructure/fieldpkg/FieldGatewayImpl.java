@@ -129,6 +129,17 @@ public class FieldGatewayImpl extends ServiceImpl<FieldDoMapper, FieldDo> {
                 .or(i -> i.like(FieldDo::getTags, "rpm")
                         .and(f -> f.ne(FieldDo::getCategory, unCate)))
                 .list();
+
+        // 架构为aarch64，名字为"x2openEuler", "eulercopilot-cli", "VSCode"的包
+        List<FieldDo> oepkgList = lambdaQuery()
+                .select(FieldDo::getPkgIds, FieldDo::getOs, FieldDo::getArch, FieldDo::getName, FieldDo::getVersion,
+                        FieldDo::getCategory, FieldDo::getIconUrl, FieldDo::getTags, FieldDo::getDescription,
+                        FieldDo::getMaintainers)
+                .eq(FieldDo::getArch, "aarch64")
+                .in(FieldDo::getName, List.of("x2openEuler", "eulercopilot-cli", "VSCode"))
+                .list();
+        
+        dList.addAll(oepkgList);
         Map<String, List<FieldDo>> dMap = dList.stream().collect(Collectors.groupingBy(FieldDo::getName));
         Map<String, FieldDo> fMap = dMap.entrySet().stream().collect(
                 Collectors.toMap(Map.Entry::getKey, e -> this.pickNewestOs(e.getValue())));
