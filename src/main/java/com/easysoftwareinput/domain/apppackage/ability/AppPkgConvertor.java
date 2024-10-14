@@ -148,7 +148,6 @@ public class AppPkgConvertor {
      * @param pkg AppPackage object.
      */
     private void setMaintainer(Map<String, Object> map, AppPackage pkg) {
-        
         Maintainer defaultMaintainer = config.getMaintainer();
         pkg.setMaintainerEmail(defaultMaintainer.getEmail());
         pkg.setMaintainerGiteeId(defaultMaintainer.getGiteeId());
