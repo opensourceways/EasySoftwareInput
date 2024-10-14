@@ -12,7 +12,6 @@
 package com.easysoftwareinput.application.appver;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -149,7 +148,10 @@ public class AppVerService {
         String[] parts = versionAndOs.split("-");
         String version = parts[0];
 
-        String rawOs = StringUtils.join(Arrays.copyOfRange(parts, 1, parts.length), "-");
+        String rawOs = parts[parts.length - 1];
+        if ("lts".equals(rawOs)) {
+            rawOs = parts[parts.length - 2] + "-" + rawOs;
+        }
 
         String os = "";
         if ("oe2203sp3".equals(rawOs)) {
@@ -164,6 +166,10 @@ public class AppVerService {
             os = "openEuler-20.03-LTS-SP1";
         } else if ("oe2403lts".equals(rawOs)) {
             os = "openEuler-24.03-LTS";
+        } else if ("oe2203sp4".equals(rawOs)) {
+            os = "openEuler-22.03-LTS-SP4";
+        } else if ("oe2203sp2".equals(rawOs)) {
+            os = "openEuler-22.03-LTS-SP2";
         } else {
             log.info("unrecognized os: " + rawOs);
         }
