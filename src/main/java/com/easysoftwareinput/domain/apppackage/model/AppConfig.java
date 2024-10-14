@@ -15,4 +15,9 @@ public class AppConfig {
      * remote repo.
      */
     private String remoteRepo;
+
+    /**
+     * maintainer.
+     */
+    private Maintainer maintainer;
 }
