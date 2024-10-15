@@ -58,6 +58,11 @@ public class Field {
     private Set<String> tags;
 
     /**
+     * length of the tags.
+     */
+    private int tagsLength;
+
+    /**
      * Package IDs related to the entity.
      */
     private Map<String, String> pkgIds;

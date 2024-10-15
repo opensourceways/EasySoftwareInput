@@ -60,6 +60,7 @@ public class FieldConverter {
         FieldDo d = new FieldDo();
         BeanUtils.copyProperties(f, d);
         d.setTags(ObjectMapperUtil.writeValueAsString(f.getTags()));
+        d.setTagsLength(d.getTags().length());
 
         Map<String, String> sortedMap = f.getPkgIds().entrySet().stream().sorted(Map.Entry.comparingByKey()).collect(
             Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (s1, s2) -> s1, LinkedHashMap::new)
