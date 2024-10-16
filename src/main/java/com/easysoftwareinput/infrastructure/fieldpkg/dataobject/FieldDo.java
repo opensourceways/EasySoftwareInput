@@ -25,7 +25,7 @@ import java.sql.Timestamp;
 
 @Getter
 @Setter
-@TableName("field_package_partition_by_os")
+@TableName("field_package")
 public class FieldDo implements IDataObject {
     /**
      * Serializable class with a defined serial version UID.
@@ -66,7 +66,6 @@ public class FieldDo implements IDataObject {
     /**
      * The Length of tags to the entity.
      */
-    @TableId(value = "tags_length")
     private int tagsLength;
 
     /**
