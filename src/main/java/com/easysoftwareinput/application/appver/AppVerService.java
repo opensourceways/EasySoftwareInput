@@ -12,7 +12,6 @@
 package com.easysoftwareinput.application.appver;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,6 +28,8 @@ import org.springframework.stereotype.Service;
 
 import com.easysoftwareinput.common.utils.HttpClientUtil;
 import com.easysoftwareinput.common.utils.ObjectMapperUtil;
+import com.easysoftwareinput.domain.apppackage.model.OsTagMonitorAlias;
+import com.easysoftwareinput.domain.apppackage.model.OsTagMonitorAliasConfig;
 import com.easysoftwareinput.domain.appver.AppVersion;
 import com.easysoftwareinput.infrastructure.appver.AppVerGatewayImpl;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -54,6 +55,19 @@ public class AppVerService {
      */
     @Autowired
     private AppVerGatewayImpl gateway;
+
+    /**
+     * gateway.
+     */
+    @Autowired
+    private OsTagMonitorAliasConfig osTagConfig;
+
+
+    /**
+     * alias map.
+     */
+    private Map<String, String> aliasMap = new HashMap<>();
+
 
     /**
      * get iamges.
@@ -149,28 +163,43 @@ public class AppVerService {
         String[] parts = versionAndOs.split("-");
         String version = parts[0];
 
-        String rawOs = StringUtils.join(Arrays.copyOfRange(parts, 1, parts.length), "-");
+        if (aliasMap.isEmpty()) {
+            initAliasMap();
+        }
+
+        String rawOs = parts[parts.length - 1];
+        if ("lts".equals(rawOs)) {
+            rawOs = parts[parts.length - 2] + "-" + rawOs;
+        }
 
         String os = "";
-        if ("oe2203sp3".equals(rawOs)) {
-            os = "openEuler-22.03-LTS-SP3";
-        } else if ("22.03-lts".equals(rawOs)) {
-            os = "openEuler-22.03-LTS";
-        } else if ("20.03-lts-sp1".equals(rawOs)) {
-            os = "openEuler-20.03-LTS-SP1";
-        } else if ("oe2203lts".equals(rawOs)) {
-            os = "openEuler-22.03-LTS";
-        } else if ("oe2003sp1".equals(rawOs)) {
-            os = "openEuler-20.03-LTS-SP1";
-        } else if ("oe2403lts".equals(rawOs)) {
-            os = "openEuler-24.03-LTS";
-        } else {
+        if (aliasMap.containsKey(rawOs)) {
+            os = aliasMap.get(rawOs);
+        }
+
+        if (StringUtils.isBlank(os)) {
             log.info("unrecognized os: " + rawOs);
         }
+
         return Map.ofEntries(
             Map.entry("osVer", os),
             Map.entry("pkgVer", version)
         );
+    }
+
+    /**
+     * init alias map.
+     */
+    public void initAliasMap() {
+        List<OsTagMonitorAlias> aliasList = osTagConfig.getAppMonitorOsAliasList();
+        for (OsTagMonitorAlias alias : aliasList) {
+            String monitorOsTag = alias.getMonitorOsTag();
+            String eulerTag = alias.getEulerTag();
+            if (StringUtils.isBlank(monitorOsTag) || StringUtils.isBlank(eulerTag)) {
+                continue;
+            }
+            aliasMap.put(monitorOsTag, eulerTag);
+        }
     }
 
     /**

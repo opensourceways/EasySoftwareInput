@@ -35,6 +35,7 @@ import com.easysoftwareinput.common.utils.ObjectMapperUtil;
 import com.easysoftwareinput.common.utils.UUidUtil;
 import com.easysoftwareinput.domain.apppackage.model.AppConfig;
 import com.easysoftwareinput.domain.apppackage.model.AppPackage;
+import com.easysoftwareinput.domain.apppackage.model.Maintainer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.power.common.util.StringUtil;
 
@@ -147,24 +148,10 @@ public class AppPkgConvertor {
      * @param pkg AppPackage object.
      */
     private void setMaintainer(Map<String, Object> map, AppPackage pkg) {
-        pkg.setMaintainerEmail(MapConstant.MAINTAINER.get("email"));
-        pkg.setMaintainerGiteeId(MapConstant.MAINTAINER.get("gitee_id"));
-        pkg.setMaintainerId(MapConstant.MAINTAINER.get("id"));
-
-
-        String url = env.getProperty("maintainer.url");
-
-        String res = HttpClientUtil.getHttpClient(url, null, null, null);
-        if (res != null) {
-            JsonNode info = ObjectMapperUtil.toJsonNode(res);
-            if (info.get("code").asInt() == 200 && !info.get("data").isNull()) {
-                JsonNode infoData = info.get("data");
-                Map<String, Object> infoMap = ObjectMapperUtil.jsonToMap(infoData);
-                pkg.setMaintainerGiteeId((String) infoMap.get("gitee_id"));
-                pkg.setMaintainerId((String) infoMap.get("gitee_id"));
-                pkg.setMaintainerEmail((String) infoMap.get("email"));
-            }
-        }
+        Maintainer defaultMaintainer = config.getMaintainer();
+        pkg.setMaintainerEmail(defaultMaintainer.getEmail());
+        pkg.setMaintainerGiteeId(defaultMaintainer.getGiteeId());
+        pkg.setMaintainerId(defaultMaintainer.getId());
     }
 
     /**

@@ -95,6 +95,12 @@ public class FieldPkgService {
     private Environment env;
 
     /**
+     * field icon url service.
+     */
+    @Autowired
+    private FieldIconUrlService iconUrlService;
+
+    /**
      * epkg enable.
      */
     @Value("${epkg.enable}")
@@ -334,5 +340,7 @@ public class FieldPkgService {
             fieldGateway.saveAll(fList, existedPkgs);
             log.info("finish field pkg:" + os);
         }
+
+        iconUrlService.updateIconUrlList();
     }
 }

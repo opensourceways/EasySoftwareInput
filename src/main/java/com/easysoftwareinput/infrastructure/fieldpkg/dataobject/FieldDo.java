@@ -64,6 +64,11 @@ public class FieldDo implements IDataObject {
     private String tags;
 
     /**
+     * The Length of tags to the entity.
+     */
+    private int tagsLength;
+
+    /**
      * Package IDs related to the entity.
      */
     @TableId(value = "pkg_ids")

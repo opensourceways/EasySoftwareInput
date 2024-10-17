@@ -54,6 +54,12 @@ public class DomainPkgService {
     private DomainPackageConverter converter;
 
     /**
+     * icon url service.
+     */
+    @Autowired
+    private DomainIconUrlService iconUrlService;
+
+    /**
      * context.
      */
     private DomainPkgContext context;
@@ -103,6 +109,8 @@ public class DomainPkgService {
         gateway.saveAll(this.context);
 
         validData();
+
+        iconUrlService.updateIconUrlList();
         log.info("finish-write-domain-pkg");
     }
 

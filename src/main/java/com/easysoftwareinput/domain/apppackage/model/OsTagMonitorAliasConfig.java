@@ -1,4 +1,5 @@
 package com.easysoftwareinput.domain.apppackage.model;
+import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -7,17 +8,12 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Component
+@ConfigurationProperties(prefix = "app")
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "app")
-public class AppConfig {
+public class OsTagMonitorAliasConfig {
     /**
-     * remote repo.
+     * app monitor alias list.
      */
-    private String remoteRepo;
-
-    /**
-     * maintainer.
-     */
-    private Maintainer maintainer;
+    private List<OsTagMonitorAlias> appMonitorOsAliasList;
 }
