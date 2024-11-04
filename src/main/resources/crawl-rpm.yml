@@ -51,6 +51,9 @@ rpm:
     - os: openEuler-24.03-LTS
       url: https://repo.openeuler.org/openEuler-24.03-LTS/
       target: primary.xml.zst
+    - os: openEuler-24.09
+      url: https://repo.openeuler.org/openEuler-24.09/
+      target: primary.xml.zst
     - os: openEuler-preview
       url: https://repo.openeuler.org/openEuler-preview/
       target: primary.xml.gz
