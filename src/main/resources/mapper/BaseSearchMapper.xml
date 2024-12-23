@@ -4,7 +4,7 @@
 
     <select id="getRmpSearchList"
             resultType="com.easysoftwareinput.infrastructure.elasticsearch.dataobject.RpmSearchDo">
-        select DISTINCT 'rpmpkg' as dataType, r.id,r.name,r.version,r.os,r.arch,src_repo as
+        select DISTINCT 'rpmpkg' as dataType,r.sub_path as subPath, r.id,r.name,r.version,r.os,r.arch,src_repo as
         srcRepo,r.summary,r.description,date_format(r.rpm_update_at,'%Y-%m-%d %H:%i:%S') as updatetime,r.rpm_size as
         size,r.bin_download_url as binDownloadUrl,r.category as category,
         r.requires as requiresText,r.provides as providesText,r.download_count as downloadCount,r.pkg_id as
