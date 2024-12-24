@@ -77,6 +77,8 @@ public class RpmSearchDo extends BaseSearchDo {
      * Field.
      */
     private String originPkg;
-
-
+    /**
+     * Field.
+     */
+    private String subPath;
 }
