@@ -37,6 +37,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 @Component
 public class FedoraMonitorService {
     /**
+     * rpmver monitor alias service.
+     */
+    @Autowired
+    private RpmVerMonitorAliasService rpmVerMonitorAliasService;
+
+    /**
      * logger.
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(FedoraMonitorService.class);
@@ -87,7 +93,8 @@ public class FedoraMonitorService {
         }
 
         for (String name : possibleNames) {
-            JsonNode items = getResponseFromApiByName(name);
+            String monitorName = rpmVerMonitorAliasService.getMonitorName(name);
+            JsonNode items = getResponseFromApiByName(monitorName);
             List<FedoraMonitorVO> monitorList = extractItemsToFediraMonitorVO(items);
             FedoraMonitorVO monitor = pickOneMonitor(monitorList, pkgName);
             if (monitor != null) {
