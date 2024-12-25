@@ -357,6 +357,7 @@ public class RPMPackageConverter {
      */
     public void setPkgPkgId(RPMPackage pkg) {
         String pkgId = pkg.getOs() + pkg.getSubPath() + pkg.getName() + pkg.getVersion() + pkg.getArch();
+        pkgId = pkgId.replaceAll("/", "");
         pkg.setPkgId(pkgId);
     }
 
@@ -397,7 +398,7 @@ public class RPMPackageConverter {
         String exactSubPath;
         if (suSplits.length >= 2) {
             List<String> list = Stream.of(suSplits).filter(StringUtils::isNotBlank).collect(Collectors.toList());
-            exactSubPath = StringUtils.join(list.subList(1, list.size()), "");
+            exactSubPath = StringUtils.join(list.subList(1, list.size()), "/");
         } else {
             exactSubPath = "";
         }
