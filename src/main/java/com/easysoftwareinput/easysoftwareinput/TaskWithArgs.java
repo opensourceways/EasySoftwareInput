@@ -155,46 +155,46 @@ public class TaskWithArgs {
             SearchFieldService searchField = (SearchFieldService) context.getBean(SearchFieldService.class);
             SearchOepkgService searchOepkg = (SearchOepkgService) context.getBean(SearchOepkgService.class);
             DagTaskExecutor executor = new DagTaskExecutor(RunningMode.NON_INTERRUP);
-            executor.addTaskObj("APP", app);
-            executor.addTaskObj("APPVER", appVerService);
-            executor.addTaskObj("RPMVER", rpmVerService);
+//            executor.addTaskObj("APP", app);
+//            executor.addTaskObj("APPVER", appVerService);
+//            executor.addTaskObj("RPMVER", rpmVerService);
             executor.addTaskObj("RPM", rpm);
-            executor.addTaskObj("DOMAIN", domain);
-            executor.addTaskObj("FIELD", field);
-            executor.addTaskObj("EPKG", epkg);
-            executor.addTaskObj("OEPKG", oepkg);
-            executor.addTaskObj("ARCH", arch);
-            executor.addTaskObj("MAINTAINER", ma);
-
-            executor.addTaskObj("searchRpm", searchRpm);
-            executor.addTaskObj("searchApp", searchApp);
-            executor.addTaskObj("searchAppver", searchAppver);
-            executor.addTaskObj("searchEpkg", searchEpkg);
-            executor.addTaskObj("searchField", searchField);
-            executor.addTaskObj("searchOepkg", searchOepkg);
-
-
-            executor.addDependency("APP", "ARCH");
-            executor.addDependency("RPM", "ARCH");
-            executor.addDependency("FIELD", "ARCH");
-            executor.addDependency("EPKG", "ARCH");
-            executor.addDependency("OEPKG", "ARCH");
-
-            executor.addDependency("FIELD", "DOMAIN");
-
-            executor.addDependency("APP", "FIELD");
-            executor.addDependency("RPM", "FIELD");
-
-            executor.addDependency("MAINTAINER", "RPM");
-            executor.addDependency("APP", "APPVER");
-            executor.addDependency("RPM", "RPMVER");
-
-            executor.addDependency("APP", "searchApp");
-            executor.addDependency("RPM", "searchRpm");
-            executor.addDependency("APPVER", "searchAppver");
-            executor.addDependency("EPKG", "searchEpkg");
-            executor.addDependency("FIELD", "searchField");
-            executor.addDependency("OEPKG", "searchOepkg");
+//            executor.addTaskObj("DOMAIN", domain);
+//            executor.addTaskObj("FIELD", field);
+//            executor.addTaskObj("EPKG", epkg);
+//            executor.addTaskObj("OEPKG", oepkg);
+//            executor.addTaskObj("ARCH", arch);
+//            executor.addTaskObj("MAINTAINER", ma);
+//
+//            executor.addTaskObj("searchRpm", searchRpm);
+//            executor.addTaskObj("searchApp", searchApp);
+//            executor.addTaskObj("searchAppver", searchAppver);
+//            executor.addTaskObj("searchEpkg", searchEpkg);
+//            executor.addTaskObj("searchField", searchField);
+//            executor.addTaskObj("searchOepkg", searchOepkg);
+//
+//
+//            executor.addDependency("APP", "ARCH");
+//            executor.addDependency("RPM", "ARCH");
+//            executor.addDependency("FIELD", "ARCH");
+//            executor.addDependency("EPKG", "ARCH");
+//            executor.addDependency("OEPKG", "ARCH");
+//
+//            executor.addDependency("FIELD", "DOMAIN");
+//
+//            executor.addDependency("APP", "FIELD");
+//            executor.addDependency("RPM", "FIELD");
+//
+//            executor.addDependency("MAINTAINER", "RPM");
+//            executor.addDependency("APP", "APPVER");
+//            executor.addDependency("RPM", "RPMVER");
+//
+//            executor.addDependency("APP", "searchApp");
+//            executor.addDependency("RPM", "searchRpm");
+//            executor.addDependency("APPVER", "searchAppver");
+//            executor.addDependency("EPKG", "searchEpkg");
+//            executor.addDependency("FIELD", "searchField");
+//            executor.addDependency("OEPKG", "searchOepkg");
 
             executor.dependencyCheck();
             List<Pair<String, Boolean>> excuteResult = executor.executeConcurrent();

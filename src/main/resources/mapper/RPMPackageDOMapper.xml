@@ -3,14 +3,14 @@
 <mapper namespace="com.easysoftwareinput.infrastructure.mapper.RPMPackageDOMapper">
     <update id="updateRpmSecurity">
         update rpm_pkg_base set security = CASE
-            WHEN substring(sub_path, 1, 4) = 'EPOL' THEN 'epol'
-            WHEN substring(sub_path, 1, 10) = 'everything' THEN 'L4'
-            WHEN substring(sub_path, 1, 2) = 'OS' THEN 'L3'
+            WHEN substring(replace(sub_path, "/", ""), 1, 4) = 'EPOL' THEN 'epol'
+            WHEN substring(replace(sub_path, "/", ""), 1, 10) = 'everything' THEN 'L4'
+            WHEN substring(replace(sub_path, "/", ""), 1, 2) = 'OS' THEN 'L3'
         end;
 
         update rpm_pkg_base rpm, rpm_maintain_level lel
         set rpm.security = lel.security_level
         where upper(rpm.name) = upper(lel.name)
-        and (substring(rpm.sub_path, 1, 10) = lel.sub_path or substring(rpm.sub_path, 1, 2) = upper(substring(lel.sub_path, 5, 6)));
+        and (substring(replace(rpm.sub_path, "/", ""), 1, 10) = lel.sub_path or substring(replace(rpm.sub_path, "/", ""), 1, 2) = upper(substring(lel.sub_path, 5, 6)));
     </update>
 </mapper>
